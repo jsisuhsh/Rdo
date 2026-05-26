@@ -185,7 +185,9 @@
      function processBetAction() {
          if (!isPlaying) {
              let amount = parseFloat(document.getElementById('bet-amount').value);
-             if (amount < 0.1 || amount > 100) {
+             
+             // Добавлена строгая проверка на корректность числа (чтобы избежать поломки при вводе точек на конце)
+             if (isNaN(amount) || amount < 0.1 || amount > 100) {
                  showToast("Ограничение по ставкам 0,1-100!");
                  return;
              }
