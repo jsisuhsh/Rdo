@@ -68,11 +68,12 @@
      .crash-info { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; pointer-events: none; width: 100%; }
      #crash-multiplier { font-size: 52px; font-weight: 800; color: #fff; margin-bottom: 10px; }
    
-     .rocket-gif { width: 200px; height: auto; display: none; margin-bottom: 10px; will-change: transform; image-rendering: -webkit-optimize-contrast; }
+     /* Изменено для предотвращения смещения элементов вверх/вниз */
+     .rocket-gif { width: 200px; height: 120px; visibility: hidden; margin-bottom: 10px; will-change: transform; image-rendering: -webkit-optimize-contrast; }
 
-     /* Стили для истории раундов под коэффициентом х */
-     .crash-history-container { display: flex; gap: 6px; overflow: hidden; justify-content: center; margin-top: 10px; width: 100%; max-width: 90%; }
-     .history-item { background-color: #161d31; border: 2px solid var(--accent-color); color: #ffffff; padding: 4px 10px; border-radius: 50px; font-size: 12px; font-weight: 700; white-space: nowrap; transition: all 0.3s ease; }
+     /* Стили для истории раундов строго под коэффициентом х */
+     .crash-history-container { display: flex; gap: 6px; overflow: hidden; justify-content: center; margin-top: 10px; width: 100%; max-width: 95%; }
+     .history-item { background-color: #161d31; border: 2px solid var(--accent-color); color: #ffffff; padding: 4px 12px; border-radius: 50px; font-size: 13px; font-weight: 700; white-space: nowrap; transition: all 0.3s ease; }
 
      .bet-container { width: 100%; max-width: 350px; display: flex; gap: 8px; margin-top: 15px; margin-left: auto; margin-right: auto; }
      .bet-input { flex: 1; background: var(--pill-bg); border: none; padding: 8px 12px; border-radius: 20px; color: white; font-size: 14px; text-align: center; }
@@ -222,8 +223,8 @@
      const ROUND_DURATION = 15000;
      const WAIT_DURATION = 5000;
 
-     // Изначальные 10 раундов
-     const startHistory = ['1.45x', '2.10x', '1.12x', '5.60x', '1.05x', '3.21x', '1.88x', '1.18x', '4.02x', '2.55x'];
+     // Изначальные 6 раундов для отображения на старте
+     const startHistory = ['1.45x', '2.10x', '1.12x', '5.60x', '1.05x', '3.21x'];
      startHistory.forEach(mult => {
          let item = document.createElement('div');
          item.className = 'history-item';
@@ -256,7 +257,7 @@
              currentMult = 1.00;
              multiplierEl.innerText = "1.00x";
              multiplierEl.style.color = "#fff";
-             rocketAnim.style.display = 'none';
+             rocketAnim.style.visibility = 'hidden'; /* Изменено с display:none для предотвращения прыжков */
              betInput.disabled = false;
              if (!isPlaying) betBtn.disabled = false;
          } else if (cycleTime > (WAIT_DURATION + ROUND_DURATION)) {
@@ -266,19 +267,23 @@
                  explosionSound.play();
                  explosionVibrated = true;
 
-                 // Добавление в левую часть
+                 // Принудительно фиксируем финальное значение коэффициента
+                 currentMult = Math.pow(1.001, ROUND_DURATION / 20);
+                 multiplierEl.innerText = currentMult.toFixed(2) + "x";
+
+                 // Добавление строго идентичного значения в левую часть
                  let item = document.createElement('div');
                  item.className = 'history-item';
-                 item.innerText = currentMult.toFixed(2) + "x";
+                 item.innerText = multiplierEl.innerText;
                  historyContainer.insertBefore(item, historyContainer.firstChild);
 
-                 // Ограничение в 10 элементов
-                 if (historyContainer.children.length > 10) {
+                 // Ограничение ровно в 6 элементов
+                 if (historyContainer.children.length > 6) {
                      historyContainer.removeChild(historyContainer.lastChild);
                  }
              }
              multiplierEl.style.color = "red";
-             rocketAnim.style.display = 'none';
+             rocketAnim.style.visibility = 'hidden'; /* Изменено с display:none */
              if (isPlaying) { isPlaying = false; betBtn.innerText = "Поставить"; betBtn.classList.remove('cashout'); }
              betInput.disabled = true;
              betBtn.disabled = true;
@@ -288,7 +293,7 @@
              currentMult = Math.pow(1.001, timeElapsed / 20);
              multiplierEl.innerText = currentMult.toFixed(2) + "x";
              multiplierEl.style.color = "#fff";
-             rocketAnim.style.display = 'block';
+             rocketAnim.style.visibility = 'visible'; /* Изменено с display:block */
              betInput.disabled = true;
              if (isPlaying) betBtn.disabled = false;
              else betBtn.disabled = true;
@@ -298,5 +303,4 @@
      loop();
  </script>
 </body>
-                      </html>
-                      
+</html>
