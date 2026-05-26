@@ -48,7 +48,8 @@
      .nav-counter::after { content: "1x"; animation: countLoop 5s infinite steps(1); }
      @keyframes countLoop { 0%, 24.9% { content: "1x"; } 25%, 49.9% { content: "2x"; } 50%, 74.9% { content: "3x"; } 75%, 100% { content: "4x"; } }
 
-     .crash-container { position: relative; background: var(--container-bg); border-radius: 15px; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 350px; margin-top: 20px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.05); }
+     /* Увеличена высота контейнера на всякий случай для вмещения смещенного текста */
+     .crash-container { position: relative; background: var(--container-bg); border-radius: 15px; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 380px; margin-top: 20px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.05); }
      #crash-canvas, #grid-canvas { position: absolute; bottom: 0; left: 0; width: 100%; height: 100%; }
      #grid-canvas { z-index: 0; }
      #crash-canvas { z-index: 1; }
@@ -66,10 +67,13 @@
 
      .crash-settings-icon { position: absolute; top: 15px; right: 15px; font-size: 18px; z-index: 3; cursor: pointer; background: rgba(157, 78, 221, 0.3); padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
      .crash-info { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; pointer-events: none; width: 100%; }
+     
+     /* Зафиксированы пропорции и размер ракеты с запретом на сжатие (flex-shrink: 0) */
+     .rocket-gif { width: 200px; height: auto; flex-shrink: 0; object-fit: contain; visibility: hidden; margin-bottom: 10px; will-change: transform; image-rendering: -webkit-optimize-contrast; }
+     
+     /* Сдвигаем статус, а за ним коэффициент и историю ниже */
+     #crash-status { margin-top: 25px; }
      #crash-multiplier { font-size: 52px; font-weight: 800; color: #fff; margin-bottom: 10px; }
-   
-     /* Возвращен прежний размер с автоматической высотой для исключения сплющивания */
-     .rocket-gif { width: 200px; height: auto; visibility: hidden; margin-bottom: 10px; will-change: transform; image-rendering: -webkit-optimize-contrast; }
 
      /* Стили для истории раундов строго под коэффициентом х */
      .crash-history-container { display: flex; gap: 6px; overflow: hidden; justify-content: center; margin-top: 10px; width: 100%; max-width: 95%; }
