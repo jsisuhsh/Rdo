@@ -143,7 +143,7 @@
        function showSettings() { document.getElementById('settings-menu').style.display = 'flex'; }
        function hideSettings() { document.getElementById('settings-menu').style.display = 'none'; }
        function toggle(el) { el.classList.toggle('on'); }
-       function placeBet() { alert("Ставка в " + document.getElementById('bet-amount').value + " TON принята!"); }
+       function placeBet() { console.log("Ставка в " + document.getElementById('bet-amount').value + " TON принята"); }
 
        document.querySelectorAll('.nav-item').forEach(b => {
            b.onclick = () => {
@@ -207,4 +207,4 @@
        loop();
    </script>
 </body>
-</html>
+   </html>
