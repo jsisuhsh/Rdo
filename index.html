@@ -1,271 +1,275 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>RedoGift App</title>
-  <style>
-      :root {
-          --bg-color: #1e1b24;
-          --container-bg: #2d2836;
-          --accent-color: #9d4edd;
-          --green-color: #28a745;
-          --text-color: #f3f0f7;
-          --text-muted: #9a8c9e;
-          --ton-blue: #0088cc;
-          --pill-bg: rgba(255, 255, 255, 0.15);
-      }
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+ <title>RedoGift App</title>
+ <style>
+     :root {
+         --bg-color: #1e1b24;
+         --container-bg: #2d2836;
+         --accent-color: #9d4edd;
+         --green-color: #28a745;
+         --text-color: #f3f0f7;
+         --text-muted: #9a8c9e;
+         --ton-blue: #0088cc;
+         --pill-bg: rgba(255, 255, 255, 0.15);
+     }
 
-      * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; -webkit-user-select: none; }
-      body { background-color: var(--bg-color); color: var(--text-color); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; -webkit-user-select: none; }
+     body { background-color: var(--bg-color); color: var(--text-color); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
 
-      #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #000; border: 2px solid var(--accent-color); color: white; padding: 12px 20px; border-radius: 10px; z-index: 20000; display: none; font-size: 14px; white-space: nowrap; }
+     /* Уведомление в одну строчку */
+     #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #000; border: 2px solid var(--accent-color); color: white; padding: 12px 20px; border-radius: 10px; z-index: 20000; display: none; font-size: 14px; white-space: nowrap; }
 
-      .top-balance-box { position: fixed; top: 15px; right: 15px; display: flex; align-items: center; gap: 8px; background: var(--pill-bg); padding: 6px 14px; border-radius: 50px; border: 1px solid rgba(255, 255, 255, 0.1); z-index: 10000; }
-      #balance-display { font-size: 18px; font-weight: 700; color: #ffffff !important; }
-      .ton-icon-wrapper { width: 24px; height: 24px; background-color: var(--ton-blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+     .top-balance-box { position: fixed; top: 15px; right: 15px; display: flex; align-items: center; gap: 8px; background: var(--pill-bg); padding: 6px 14px; border-radius: 50px; border: 1px solid rgba(255, 255, 255, 0.1); z-index: 10000; }
+     #balance-display { font-size: 18px; font-weight: 700; color: #ffffff !important; }
+     .ton-icon-wrapper { width: 24px; height: 24px; background-color: var(--ton-blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
 
-      main { flex: 1; overflow-y: auto; padding: 20px; margin-top: 50px; position: relative; }
-      .tab-content { display: none; }
-      .tab-content.active { display: block; }
-     
-      .bg-characters { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: url('character.png'); background-size: 50px; opacity: 0.1; z-index: 0; pointer-events: none; }
+     main { flex: 1; overflow-y: auto; padding: 20px; margin-top: 50px; position: relative; }
+     .tab-content { display: none; }
+     .tab-content.active { display: block; }
+   
+     .bg-characters { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: url('character.png'); background-size: 50px; opacity: 0.1; z-index: 0; pointer-events: none; }
 
-      .profile-header { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; margin-top: 30px; }
-      .avatar { width: 80px; height: 80px; background: #007bff; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: bold; margin-bottom: 15px; }
-      .profile-buttons { display: flex; gap: 10px; margin-top: 20px; width: 100%; max-width: 300px; }
-      .btn { flex: 1; padding: 12px; border-radius: 30px; border: none; font-weight: 600; cursor: pointer; text-align: center; font-size: 14px; }
-      .btn-fill { background-color: var(--accent-color); color: white; }
-      .btn-outline { background-color: rgba(157, 78, 221, 0.2); border: 2px solid var(--accent-color); color: white; }
+     .profile-header { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; margin-top: 30px; }
+     .avatar { width: 80px; height: 80px; background: #007bff; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: bold; margin-bottom: 15px; }
+     .profile-buttons { display: flex; gap: 10px; margin-top: 20px; width: 100%; max-width: 300px; }
+     .btn { flex: 1; padding: 12px; border-radius: 30px; border: none; font-weight: 600; cursor: pointer; text-align: center; font-size: 14px; }
+     .btn-fill { background-color: var(--accent-color); color: white; }
+     .btn-outline { background-color: rgba(157, 78, 221, 0.2); border: 2px solid var(--accent-color); color: white; }
 
-      nav { height: 80px; background: var(--container-bg); border-top: 1px solid #3c354a; display: flex; justify-content: space-around; align-items: center; padding-bottom: 5px; }
-      .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-muted); cursor: pointer; padding: 5px; width: 33%; font-size: 13px; }
-      .nav-item.active { color: var(--accent-color); }
-      .nav-icon { margin-bottom: 2px; height: 24px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px; }
-      .nav-icon svg { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 2; }
+     nav { height: 80px; background: var(--container-bg); border-top: 1px solid #3c354a; display: flex; justify-content: space-around; align-items: center; padding-bottom: 5px; }
+     .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-muted); cursor: pointer; padding: 5px; width: 33%; font-size: 13px; }
+     .nav-item.active { color: var(--accent-color); }
+     .nav-icon { margin-bottom: 2px; height: 24px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px; }
+     .nav-icon svg { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 2; }
 
-      .nav-counter::after { content: "1x"; animation: countLoop 5s infinite steps(1); }
-      @keyframes countLoop { 0%, 24.9% { content: "1x"; } 25%, 49.9% { content: "2x"; } 50%, 74.9% { content: "3x"; } 75%, 100% { content: "4x"; } }
+     .nav-counter::after { content: "1x"; animation: countLoop 5s infinite steps(1); }
+     @keyframes countLoop { 0%, 24.9% { content: "1x"; } 25%, 49.9% { content: "2x"; } 50%, 74.9% { content: "3x"; } 75%, 100% { content: "4x"; } }
 
-      .crash-container { position: relative; background: var(--container-bg); border-radius: 15px; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 350px; margin-top: 20px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.05); }
-      #crash-canvas, #grid-canvas { position: absolute; bottom: 0; left: 0; width: 100%; height: 100%; }
-      #grid-canvas { z-index: 0; }
-      #crash-canvas { z-index: 1; }
-     
-      #settings-menu { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--container-bg); z-index: 10; display: none; padding: 20px; flex-direction: column; gap: 20px; border-radius: 15px; }
-      .setting-item { display: flex; justify-content: space-between; align-items: center; font-size: 16px; }
-      .switch { width: 50px; height: 25px; background: #555; border-radius: 25px; position: relative; cursor: pointer; transition: 0.3s; }
-      .switch.on { background: #4CAF50; }
-      .switch::before { content: ""; position: absolute; top: 2px; left: 2px; width: 21px; height: 21px; background: white; border-radius: 50%; transition: 0.3s; }
-      .switch.on::before { left: 27px; }
+     .crash-container { position: relative; background: var(--container-bg); border-radius: 15px; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 350px; margin-top: 20px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.05); }
+     #crash-canvas, #grid-canvas { position: absolute; bottom: 0; left: 0; width: 100%; height: 100%; }
+     #grid-canvas { z-index: 0; }
+     #crash-canvas { z-index: 1; }
+   
+     /* Меню настроек */
+     #settings-menu { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--container-bg); z-index: 10; display: none; padding: 20px; flex-direction: column; gap: 20px; border-radius: 15px; }
+     .setting-item { display: flex; justify-content: space-between; align-items: center; font-size: 16px; }
+     .switch { width: 50px; height: 25px; background: #555; border-radius: 25px; position: relative; cursor: pointer; transition: 0.3s; }
+     .switch.on { background: #4CAF50; }
+     .switch::before { content: ""; position: absolute; top: 2px; left: 2px; width: 21px; height: 21px; background: white; border-radius: 50%; transition: 0.3s; }
+     .switch.on::before { left: 27px; }
 
-      .close-settings { position: absolute; top: 15px; right: 15px; font-size: 24px; cursor: pointer; color: white; }
+     /* Кнопка закрытия настроек */
+     .close-settings { position: absolute; top: 15px; right: 15px; font-size: 24px; cursor: pointer; color: white; }
 
-      .crash-settings-icon { position: absolute; top: 15px; right: 15px; font-size: 18px; z-index: 3; cursor: pointer; background: rgba(157, 78, 221, 0.3); padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-      .crash-info { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; pointer-events: none; }
-      #crash-multiplier { font-size: 52px; font-weight: 800; color: #fff; margin-bottom: 10px; }
-     
-      .rocket-gif { width: 200px; height: auto; display: none; margin-bottom: 10px; will-change: transform; image-rendering: -webkit-optimize-contrast; }
+     .crash-settings-icon { position: absolute; top: 15px; right: 15px; font-size: 18px; z-index: 3; cursor: pointer; background: rgba(157, 78, 221, 0.3); padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+     .crash-info { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; pointer-events: none; }
+     #crash-multiplier { font-size: 52px; font-weight: 800; color: #fff; margin-bottom: 10px; }
+   
+     .rocket-gif { width: 200px; height: auto; display: none; margin-bottom: 10px; will-change: transform; image-rendering: -webkit-optimize-contrast; }
 
-      .bet-container { width: 100%; max-width: 350px; display: flex; gap: 8px; margin-top: 15px; margin-left: auto; margin-right: auto; }
-      .bet-input { flex: 1; background: var(--pill-bg); border: none; padding: 8px 12px; border-radius: 20px; color: white; font-size: 14px; text-align: center; }
-      .bet-btn { background: var(--accent-color); border: none; padding: 8px 18px; border-radius: 20px; color: white; font-weight: bold; font-size: 14px; cursor: pointer; }
-      .bet-btn.cashout { background: var(--green-color); }
-      .bet-btn:disabled { background: #555; cursor: not-allowed; opacity: 0.6; }
-  </style>
+     .bet-container { width: 100%; max-width: 350px; display: flex; gap: 8px; margin-top: 15px; margin-left: auto; margin-right: auto; }
+     .bet-input { flex: 1; background: var(--pill-bg); border: none; padding: 8px 12px; border-radius: 20px; color: white; font-size: 14px; text-align: center; }
+     .bet-btn { background: var(--accent-color); border: none; padding: 8px 18px; border-radius: 20px; color: white; font-weight: bold; font-size: 14px; cursor: pointer; }
+     .bet-btn.cashout { background: var(--green-color); }
+     .bet-btn:disabled { background: #555; cursor: not-allowed; opacity: 0.6; }
+ </style>
 </head>
 <body>
 
-  <div id="toast"></div>
+ <div id="toast"></div>
 
-  <div class="top-balance-box">
-      <span id="balance-display">100.00</span>
-      <div class="ton-icon-wrapper">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M4 6h16l-8 13z"></path><line x1="12" y1="6" x2="12" y2="19"></line></svg>
-      </div>
-  </div>
+ <div class="top-balance-box">
+     <span id="balance-display">100.00</span>
+     <div class="ton-icon-wrapper">
+         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M4 6h16l-8 13z"></path><line x1="12" y1="6" x2="12" y2="19"></line></svg>
+     </div>
+ </div>
 
-  <main>
-      <div id="tab-cases" class="tab-content active"><h2>Кейсы</h2></div>
-      <div id="tab-crash" class="tab-content">
-          <h2>Краш</h2>
-          <div class="crash-container">
-              <div id="settings-menu">
-                  <div class="close-settings" onclick="hideSettings()">✕</div>
-                  <div style="margin-top: 40px;">
-                      <div class="setting-item">Вывод при плохом соединении <div class="switch" onclick="toggle(this)"></div></div>
-                      <div class="setting-item" style="margin-top: 20px;">Отключить вибрацию <div class="switch" onclick="toggle(this)"></div></div>
-                  </div>
-              </div>
-              <div class="crash-settings-icon" onclick="showSettings()">⚙️</div>
-              <canvas id="grid-canvas"></canvas>
-              <canvas id="crash-canvas"></canvas>
-              <div class="crash-info">
-                  <img id="rocket-animation" src="https://i.postimg.cc/MK73RKwD/ezgif-com-effects.gif" class="rocket-gif" alt="Rocket">
-                  <div id="crash-status">Ожидание...</div>
-                  <div id="crash-multiplier">1.00x</div>
-              </div>
-          </div>
-          <div class="bet-container">
-              <input type="number" id="bet-amount" class="bet-input" placeholder="0.00 TON">
-              <button id="bet-btn" class="bet-btn" onclick="processBetAction()">Поставить</button>
-          </div>
-      </div>
-      <div id="tab-profile" class="tab-content">
-          <div class="bg-characters"></div>
-          <div class="profile-header">
-              <div id="user-avatar" class="avatar">?</div>
-              <div id="username-display" style="font-size: 20px; font-weight: 600; margin-bottom: 5px;">Загрузка...</div>
-              <div class="profile-buttons">
-                  <button class="btn btn-fill">Пополнить</button>
-                  <button class="btn btn-outline">Награды</button>
-              </div>
-          </div>
-      </div>
-  </main>
+ <main>
+     <div id="tab-cases" class="tab-content active"><h2>Кейсы</h2></div>
+     <div id="tab-crash" class="tab-content">
+         <h2>Краш</h2>
+         <div class="crash-container">
+             <div id="settings-menu">
+                 <div class="close-settings" onclick="hideSettings()">✕</div>
+                 <div style="margin-top: 40px;">
+                     <div class="setting-item">Вывод при плохом соединении <div class="switch" onclick="toggle(this)"></div></div>
+                     <div class="setting-item" style="margin-top: 20px;">Отключить вибрацию <div class="switch" onclick="toggle(this)"></div></div>
+                 </div>
+             </div>
+             <div class="crash-settings-icon" onclick="showSettings()">⚙️</div>
+             <canvas id="grid-canvas"></canvas>
+             <canvas id="crash-canvas"></canvas>
+             <div class="crash-info">
+                 <img id="rocket-animation" src="https://i.postimg.cc/MK73RKwD/ezgif-com-effects.gif" class="rocket-gif" alt="Rocket">
+                 <div id="crash-status">Ожидание...</div>
+                 <div id="crash-multiplier">1.00x</div>
+             </div>
+         </div>
+         <div class="bet-container">
+             <input type="number" id="bet-amount" class="bet-input" placeholder="0.00 TON">
+             <button id="bet-btn" class="bet-btn" onclick="processBetAction()">Поставить</button>
+         </div>
+     </div>
+     <div id="tab-profile" class="tab-content">
+         <div class="bg-characters"></div>
+         <div class="profile-header">
+             <div id="user-avatar" class="avatar">?</div>
+             <div id="username-display" style="font-size: 20px; font-weight: 600; margin-bottom: 5px;">Загрузка...</div>
+             <div class="profile-buttons">
+                 <button class="btn btn-fill">Пополнить</button>
+                 <button class="btn btn-outline">Награды</button>
+             </div>
+         </div>
+     </div>
+ </main>
 
-  <nav>
-      <div class="nav-item active" data-target="tab-cases"><span class="nav-icon"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg></span>Кейсы</div>
-      <div class="nav-item" data-target="tab-crash"><span class="nav-icon"><span class="nav-counter"></span></span>Краш</div>
-      <div class="nav-item" data-target="tab-profile"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></span>Профиль</div>
-  </nav>
+ <nav>
+     <div class="nav-item active" data-target="tab-cases"><span class="nav-icon"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg></span>Кейсы</div>
+     <div class="nav-item" data-target="tab-crash"><span class="nav-icon"><span class="nav-counter"></span></span>Краш</div>
+     <div class="nav-item" data-target="tab-profile"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></span>Профиль</div>
+ </nav>
 
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script>
-      const tg = window.Telegram.WebApp;
-      tg.expand();
+ <script src="https://telegram.org/js/telegram-web-app.js"></script>
+ <script>
+     const tg = window.Telegram.WebApp;
+     tg.expand();
 
-      let balance = 100.00;
-      let currentBet = 0;
-      let isPlaying = false;
-      let currentMult = 1.00;
-      let explosionVibrated = false;
-      
-      lv_0_20260526195412 (online-audio-converter.com)      const explosionSound = new Audio('ССЫЛКА_НА_ВАШ_MP3_ФАЙЛ');
-
-      if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-          const user = tg.initDataUnsafe.user;
-          document.getElementById('username-display').innerText = user.username ? '@' + user.username : user.first_name;
-          document.getElementById('user-avatar').innerText = (user.username ? user.username[0] : user.first_name[0]).toUpperCase();
-      } else {
-          document.getElementById('username-display').innerText = "Гость";
-          document.getElementById('user-avatar').innerText = "?";
-      }
-
-      function showSettings() { document.getElementById('settings-menu').style.display = 'flex'; }
-      function hideSettings() { document.getElementById('settings-menu').style.display = 'none'; }
-      function toggle(el) { el.classList.toggle('on'); }
+     let balance = 100.00;
+     let currentBet = 0;
+     let isPlaying = false;
+     let currentMult = 1.00;
+     let explosionVibrated = false;
      
-      function showToast(text) {
-          const toast = document.getElementById('toast');
-          toast.innerText = text;
-          toast.style.display = 'block';
-          setTimeout(() => { toast.style.display = 'none'; }, 2000);
-      }
+     // Инициализация звука взрыва
+     const explosionSound = new Audio('https://limewire.com/d/Y5QPU#sHnn64dS9E');
 
-      function processBetAction() {
-          if (!isPlaying) {
-              let amount = parseFloat(document.getElementById('bet-amount').value);
-              if (amount < 0.1 || amount > 100) {
-                  showToast("Ограничение по ставкам 0,1-100!");
-                  return;
-              }
-              if (amount > balance) return;
+     if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+         const user = tg.initDataUnsafe.user;
+         document.getElementById('username-display').innerText = user.username ? '@' + user.username : user.first_name;
+         document.getElementById('user-avatar').innerText = (user.username ? user.username[0] : user.first_name[0]).toUpperCase();
+     } else {
+         document.getElementById('username-display').innerText = "Гость";
+         document.getElementById('user-avatar').innerText = "?";
+     }
 
-              currentBet = amount;
-              balance -= amount;
-              document.getElementById('balance-display').innerText = balance.toFixed(2);
-              isPlaying = true;
-              betBtn.innerText = "Забрать";
-              betBtn.classList.add('cashout');
-              showToast("Ставка успешно сделана!");
-          } else {
-              let win = currentBet * currentMult;
-              balance += win;
-              document.getElementById('balance-display').innerText = balance.toFixed(2);
-              isPlaying = false;
-              betBtn.innerText = "Поставить";
-              betBtn.classList.remove('cashout');
-              showToast("Ставка успешно выведена");
-          }
-      }
+     function showSettings() { document.getElementById('settings-menu').style.display = 'flex'; }
+     function hideSettings() { document.getElementById('settings-menu').style.display = 'none'; }
+     function toggle(el) { el.classList.toggle('on'); }
+   
+     function showToast(text) {
+         const toast = document.getElementById('toast');
+         toast.innerText = text;
+         toast.style.display = 'block';
+         setTimeout(() => { toast.style.display = 'none'; }, 2000);
+     }
 
-      document.querySelectorAll('.nav-item').forEach(b => {
-          b.onclick = () => {
-              document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-              document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-              b.classList.add('active');
-              document.getElementById(b.getAttribute('data-target')).classList.add('active');
-          }
-      });
+     function processBetAction() {
+         if (!isPlaying) {
+             let amount = parseFloat(document.getElementById('bet-amount').value);
+             if (amount < 0.1 || amount > 100) {
+                 showToast("Ограничение по ставкам 0,1-100!");
+                 return;
+             }
+             if (amount > balance) return;
 
-      const crashCanvas = document.getElementById('crash-canvas');
-      const gridCanvas = document.getElementById('grid-canvas');
-      const ctx = crashCanvas.getContext('2d');
-      const gCtx = gridCanvas.getContext('2d');
-      const multiplierEl = document.getElementById('crash-multiplier');
-      const statusEl = document.getElementById('crash-status');
-      const rocketAnim = document.getElementById('rocket-animation');
-      const betInput = document.getElementById('bet-amount');
-      const betBtn = document.getElementById('bet-btn');
-     
-      const ROUND_DURATION = 15000;
-      const WAIT_DURATION = 5000;
+             currentBet = amount;
+             balance -= amount;
+             document.getElementById('balance-display').innerText = balance.toFixed(2);
+             isPlaying = true;
+             betBtn.innerText = "Забрать";
+             betBtn.classList.add('cashout');
+             showToast("Ставка успешно сделана!");
+         } else {
+             let win = currentBet * currentMult;
+             balance += win;
+             document.getElementById('balance-display').innerText = balance.toFixed(2);
+             isPlaying = false;
+             betBtn.innerText = "Поставить";
+             betBtn.classList.remove('cashout');
+             showToast("Ставка успешно выведена");
+         }
+     }
 
-      function loop() {
-          crashCanvas.width = gridCanvas.width = crashCanvas.parentElement.clientWidth;
-          crashCanvas.height = gridCanvas.height = crashCanvas.parentElement.clientHeight;
-          ctx.clearRect(0, 0, crashCanvas.width, crashCanvas.height);
-          gCtx.clearRect(0, 0, gridCanvas.width, gridCanvas.height);
+     document.querySelectorAll('.nav-item').forEach(b => {
+         b.onclick = () => {
+             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+             b.classList.add('active');
+             document.getElementById(b.getAttribute('data-target')).classList.add('active');
+         }
+     });
 
-          let now = Date.now();
-          let cycleTime = now % (ROUND_DURATION + WAIT_DURATION + 2000);
+     const crashCanvas = document.getElementById('crash-canvas');
+     const gridCanvas = document.getElementById('grid-canvas');
+     const ctx = crashCanvas.getContext('2d');
+     const gCtx = gridCanvas.getContext('2d');
+     const multiplierEl = document.getElementById('crash-multiplier');
+     const statusEl = document.getElementById('crash-status');
+     const rocketAnim = document.getElementById('rocket-animation');
+     const betInput = document.getElementById('bet-amount');
+     const betBtn = document.getElementById('bet-btn');
+   
+     const ROUND_DURATION = 15000;
+     const WAIT_DURATION = 5000;
 
-          let pulse = (cycleTime > WAIT_DURATION && cycleTime <= (WAIT_DURATION + ROUND_DURATION)) ? Math.sin(now / 200) * (currentMult * 2) : 0;
-          gCtx.strokeStyle = 'rgba(157, 78, 221, 0.2)';
-          gCtx.lineWidth = 1;
-          for(let i = 0; i < gridCanvas.width; i += 40) {
-              gCtx.beginPath(); gCtx.moveTo(i + pulse, 0); gCtx.lineTo(i + pulse, gridCanvas.height); gCtx.stroke();
-          }
-          for(let i = 0; i < gridCanvas.height; i += 40) {
-              gCtx.beginPath(); gCtx.moveTo(0, i); gCtx.lineTo(gridCanvas.width, i); gCtx.stroke();
-          }
+     function loop() {
+         crashCanvas.width = gridCanvas.width = crashCanvas.parentElement.clientWidth;
+         crashCanvas.height = gridCanvas.height = crashCanvas.parentElement.clientHeight;
+         ctx.clearRect(0, 0, crashCanvas.width, crashCanvas.height);
+         gCtx.clearRect(0, 0, gridCanvas.width, gridCanvas.height);
 
-          if (cycleTime < WAIT_DURATION) {
-              explosionVibrated = false;
-              statusEl.innerText = `Ожидание (${Math.ceil((WAIT_DURATION - cycleTime) / 1000)}с)`;
-              currentMult = 1.00;
-              multiplierEl.innerText = "1.00x";
-              multiplierEl.style.color = "#fff";
-              rocketAnim.style.display = 'none';
-              betInput.disabled = false;
-              if (!isPlaying) betBtn.disabled = false;
-          } else if (cycleTime > (WAIT_DURATION + ROUND_DURATION)) {
-              statusEl.innerText = "Взрыв!";
-              if (!explosionVibrated) {
-                  if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('heavy');
-                  explosionSound.play().catch(e => console.log("Жду взаимодействия для звука"));
-                  explosionVibrated = true;
-              }
-              multiplierEl.style.color = "red";
-              rocketAnim.style.display = 'none';
-              if (isPlaying) { isPlaying = false; betBtn.innerText = "Поставить"; betBtn.classList.remove('cashout'); }
-              betInput.disabled = true;
-              betBtn.disabled = true;
-          } else {
-              statusEl.innerText = "В полете...";
-              let timeElapsed = cycleTime - WAIT_DURATION;
-              currentMult = Math.pow(1.001, timeElapsed / 20);
-              multiplierEl.innerText = currentMult.toFixed(2) + "x";
-              multiplierEl.style.color = "#fff";
-              rocketAnim.style.display = 'block';
-              betInput.disabled = true;
-              if (isPlaying) betBtn.disabled = false;
-              else betBtn.disabled = true;
-          }
-          requestAnimationFrame(loop);
-      }
-      loop();
-  </script>
+         let now = Date.now();
+         let cycleTime = now % (ROUND_DURATION + WAIT_DURATION + 2000);
+
+         let pulse = (cycleTime > WAIT_DURATION && cycleTime <= (WAIT_DURATION + ROUND_DURATION)) ? Math.sin(now / 200) * (currentMult * 2) : 0;
+         gCtx.strokeStyle = 'rgba(157, 78, 221, 0.2)';
+         gCtx.lineWidth = 1;
+         for(let i = 0; i < gridCanvas.width; i += 40) {
+             gCtx.beginPath(); gCtx.moveTo(i + pulse, 0); gCtx.lineTo(i + pulse, gridCanvas.height); gCtx.stroke();
+         }
+         for(let i = 0; i < gridCanvas.height; i += 40) {
+             gCtx.beginPath(); gCtx.moveTo(0, i); gCtx.lineTo(gridCanvas.width, i); gCtx.stroke();
+         }
+
+         if (cycleTime < WAIT_DURATION) {
+             explosionVibrated = false;
+             statusEl.innerText = `Ожидание (${Math.ceil((WAIT_DURATION - cycleTime) / 1000)}с)`;
+             currentMult = 1.00;
+             multiplierEl.innerText = "1.00x";
+             multiplierEl.style.color = "#fff";
+             rocketAnim.style.display = 'none';
+             betInput.disabled = false;
+             if (!isPlaying) betBtn.disabled = false;
+         } else if (cycleTime > (WAIT_DURATION + ROUND_DURATION)) {
+             statusEl.innerText = "Взрыв!";
+             if (!explosionVibrated) {
+                 if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('heavy');
+                 explosionSound.play();
+                 explosionVibrated = true;
+             }
+             multiplierEl.style.color = "red";
+             rocketAnim.style.display = 'none';
+             if (isPlaying) { isPlaying = false; betBtn.innerText = "Поставить"; betBtn.classList.remove('cashout'); }
+             betInput.disabled = true;
+             betBtn.disabled = true;
+         } else {
+             statusEl.innerText = "В полете...";
+             let timeElapsed = cycleTime - WAIT_DURATION;
+             currentMult = Math.pow(1.001, timeElapsed / 20);
+             multiplierEl.innerText = currentMult.toFixed(2) + "x";
+             multiplierEl.style.color = "#fff";
+             rocketAnim.style.display = 'block';
+             betInput.disabled = true;
+             if (isPlaying) betBtn.disabled = false;
+             else betBtn.disabled = true;
+         }
+         requestAnimationFrame(loop);
+     }
+     loop();
+ </script>
 </body>
-  </html>
+</html>
