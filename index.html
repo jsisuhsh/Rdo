@@ -18,6 +18,9 @@
        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; -webkit-user-select: none; }
        body { background-color: var(--bg-color); color: var(--text-color); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
 
+       /* Уведомление */
+       #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #000; border: 2px solid var(--accent-color); color: white; padding: 12px 20px; border-radius: 10px; z-index: 20000; display: none; font-size: 14px; }
+
        .top-balance-box { position: fixed; top: 15px; right: 15px; display: flex; align-items: center; gap: 8px; background: var(--pill-bg); padding: 6px 14px; border-radius: 50px; border: 1px solid rgba(255, 255, 255, 0.1); z-index: 10000; }
        #balance-display { font-size: 18px; font-weight: 700; color: #ffffff !important; }
        .ton-icon-wrapper { width: 24px; height: 24px; background-color: var(--ton-blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
@@ -66,7 +69,6 @@
        
        .rocket-gif { width: 200px; height: auto; display: none; margin-bottom: 10px; will-change: transform; image-rendering: -webkit-optimize-contrast; }
 
-       /* Окно ставки - уменьшено и смещено */
        .bet-container { width: 100%; max-width: 350px; display: flex; gap: 8px; margin-top: 15px; margin-left: auto; margin-right: auto; }
        .bet-input { flex: 1; background: var(--pill-bg); border: none; padding: 8px 12px; border-radius: 20px; color: white; font-size: 14px; text-align: center; }
        .bet-btn { background: var(--accent-color); border: none; padding: 8px 18px; border-radius: 20px; color: white; font-weight: bold; font-size: 14px; cursor: pointer; }
@@ -74,6 +76,8 @@
    </style>
 </head>
 <body>
+
+   <div id="toast">Ставка успешно сделана!</div>
 
    <div class="top-balance-box">
        <span id="balance-display">0.00</span>
@@ -144,7 +148,12 @@
        function showSettings() { document.getElementById('settings-menu').style.display = 'flex'; }
        function hideSettings() { document.getElementById('settings-menu').style.display = 'none'; }
        function toggle(el) { el.classList.toggle('on'); }
-       function placeBet() { console.log("Ставка в " + document.getElementById('bet-amount').value + " TON принята"); }
+       
+       function placeBet() { 
+           const toast = document.getElementById('toast');
+           toast.style.display = 'block';
+           setTimeout(() => { toast.style.display = 'none'; }, 2000);
+       }
 
        document.querySelectorAll('.nav-item').forEach(b => {
            b.onclick = () => {
