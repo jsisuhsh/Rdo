@@ -19,7 +19,6 @@
       * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; -webkit-user-select: none; }
       body { background-color: var(--bg-color); color: var(--text-color); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
 
-      /* Уведомление в одну строчку */
       #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #000; border: 2px solid var(--accent-color); color: white; padding: 12px 20px; border-radius: 10px; z-index: 20000; display: none; font-size: 14px; white-space: nowrap; }
 
       .top-balance-box { position: fixed; top: 15px; right: 15px; display: flex; align-items: center; gap: 8px; background: var(--pill-bg); padding: 6px 14px; border-radius: 50px; border: 1px solid rgba(255, 255, 255, 0.1); z-index: 10000; }
@@ -53,7 +52,6 @@
       #grid-canvas { z-index: 0; }
       #crash-canvas { z-index: 1; }
      
-      /* Меню настроек */
       #settings-menu { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--container-bg); z-index: 10; display: none; padding: 20px; flex-direction: column; gap: 20px; border-radius: 15px; }
       .setting-item { display: flex; justify-content: space-between; align-items: center; font-size: 16px; }
       .switch { width: 50px; height: 25px; background: #555; border-radius: 25px; position: relative; cursor: pointer; transition: 0.3s; }
@@ -61,7 +59,6 @@
       .switch::before { content: ""; position: absolute; top: 2px; left: 2px; width: 21px; height: 21px; background: white; border-radius: 50%; transition: 0.3s; }
       .switch.on::before { left: 27px; }
 
-      /* Кнопка закрытия настроек */
       .close-settings { position: absolute; top: 15px; right: 15px; font-size: 24px; cursor: pointer; color: white; }
 
       .crash-settings-icon { position: absolute; top: 15px; right: 15px; font-size: 18px; z-index: 3; cursor: pointer; background: rgba(157, 78, 221, 0.3); padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
@@ -144,8 +141,8 @@
       let currentMult = 1.00;
       let explosionVibrated = false;
       
-      // Инициализация звука взрыва
-      const explosionSound = new Audio('https://limewire.com/d/Y5QPU#sHnn64dS9E');
+      lv_0_20260526195412 (online-audio-converter.com):
+      const explosionSound = new Audio('ЗДЕСЬ_ВАША_ССЫЛКА_ЗДЕСЬ');
 
       if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
           const user = tg.initDataUnsafe.user;
@@ -248,7 +245,7 @@
               statusEl.innerText = "Взрыв!";
               if (!explosionVibrated) {
                   if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('heavy');
-                  explosionSound.play();
+                  explosionSound.play().catch(e => console.log("Звук ожидает взаимодействия"));
                   explosionVibrated = true;
               }
               multiplierEl.style.color = "red";
