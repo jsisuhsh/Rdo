@@ -119,6 +119,18 @@
 
    <script src="https://telegram.org/js/telegram-web-app.js"></script>
    <script>
+       const tg = window.Telegram.WebApp;
+       tg.expand();
+
+       if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+           const user = tg.initDataUnsafe.user;
+           document.getElementById('username-display').innerText = user.username ? '@' + user.username : user.first_name;
+           document.getElementById('user-avatar').innerText = (user.username ? user.username[0] : user.first_name[0]).toUpperCase();
+       } else {
+           document.getElementById('username-display').innerText = "Гость";
+           document.getElementById('user-avatar').innerText = "?";
+       }
+
        function showSettings() { document.getElementById('settings-menu').style.display = 'flex'; }
        function hideSettings() { document.getElementById('settings-menu').style.display = 'none'; }
        function toggle(el) { el.classList.toggle('on'); }
@@ -185,4 +197,4 @@
        loop();
    </script>
 </body>
-</html>
+   </html>
