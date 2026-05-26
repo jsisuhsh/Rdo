@@ -57,6 +57,9 @@
        .switch::before { content: ""; position: absolute; top: 2px; left: 2px; width: 21px; height: 21px; background: white; border-radius: 50%; transition: 0.3s; }
        .switch.on::before { left: 27px; }
 
+       /* Кнопка закрытия настроек */
+       .close-settings { position: absolute; top: 15px; right: 15px; font-size: 24px; cursor: pointer; color: white; }
+
        .crash-settings-icon { position: absolute; top: 15px; right: 15px; font-size: 18px; z-index: 3; cursor: pointer; background: rgba(157, 78, 221, 0.3); padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
        .crash-info { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; pointer-events: none; }
        #crash-multiplier { font-size: 52px; font-weight: 800; color: #fff; margin-bottom: 10px; }
@@ -79,9 +82,11 @@
            <h2>Краш</h2>
            <div class="crash-container">
                <div id="settings-menu">
-                   <div class="setting-item">Вывод при плохом соединении <div class="switch" onclick="toggle(this)"></div></div>
-                   <div class="setting-item">Отключить вибрацию <div class="switch" onclick="toggle(this)"></div></div>
-                   <button class="btn btn-fill" onclick="hideSettings()">Назад</button>
+                   <div class="close-settings" onclick="hideSettings()">✕</div>
+                   <div style="margin-top: 40px;">
+                       <div class="setting-item">Вывод при плохом соединении <div class="switch" onclick="toggle(this)"></div></div>
+                       <div class="setting-item" style="margin-top: 20px;">Отключить вибрацию <div class="switch" onclick="toggle(this)"></div></div>
+                   </div>
                </div>
                <div class="crash-settings-icon" onclick="showSettings()">⚙️</div>
                <canvas id="grid-canvas"></canvas>
