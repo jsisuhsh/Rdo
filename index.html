@@ -148,8 +148,14 @@
      const tg = window.Telegram.WebApp;
      tg.expand();
 
-     // Загружаем сохраненный баланс из localStorage. Если его нет - ставим 100.00
+     // Загружаем сохраненный баланс из localStorage
      let balance = localStorage.getItem('user_balance') !== null ? parseFloat(localStorage.getItem('user_balance')) : 100.00;
+     
+     // Если в памяти застрял сломанный баланс (NaN), принудительно возвращаем 100.00 всем игрокам
+     if (isNaN(balance)) {
+         balance = 100.00;
+         localStorage.setItem('user_balance', balance.toFixed(2));
+     }
      
      // Сразу обновляем интерфейс актуальным балансом
      document.getElementById('balance-display').innerText = balance.toFixed(2);
