@@ -148,7 +148,12 @@
      const tg = window.Telegram.WebApp;
      tg.expand();
 
-     let balance = 100.00;
+     // Загружаем сохраненный баланс из localStorage. Если его нет - ставим 100.00
+     let balance = localStorage.getItem('user_balance') !== null ? parseFloat(localStorage.getItem('user_balance')) : 100.00;
+     
+     // Сразу обновляем интерфейс актуальным балансом
+     document.getElementById('balance-display').innerText = balance.toFixed(2);
+
      let currentBet = 0;
      let isPlaying = false;
      let currentMult = 1.00;
@@ -188,7 +193,10 @@
 
              currentBet = amount;
              balance -= amount;
+             // Сохраняем обновленный баланс
+             localStorage.setItem('user_balance', balance.toFixed(2));
              document.getElementById('balance-display').innerText = balance.toFixed(2);
+             
              isPlaying = true;
              betBtn.innerText = "Забрать";
              betBtn.classList.add('cashout');
@@ -196,7 +204,10 @@
          } else {
              let win = currentBet * currentMult;
              balance += win;
+             // Сохраняем обновленный баланс
+             localStorage.setItem('user_balance', balance.toFixed(2));
              document.getElementById('balance-display').innerText = balance.toFixed(2);
+             
              isPlaying = false;
              betBtn.innerText = "Поставить";
              betBtn.classList.remove('cashout');
