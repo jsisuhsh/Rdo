@@ -141,8 +141,7 @@
       let currentMult = 1.00;
       let explosionVibrated = false;
       
-      lv_0_20260526195412 (online-audio-converter.com):
-      const explosionSound = new Audio('ЗДЕСЬ_ВАША_ССЫЛКА_ЗДЕСЬ');
+      lv_0_20260526195412 (online-audio-converter.com)      const explosionSound = new Audio('ССЫЛКА_НА_ВАШ_MP3_ФАЙЛ');
 
       if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
           const user = tg.initDataUnsafe.user;
@@ -245,7 +244,7 @@
               statusEl.innerText = "Взрыв!";
               if (!explosionVibrated) {
                   if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('heavy');
-                  explosionSound.play().catch(e => console.log("Звук ожидает взаимодействия"));
+                  explosionSound.play().catch(e => console.log("Жду взаимодействия для звука"));
                   explosionVibrated = true;
               }
               multiplierEl.style.color = "red";
@@ -269,4 +268,4 @@
       loop();
   </script>
 </body>
-</html>
+  </html>
