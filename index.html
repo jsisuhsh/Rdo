@@ -1,68 +1,183 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <title>Crash Game</title>
-    <style>
-        body { margin: 0; background: #1a1a1a; color: white; font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
-        #game-container { position: relative; width: 80%; height: 60%; border-bottom: 2px solid #555; border-left: 2px solid #555; display: flex; align-items: flex-end; }
-        #multiplier { font-size: 4rem; font-weight: bold; margin-bottom: 20px; color: #00ff00; }
-        .controls { margin-top: 20px; }
-        button { padding: 15px 30px; font-size: 1.2rem; cursor: pointer; border: none; border-radius: 5px; background: #444; color: white; }
-        button:hover { background: #666; }
-        .bg-characters { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: 50px; opacity: 0.1; z-index: 0; pointer-events: none; }
-        #status { margin-top: 10px; font-size: 1.2rem; }
-    </style>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+   <title>RedoGift App</title>
+   <style>
+       :root {
+           --bg-color: #1e1b24;
+           --container-bg: #2d2836;
+           --accent-color: #9d4edd;
+           --text-color: #f3f0f7;
+           --text-muted: #9a8c9e;
+           --ton-blue: #0088cc;
+           --pill-bg: rgba(255, 255, 255, 0.15);
+       }
+
+       * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; -webkit-user-select: none; }
+       body { background-color: var(--bg-color); color: var(--text-color); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
+       .top-balance-box { position: fixed; top: 15px; right: 15px; display: flex; align-items: center; gap: 8px; background: var(--pill-bg); padding: 6px 14px; border-radius: 50px; border: 1px solid rgba(255, 255, 255, 0.1); z-index: 10000; }
+       #balance-display { font-size: 18px; font-weight: 700; color: #ffffff !important; }
+       .ton-icon-wrapper { width: 24px; height: 24px; background-color: var(--ton-blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+
+       main { flex: 1; overflow-y: auto; padding: 20px; margin-top: 50px; position: relative; }
+       .tab-content { display: none; }
+       .tab-content.active { display: block; }
+       
+       .bg-characters { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: url('character.png'); background-size: 50px; opacity: 0.1; z-index: 0; pointer-events: none; }
+
+       .profile-header { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; margin-top: 30px; }
+       .avatar { width: 80px; height: 80px; background: #007bff; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: bold; margin-bottom: 15px; }
+       .profile-buttons { display: flex; gap: 10px; margin-top: 20px; width: 100%; max-width: 300px; }
+       .btn { flex: 1; padding: 12px; border-radius: 30px; border: none; font-weight: 600; cursor: pointer; text-align: center; font-size: 14px; }
+       .btn-fill { background-color: var(--accent-color); color: white; }
+       .btn-outline { background-color: rgba(157, 78, 221, 0.2); border: 2px solid var(--accent-color); color: white; }
+
+       nav { height: 80px; background: var(--container-bg); border-top: 1px solid #3c354a; display: flex; justify-content: space-around; align-items: center; padding-bottom: 5px; }
+       .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-muted); cursor: pointer; padding: 5px; width: 33%; font-size: 13px; }
+       .nav-item.active { color: var(--accent-color); }
+       .nav-icon { margin-bottom: 2px; height: 24px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px; }
+       .nav-icon svg { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+       .nav-counter::after { content: "1x"; animation: countLoop 5s infinite steps(1); }
+       @keyframes countLoop { 0%, 24.9% { content: "1x"; } 25%, 49.9% { content: "2x"; } 50%, 74.9% { content: "3x"; } 75%, 100% { content: "4x"; } }
+
+       .crash-container { position: relative; background: var(--container-bg); border-radius: 15px; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 350px; margin-top: 20px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.05); }
+       #crash-canvas, #grid-canvas { position: absolute; bottom: 0; left: 0; width: 100%; height: 100%; }
+       #grid-canvas { z-index: 0; }
+       #crash-canvas { z-index: 1; }
+       
+       /* Меню настроек */
+       #settings-menu { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--container-bg); z-index: 10; display: none; padding: 20px; flex-direction: column; gap: 20px; border-radius: 15px; }
+       .setting-item { display: flex; justify-content: space-between; align-items: center; font-size: 16px; }
+       .switch { width: 50px; height: 25px; background: #555; border-radius: 25px; position: relative; cursor: pointer; transition: 0.3s; }
+       .switch.on { background: #4CAF50; }
+       .switch::before { content: ""; position: absolute; top: 2px; left: 2px; width: 21px; height: 21px; background: white; border-radius: 50%; transition: 0.3s; }
+       .switch.on::before { left: 27px; }
+
+       .crash-settings-icon { position: absolute; top: 15px; right: 15px; font-size: 18px; z-index: 3; cursor: pointer; background: rgba(157, 78, 221, 0.3); padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+       .crash-info { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; pointer-events: none; }
+       #crash-multiplier { font-size: 52px; font-weight: 800; color: #fff; margin-bottom: 10px; }
+       
+       .rocket-gif { width: 200px; height: auto; display: none; margin-bottom: 10px; will-change: transform; image-rendering: -webkit-optimize-contrast; }
+   </style>
 </head>
 <body>
 
-    <div id="multiplier">1.00x</div>
-    <div id="game-container"></div>
-    <div id="status">Нажмите кнопку, чтобы начать</div>
+   <div class="top-balance-box">
+       <span id="balance-display">0.00</span>
+       <div class="ton-icon-wrapper">
+           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M4 6h16l-8 13z"></path><line x1="12" y1="6" x2="12" y2="19"></line></svg>
+       </div>
+   </div>
 
-    <div class="controls">
-        <button onclick="startGame()">Старт</button>
-        <button onclick="stopGame()">Стоп</button>
-    </div>
+   <main>
+       <div id="tab-cases" class="tab-content active"><h2>Кейсы</h2></div>
+       <div id="tab-crash" class="tab-content">
+           <h2>Краш</h2>
+           <div class="crash-container">
+               <div id="settings-menu">
+                   <div class="setting-item">Вывод при плохом соединении <div class="switch" onclick="toggle(this)"></div></div>
+                   <div class="setting-item">Отключить вибрацию <div class="switch" onclick="toggle(this)"></div></div>
+                   <button class="btn btn-fill" onclick="hideSettings()">Назад</button>
+               </div>
+               <div class="crash-settings-icon" onclick="showSettings()">⚙️</div>
+               <canvas id="grid-canvas"></canvas>
+               <canvas id="crash-canvas"></canvas>
+               <div class="crash-info">
+                   <img id="rocket-animation" src="https://i.postimg.cc/MK73RKwD/ezgif-com-effects.gif" class="rocket-gif" alt="Rocket">
+                   <div id="crash-status">Ожидание...</div>
+                   <div id="crash-multiplier">1.00x</div>
+               </div>
+           </div>
+       </div>
+       <div id="tab-profile" class="tab-content">
+           <div class="bg-characters"></div>
+           <div class="profile-header">
+               <div id="user-avatar" class="avatar">?</div>
+               <div id="username-display" style="font-size: 20px; font-weight: 600; margin-bottom: 5px;">Загрузка...</div>
+               <div class="profile-buttons">
+                   <button class="btn btn-fill">Пополнить</button>
+                   <button class="btn btn-outline">Награды</button>
+               </div>
+           </div>
+       </div>
+   </main>
 
-    <script>
-        let mult = 1.00;
-        let gameActive = false;
-        let multiplierEl = document.getElementById('multiplier');
-        let statusEl = document.getElementById('status');
+   <nav>
+       <div class="nav-item active" data-target="tab-cases"><span class="nav-icon"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg></span>Кейсы</div>
+       <div class="nav-item" data-target="tab-crash"><span class="nav-icon"><span class="nav-counter"></span></span>Краш</div>
+       <div class="nav-item" data-target="tab-profile"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></span>Профиль</div>
+   </nav>
 
-        function startGame() {
-            if (gameActive) return;
-            gameActive = true;
-            mult = 1.00;
-            statusEl.innerText = "Игра идет...";
-            loop();
-        }
+   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+   <script>
+       function showSettings() { document.getElementById('settings-menu').style.display = 'flex'; }
+       function hideSettings() { document.getElementById('settings-menu').style.display = 'none'; }
+       function toggle(el) { el.classList.toggle('on'); }
 
-        function stopGame() {
-            gameActive = false;
-            statusEl.innerText = "Вы остановили на " + mult.toFixed(2) + "x";
-        }
+       document.querySelectorAll('.nav-item').forEach(b => {
+           b.onclick = () => {
+               document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+               document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+               b.classList.add('active');
+               document.getElementById(b.getAttribute('data-target')).classList.add('active');
+           }
+       });
 
-        function loop() {
-            if (!gameActive) return;
+       const crashCanvas = document.getElementById('crash-canvas');
+       const gridCanvas = document.getElementById('grid-canvas');
+       const ctx = crashCanvas.getContext('2d');
+       const gCtx = gridCanvas.getContext('2d');
+       const multiplierEl = document.getElementById('crash-multiplier');
+       const statusEl = document.getElementById('crash-status');
+       const rocketAnim = document.getElementById('rocket-animation');
+       
+       let mult = 1.00;
+       const ROUND_DURATION = 15000;
+       const WAIT_DURATION = 5000;
 
-            mult += 0.01;
-            multiplierEl.innerText = mult.toFixed(2) + "x";
+       function loop() {
+           crashCanvas.width = gridCanvas.width = crashCanvas.parentElement.clientWidth;
+           crashCanvas.height = gridCanvas.height = crashCanvas.parentElement.clientHeight;
+           ctx.clearRect(0, 0, crashCanvas.width, crashCanvas.height);
+           gCtx.clearRect(0, 0, gridCanvas.width, gridCanvas.height);
 
-            // Логика краша (шанс 5% на каждом шаге)
-            if (Math.random() < 0.05) {
-                gameActive = false;
-                multiplierEl.style.color = "red";
-                statusEl.innerText = "КРАШ! Вы проиграли.";
-                setTimeout(() => {
-                    multiplierEl.style.color = "#00ff00";
-                }, 2000);
-                return;
-            }
+           let now = Date.now();
+           let cycleTime = now % (ROUND_DURATION + WAIT_DURATION + 2000);
 
-            requestAnimationFrame(loop);
-        }
-    </script>
+           let pulse = (cycleTime > WAIT_DURATION && cycleTime <= (WAIT_DURATION + ROUND_DURATION)) ? Math.sin(now / 200) * (mult * 2) : 0;
+           gCtx.strokeStyle = 'rgba(157, 78, 221, 0.2)';
+           gCtx.lineWidth = 1;
+           for(let i = 0; i < gridCanvas.width; i += 40) {
+               gCtx.beginPath(); gCtx.moveTo(i + pulse, 0); gCtx.lineTo(i + pulse, gridCanvas.height); gCtx.stroke();
+           }
+           for(let i = 0; i < gridCanvas.height; i += 40) {
+               gCtx.beginPath(); gCtx.moveTo(0, i); gCtx.lineTo(gridCanvas.width, i); gCtx.stroke();
+           }
+
+           if (cycleTime < WAIT_DURATION) {
+               statusEl.innerText = `Ожидание (${Math.ceil((WAIT_DURATION - cycleTime) / 1000)}с)`;
+               multiplierEl.innerText = "1.00x";
+               multiplierEl.style.color = "#fff";
+               rocketAnim.style.display = 'none';
+           } else if (cycleTime > (WAIT_DURATION + ROUND_DURATION)) {
+               statusEl.innerText = "Взрыв!";
+               multiplierEl.style.color = "red";
+               rocketAnim.style.display = 'none';
+           } else {
+               statusEl.innerText = "В полете...";
+               let timeElapsed = cycleTime - WAIT_DURATION;
+               mult = Math.pow(1.001, timeElapsed / 20);
+               multiplierEl.innerText = mult.toFixed(2) + "x";
+               multiplierEl.style.color = "#fff";
+               rocketAnim.style.display = 'block';
+           }
+           requestAnimationFrame(loop);
+       }
+       loop();
+   </script>
 </body>
 </html>
