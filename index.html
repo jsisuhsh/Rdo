@@ -65,13 +65,13 @@
      .close-settings { position: absolute; top: 15px; right: 15px; font-size: 24px; cursor: pointer; color: white; }
 
      .crash-settings-icon { position: absolute; top: 15px; right: 15px; font-size: 18px; z-index: 3; cursor: pointer; background: rgba(157, 78, 221, 0.3); padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-     .crash-info { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; pointer-events: none; }
+     .crash-info { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; pointer-events: none; width: 100%; }
      #crash-multiplier { font-size: 52px; font-weight: 800; color: #fff; margin-bottom: 10px; }
    
      .rocket-gif { width: 200px; height: auto; display: none; margin-bottom: 10px; will-change: transform; image-rendering: -webkit-optimize-contrast; }
 
-     /* Стили для истории раундов */
-     .crash-history-container { position: absolute; bottom: 15px; left: 15px; right: 15px; z-index: 4; display: flex; gap: 6px; overflow: hidden; justify-content: flex-start; }
+     /* Стили для истории раундов под коэффициентом х */
+     .crash-history-container { display: flex; gap: 6px; overflow: hidden; justify-content: center; margin-top: 10px; width: 100%; max-width: 90%; }
      .history-item { background-color: #161d31; border: 2px solid var(--accent-color); color: #ffffff; padding: 4px 10px; border-radius: 50px; font-size: 12px; font-weight: 700; white-space: nowrap; transition: all 0.3s ease; }
 
      .bet-container { width: 100%; max-width: 350px; display: flex; gap: 8px; margin-top: 15px; margin-left: auto; margin-right: auto; }
@@ -111,8 +111,8 @@
                  <img id="rocket-animation" src="https://i.postimg.cc/MK73RKwD/ezgif-com-effects.gif" class="rocket-gif" alt="Rocket">
                  <div id="crash-status">Ожидание...</div>
                  <div id="crash-multiplier">1.00x</div>
+                 <div id="crash-history" class="crash-history-container"></div>
              </div>
-             <div id="crash-history" class="crash-history-container"></div>
          </div>
          <div class="bet-container">
              <input type="number" id="bet-amount" class="bet-input" placeholder="0.00 TON">
@@ -222,7 +222,7 @@
      const ROUND_DURATION = 15000;
      const WAIT_DURATION = 5000;
 
-     // Генерация 10 изначальных раундов для заполнения истории при старте
+     // Изначальные 10 раундов
      const startHistory = ['1.45x', '2.10x', '1.12x', '5.60x', '1.05x', '3.21x', '1.88x', '1.18x', '4.02x', '2.55x'];
      startHistory.forEach(mult => {
          let item = document.createElement('div');
@@ -266,13 +266,13 @@
                  explosionSound.play();
                  explosionVibrated = true;
 
-                 // Логика добавления коэффициента в левую часть истории раундов
+                 // Добавление в левую часть
                  let item = document.createElement('div');
                  item.className = 'history-item';
                  item.innerText = currentMult.toFixed(2) + "x";
                  historyContainer.insertBefore(item, historyContainer.firstChild);
 
-                 // Ограничение видимости истории ровно в 10 раундов
+                 // Ограничение в 10 элементов
                  if (historyContainer.children.length > 10) {
                      historyContainer.removeChild(historyContainer.lastChild);
                  }
@@ -298,4 +298,5 @@
      loop();
  </script>
 </body>
-</html>
+                      </html>
+                      
