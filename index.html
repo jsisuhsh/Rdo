@@ -70,6 +70,10 @@
    
      .rocket-gif { width: 200px; height: auto; display: none; margin-bottom: 10px; will-change: transform; image-rendering: -webkit-optimize-contrast; }
 
+     /* Стили для истории раундов */
+     .crash-history-container { position: absolute; bottom: 15px; left: 15px; right: 15px; z-index: 4; display: flex; gap: 6px; overflow: hidden; justify-content: flex-start; }
+     .history-item { background-color: #161d31; border: 2px solid var(--accent-color); color: #ffffff; padding: 4px 10px; border-radius: 50px; font-size: 12px; font-weight: 700; white-space: nowrap; transition: all 0.3s ease; }
+
      .bet-container { width: 100%; max-width: 350px; display: flex; gap: 8px; margin-top: 15px; margin-left: auto; margin-right: auto; }
      .bet-input { flex: 1; background: var(--pill-bg); border: none; padding: 8px 12px; border-radius: 20px; color: white; font-size: 14px; text-align: center; }
      .bet-btn { background: var(--accent-color); border: none; padding: 8px 18px; border-radius: 20px; color: white; font-weight: bold; font-size: 14px; cursor: pointer; }
@@ -108,6 +112,7 @@
                  <div id="crash-status">Ожидание...</div>
                  <div id="crash-multiplier">1.00x</div>
              </div>
+             <div id="crash-history" class="crash-history-container"></div>
          </div>
          <div class="bet-container">
              <input type="number" id="bet-amount" class="bet-input" placeholder="0.00 TON">
@@ -212,9 +217,19 @@
      const rocketAnim = document.getElementById('rocket-animation');
      const betInput = document.getElementById('bet-amount');
      const betBtn = document.getElementById('bet-btn');
+     const historyContainer = document.getElementById('crash-history');
    
      const ROUND_DURATION = 15000;
      const WAIT_DURATION = 5000;
+
+     // Генерация 10 изначальных раундов для заполнения истории при старте
+     const startHistory = ['1.45x', '2.10x', '1.12x', '5.60x', '1.05x', '3.21x', '1.88x', '1.18x', '4.02x', '2.55x'];
+     startHistory.forEach(mult => {
+         let item = document.createElement('div');
+         item.className = 'history-item';
+         item.innerText = mult;
+         historyContainer.appendChild(item);
+     });
 
      function loop() {
          crashCanvas.width = gridCanvas.width = crashCanvas.parentElement.clientWidth;
@@ -250,6 +265,17 @@
                  if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('heavy');
                  explosionSound.play();
                  explosionVibrated = true;
+
+                 // Логика добавления коэффициента в левую часть истории раундов
+                 let item = document.createElement('div');
+                 item.className = 'history-item';
+                 item.innerText = currentMult.toFixed(2) + "x";
+                 historyContainer.insertBefore(item, historyContainer.firstChild);
+
+                 // Ограничение видимости истории ровно в 10 раундов
+                 if (historyContainer.children.length > 10) {
+                     historyContainer.removeChild(historyContainer.lastChild);
+                 }
              }
              multiplierEl.style.color = "red";
              rocketAnim.style.display = 'none';
