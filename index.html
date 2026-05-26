@@ -151,12 +151,6 @@
      // Загружаем сохраненный баланс из localStorage
      let balance = localStorage.getItem('user_balance') !== null ? parseFloat(localStorage.getItem('user_balance')) : 100.00;
      
-     // Если в памяти застрял сломанный баланс (NaN), принудительно возвращаем 100.00 всем игрокам
-     if (isNaN(balance)) {
-         balance = 100.00;
-         localStorage.setItem('user_balance', balance.toFixed(2));
-     }
-     
      // Сразу обновляем интерфейс актуальным балансом
      document.getElementById('balance-display').innerText = balance.toFixed(2);
 
@@ -177,6 +171,8 @@
          document.getElementById('user-avatar').innerText = "?";
      }
 
+     // Удален блок принудительного сброса баланса до 100 при обнаружении NaN по просьбе пользователя
+
      function showSettings() { document.getElementById('settings-menu').style.display = 'flex'; }
      function hideSettings() { document.getElementById('settings-menu').style.display = 'none'; }
      function toggle(el) { el.classList.toggle('on'); }
@@ -190,9 +186,16 @@
 
      function processBetAction() {
          if (!isPlaying) {
-             let amount = parseFloat(document.getElementById('bet-amount').value);
+             let rawInput = document.getElementById('bet-amount').value.trim();
              
-             // Добавлена строгая проверка на корректность числа (чтобы избежать поломки при вводе точек на конце)
+             // Проверка на некорректный формат (если поле пустое или заканчивается на точку без последующих цифр)
+             if (rawInput.endsWith('.') || rawInput === "") {
+                 showToast("Ошибка формата!");
+                 return;
+             }
+
+             let amount = parseFloat(rawInput);
+             
              if (isNaN(amount) || amount < 0.1 || amount > 100) {
                  showToast("Ограничение по ставкам 0,1-100!");
                  return;
