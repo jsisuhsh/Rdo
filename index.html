@@ -143,6 +143,9 @@
       let isPlaying = false;
       let currentMult = 1.00;
       let explosionVibrated = false;
+      
+      // Инициализация звука взрыва
+      const explosionSound = new Audio('https://limewire.com/d/Y5QPU#sHnn64dS9E');
 
       if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
           const user = tg.initDataUnsafe.user;
@@ -245,6 +248,7 @@
               statusEl.innerText = "Взрыв!";
               if (!explosionVibrated) {
                   if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('heavy');
+                  explosionSound.play();
                   explosionVibrated = true;
               }
               multiplierEl.style.color = "red";
