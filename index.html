@@ -141,7 +141,6 @@
       let balance = 100.00;
       let currentBet = 0;
       let isPlaying = false;
-      let gameActive = false;
       let currentMult = 1.00;
 
       if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
@@ -167,15 +166,19 @@
       function processBetAction() {
           if (!isPlaying) {
               let amount = parseFloat(document.getElementById('bet-amount').value);
-              if (amount > 0 && amount <= balance) {
-                  currentBet = amount;
-                  balance -= amount;
-                  document.getElementById('balance-display').innerText = balance.toFixed(2);
-                  isPlaying = true;
-                  betBtn.innerText = "Забрать";
-                  betBtn.classList.add('cashout');
-                  showToast("Ставка успешно сделана!");
+              if (amount < 0.1 || amount > 100) {
+                  showToast("Ограничение по ставкам 0,1-100!");
+                  return;
               }
+              if (amount > balance) return;
+
+              currentBet = amount;
+              balance -= amount;
+              document.getElementById('balance-display').innerText = balance.toFixed(2);
+              isPlaying = true;
+              betBtn.innerText = "Забрать";
+              betBtn.classList.add('cashout');
+              showToast("Ставка успешно сделана!");
           } else {
               let win = currentBet * currentMult;
               balance += win;
