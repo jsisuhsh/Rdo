@@ -68,8 +68,8 @@
      .crash-info { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; pointer-events: none; width: 100%; }
      #crash-multiplier { font-size: 52px; font-weight: 800; color: #fff; margin-bottom: 10px; }
    
-     /* Изменено для предотвращения смещения элементов вверх/вниз */
-     .rocket-gif { width: 200px; height: 120px; visibility: hidden; margin-bottom: 10px; will-change: transform; image-rendering: -webkit-optimize-contrast; }
+     /* Возвращен прежний размер с автоматической высотой для исключения сплющивания */
+     .rocket-gif { width: 200px; height: auto; visibility: hidden; margin-bottom: 10px; will-change: transform; image-rendering: -webkit-optimize-contrast; }
 
      /* Стили для истории раундов строго под коэффициентом х */
      .crash-history-container { display: flex; gap: 6px; overflow: hidden; justify-content: center; margin-top: 10px; width: 100%; max-width: 95%; }
@@ -257,7 +257,7 @@
              currentMult = 1.00;
              multiplierEl.innerText = "1.00x";
              multiplierEl.style.color = "#fff";
-             rocketAnim.style.visibility = 'hidden'; /* Изменено с display:none для предотвращения прыжков */
+             rocketAnim.style.visibility = 'hidden';
              betInput.disabled = false;
              if (!isPlaying) betBtn.disabled = false;
          } else if (cycleTime > (WAIT_DURATION + ROUND_DURATION)) {
@@ -283,7 +283,7 @@
                  }
              }
              multiplierEl.style.color = "red";
-             rocketAnim.style.visibility = 'hidden'; /* Изменено с display:none */
+             rocketAnim.style.visibility = 'hidden';
              if (isPlaying) { isPlaying = false; betBtn.innerText = "Поставить"; betBtn.classList.remove('cashout'); }
              betInput.disabled = true;
              betBtn.disabled = true;
@@ -293,7 +293,7 @@
              currentMult = Math.pow(1.001, timeElapsed / 20);
              multiplierEl.innerText = currentMult.toFixed(2) + "x";
              multiplierEl.style.color = "#fff";
-             rocketAnim.style.visibility = 'visible'; /* Изменено с display:block */
+             rocketAnim.style.visibility = 'visible';
              betInput.disabled = true;
              if (isPlaying) betBtn.disabled = false;
              else betBtn.disabled = true;
