@@ -142,6 +142,7 @@
       let currentBet = 0;
       let isPlaying = false;
       let currentMult = 1.00;
+      let explosionVibrated = false;
 
       if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
           const user = tg.initDataUnsafe.user;
@@ -232,6 +233,7 @@
           }
 
           if (cycleTime < WAIT_DURATION) {
+              explosionVibrated = false;
               statusEl.innerText = `Ожидание (${Math.ceil((WAIT_DURATION - cycleTime) / 1000)}с)`;
               currentMult = 1.00;
               multiplierEl.innerText = "1.00x";
@@ -241,6 +243,10 @@
               if (!isPlaying) betBtn.disabled = false;
           } else if (cycleTime > (WAIT_DURATION + ROUND_DURATION)) {
               statusEl.innerText = "Взрыв!";
+              if (!explosionVibrated) {
+                  if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('heavy');
+                  explosionVibrated = true;
+              }
               multiplierEl.style.color = "red";
               rocketAnim.style.display = 'none';
               if (isPlaying) { isPlaying = false; betBtn.innerText = "Поставить"; betBtn.classList.remove('cashout'); }
