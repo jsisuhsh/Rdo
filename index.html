@@ -65,6 +65,11 @@
        #crash-multiplier { font-size: 52px; font-weight: 800; color: #fff; margin-bottom: 10px; }
        
        .rocket-gif { width: 200px; height: auto; display: none; margin-bottom: 10px; will-change: transform; image-rendering: -webkit-optimize-contrast; }
+
+       /* Окно ставки */
+       .bet-container { width: 100%; display: flex; gap: 10px; margin-top: 20px; }
+       .bet-input { flex: 1; background: var(--pill-bg); border: none; padding: 12px; border-radius: 30px; color: white; font-size: 16px; text-align: center; }
+       .bet-btn { background: var(--accent-color); border: none; padding: 12px 25px; border-radius: 30px; color: white; font-weight: bold; font-size: 16px; cursor: pointer; }
    </style>
 </head>
 <body>
@@ -96,6 +101,10 @@
                    <div id="crash-status">Ожидание...</div>
                    <div id="crash-multiplier">1.00x</div>
                </div>
+           </div>
+           <div class="bet-container">
+               <input type="number" id="bet-amount" class="bet-input" placeholder="0.00 TON">
+               <button class="bet-btn" onclick="placeBet()">Поставить</button>
            </div>
        </div>
        <div id="tab-profile" class="tab-content">
@@ -134,6 +143,7 @@
        function showSettings() { document.getElementById('settings-menu').style.display = 'flex'; }
        function hideSettings() { document.getElementById('settings-menu').style.display = 'none'; }
        function toggle(el) { el.classList.toggle('on'); }
+       function placeBet() { alert("Ставка в " + document.getElementById('bet-amount').value + " TON принята!"); }
 
        document.querySelectorAll('.nav-item').forEach(b => {
            b.onclick = () => {
@@ -197,4 +207,4 @@
        loop();
    </script>
 </body>
-   </html>
+</html>
