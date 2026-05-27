@@ -23,8 +23,8 @@
      #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #000; border: 2px solid var(--accent-color); color: white; padding: 12px 20px; border-radius: 10px; z-index: 20000; display: none; font-size: 14px; white-space: nowrap; }
 
      /* Стиль для онлайн счетчика */
-     #online-counter { position: fixed; top: 15px; left: 15px; z-index: 10000; display: flex; align-items: center; gap: 8px; background: rgba(40, 167, 69, 0.2); border: 2px solid var(--green-color); padding: 5px 12px; border-radius: 50px; font-weight: bold; font-size: 14px; color: white; }
-     .user-icon { width: 18px; height: 18px; border: 2px solid var(--green-color); border-radius: 50%; }
+     #online-counter { position: fixed; top: 15px; left: 15px; z-index: 10000; display: flex; align-items: center; gap: 6px; background: rgba(40, 167, 69, 0.2); border: 2px solid var(--green-color); padding: 5px 10px; border-radius: 50px; font-weight: bold; font-size: 14px; color: white; }
+     .user-icon { width: 18px; height: 18px; color: var(--green-color); stroke: currentColor; fill: none; }
 
      .top-balance-box { position: fixed; top: 15px; right: 15px; display: flex; align-items: center; gap: 8px; background: var(--pill-bg); padding: 6px 14px; border-radius: 50px; border: 1px solid rgba(255, 255, 255, 0.1); z-index: 10000; }
      #balance-display { font-size: 18px; font-weight: 700; color: #ffffff !important; }
@@ -97,7 +97,13 @@
 
  <div id="toast"></div>
 
- <div id="online-counter"><div class="user-icon"></div> <span id="online-count">0</span></div>
+ <div id="online-counter">
+     <svg class="user-icon" viewBox="0 0 24 24" width="18" height="18" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+         <circle cx="12" cy="7" r="4"></circle>
+     </svg>
+     <span id="online-count">0</span>
+ </div>
 
  <div class="top-balance-box">
      <span id="balance-display">100.00</span>
@@ -187,7 +193,6 @@
          showToast("✅ Подключено к серверу!");
      });
 
-     // Обработка онлайна
      socket.on('updateOnline', (count) => {
          document.getElementById('online-count').innerText = count;
      });
@@ -419,4 +424,4 @@
      loop();
  </script>
 </body>
-</html>
+              </html>
