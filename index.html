@@ -204,11 +204,25 @@
      
      function showPromo() { document.getElementById('promo-overlay').classList.add('visible'); }
      function hidePromo() { document.getElementById('promo-overlay').classList.remove('visible'); }
+     
+     // Функция активации промокода с проверкой
      function activatePromoCode() { 
-         const code = document.getElementById('promo-input').value;
-         if(!code) return showToast("Введите код!");
-         showToast("Промокод " + code + " активирован!");
+         const code = document.getElementById('promo-input').value.trim();
+         const validCodes = []; // Сюда потом будешь дописывать рабочие коды, например: ["BONUS", "FREE100"]
+
+         if (!code) {
+             showToast("Введите код!");
+             return;
+         }
+
+         if (validCodes.includes(code.toUpperCase())) {
+             showToast("Промокод " + code + " активирован!");
+             // Сюда добавишь логику выдачи награды
+         } else {
+             showToast("Такой промокод не существует");
+         }
          hidePromo();
+         document.getElementById('promo-input').value = ""; // Очистить поле
      }
 
      const socket = io('https://rdo-0y8m.onrender.com', {
@@ -557,4 +571,4 @@
      loop();
  </script>
 </body>
-</html>
+ </html>
