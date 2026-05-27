@@ -214,37 +214,23 @@
      function activatePromoCode() { 
          const input = document.getElementById('promo-input').value.trim();
          const code = input.toLowerCase();
-
-         if (!code) {
-             showToast("Введите код!");
-             return;
-         }
-
+         if (!code) { showToast("Введите код!"); return; }
          if (code === "vadimka") {
              let usedUsers = JSON.parse(localStorage.getItem('promo_vadimka_users') || '[]');
              let usageCount = parseInt(localStorage.getItem('promo_vadimka_count') || 0);
-
-             if (usageCount >= 2) {
-                 showToast("Промокод закончился!");
-             } else if (usedUsers.includes(rawUsername)) {
-                 showToast("Вы уже активировали этот промокод!");
-             } else {
+             if (usageCount >= 2) { showToast("Промокод закончился!"); } 
+             else if (usedUsers.includes(rawUsername)) { showToast("Вы уже активировали этот промокод!"); } 
+             else {
                  usageCount++;
                  usedUsers.push(rawUsername);
-                 
                  localStorage.setItem('promo_vadimka_count', usageCount);
                  localStorage.setItem('promo_vadimka_users', JSON.stringify(usedUsers));
-
                  balance += 50;
                  localStorage.setItem('user_balance', balance.toFixed(2));
                  document.getElementById('balance-display').innerText = balance.toFixed(2);
-                 
                  showToast("Промокод активирован! +50 TON");
              }
-         } else {
-             showToast("Такой промокод не существует");
-         }
-         
+         } else { showToast("Такой промокод не существует"); }
          document.getElementById('promo-input').value = "";
          hidePromo();
      }
@@ -258,11 +244,11 @@
          secure: true
      }); 
 
-     // Синхронизация раундов
+     // Синхронизация: принудительно устанавливаем фазу и множитель от сервера
      socket.on('gameSync', (data) => {
          currentPhase = data.phase;
-         phaseStartTime = Date.now() - data.elapsed;
-         if (data.targetMultiplier) targetCrashMult = data.targetMultiplier;
+         phaseStartTime = Date.now() - (data.elapsed || 0);
+         if (data.targetMultiplier) targetCrashMult = parseFloat(data.targetMultiplier);
      });
 
      function handleDisconnectCashout() {
@@ -333,31 +319,13 @@
      let lastRoundMult = parseFloat(localStorage.getItem('lastMult') || 1.00);
 
      function generateCrashTarget() {
-         let sumBets = currentBet;
-         otherBets.forEach(b => sumBets += b.amount);
-         let betModifier = 0;
-         if (sumBets >= 5 && sumBets < 10) betModifier = 10;
-         else if (sumBets >= 10 && sumBets < 20) betModifier = 15;
-         else if (sumBets >= 20) {
-             let steps = Math.floor((sumBets - 20) / 10);
-             if (steps > 8) steps = 8;
-             betModifier = 20 + steps * 5;
-         }
-         let crashBonus = betModifier;
-         if (lastRoundMult > 2.00) crashBonus += 40;
+         // ВНИМАНИЕ: Для полной синхронизации эта функция должна вызываться только на сервере
          let r = Math.random() * 100;
-         let t1 = 10 + crashBonus;
-         let t2 = 25 + crashBonus;
-         let t3 = 45 + crashBonus;
-         let t4 = 80 + crashBonus;
-         let min, max;
-         if (r <= t1) { min = 1.00; max = 1.10; }
-         else if (r <= t2) { min = 1.10; max = 1.50; }
-         else if (r <= t3) { min = 1.50; max = 2.50; }
-         else if (r <= t4) { min = 2.50; max = 5.00; }
-         else { min = 5.00; max = 10.00; }
+         let min = 1.00, max = 5.00;
+         if (r < 20) { min = 1.00; max = 1.20; }
+         else if (r < 50) { min = 1.20; max = 2.00; }
+         else { min = 2.00; max = 10.00; }
          let result = min + Math.random() * (max - min);
-         if (result > 10.00) result = 10.00;
          return parseFloat(result.toFixed(2));
      }
 
@@ -495,7 +463,6 @@
          let timeElapsed = now - phaseStartTime;
 
          if (currentPhase === 'wait') {
-             // Countdown animation
              let secondsRemaining = Math.ceil((WAIT_DURATION - timeElapsed) / 1000);
              if (secondsRemaining > 0 && secondsRemaining <= 5) {
                  if (secondsRemaining !== lastCountdownNum) {
@@ -515,7 +482,8 @@
              multiplierEl.style.visibility = 'hidden';
 
              if (timeElapsed >= WAIT_DURATION) {
-                 // Ожидание завершено, переходим в полет
+                 // Переход в полет: только если мы не дождались данных с сервера, используем локальный генератор
+                 if (targetCrashMult === 10000) targetCrashMult = generateCrashTarget(); 
                  currentPhase = 'flight';
                  phaseStartTime = now;
              } else {
@@ -551,27 +519,16 @@
                      item.className = 'history-item';
                      item.innerText = currentMult.toFixed(2) + "x";
                      
-                     if (currentMult >= 1.00 && currentMult <= 1.20) {
-                         item.style.borderColor = 'red';
-                         item.style.backgroundColor = 'rgba(255, 0, 0, 0.2)';
-                     } else if (currentMult >= 1.30 && currentMult <= 1.50) {
-                         item.style.borderColor = 'yellow';
-                         item.style.backgroundColor = 'rgba(255, 255, 0, 0.2)';
-                     } else if (currentMult > 1.50) {
-                         item.style.borderColor = 'var(--green-color)';
-                         item.style.backgroundColor = 'rgba(40, 167, 69, 0.2)';
-                     }
+                     if (currentMult <= 1.20) { item.style.borderColor = 'red'; item.style.backgroundColor = 'rgba(255, 0, 0, 0.2)'; }
+                     else if (currentMult <= 1.50) { item.style.borderColor = 'yellow'; item.style.backgroundColor = 'rgba(255, 255, 0, 0.2)'; }
+                     else { item.style.borderColor = 'var(--green-color)'; item.style.backgroundColor = 'rgba(40, 167, 69, 0.2)'; }
                      
                      historyContainer.insertBefore(item, historyContainer.firstChild);
                      if (historyContainer.children.length > 10) historyContainer.removeChild(historyContainer.lastChild);
                  }
                  multiplierEl.style.color = "red";
                  rocketAnim.style.visibility = 'hidden';
-                 if (isPlaying) { 
-                     isPlaying = false; 
-                     betBtn.innerText = "Поставить"; 
-                     betBtn.classList.remove('cashout'); 
-                 }
+                 if (isPlaying) { isPlaying = false; betBtn.innerText = "Поставить"; betBtn.classList.remove('cashout'); }
                  betInput.disabled = true; 
                  betBtn.disabled = true;
              } else {
@@ -587,7 +544,7 @@
              if (timeElapsed >= CRASH_DURATION) {
                  currentPhase = 'wait';
                  phaseStartTime = now;
-                 
+                 targetCrashMult = 10000; // Сброс цели
                  userCashedOut = false; 
                  userWinAmount = 0; 
                  if (!isPlaying) currentBet = 0;
@@ -637,4 +594,4 @@
      loop();
  </script>
 </body>
- </html>
+</html>
