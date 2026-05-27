@@ -20,7 +20,7 @@ io.on('connection', (socket) => {
     socket.on('bet', (data) => {
         console.log('Ставка получена:', data);
         // Отправляем всем остальным игрокам
-        io.emit('new-bet', data);
+        io.emit('newBet', data);
     });
 
     socket.on('disconnect', () => {
