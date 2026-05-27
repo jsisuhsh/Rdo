@@ -62,6 +62,11 @@
      .switch.on { background: #4CAF50; }
      .switch::before { content: ""; position: absolute; top: 2px; left: 2px; width: 21px; height: 21px; background: white; border-radius: 50%; transition: 0.3s; }
      .switch.on::before { left: 27px; }
+     
+     /* Стили для выбора ракетки */
+     .rocket-selector { display: flex; gap: 15px; margin-top: 15px; }
+     .rocket-option { width: 70px; height: 70px; border: 2px solid transparent; border-radius: 12px; cursor: pointer; object-fit: contain; background: rgba(255, 255, 255, 0.05); transition: 0.3s; padding: 5px; }
+     .rocket-option.active { border-color: var(--accent-color); background: rgba(157, 78, 221, 0.2); }
 
      .close-settings { position: absolute; top: 15px; right: 15px; font-size: 24px; cursor: pointer; color: white; }
      .crash-settings-icon { position: absolute; top: 15px; right: 15px; font-size: 18px; z-index: 3; cursor: pointer; background: rgba(157, 78, 221, 0.3); padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
@@ -120,13 +125,19 @@
                  <div class="close-settings" onclick="hideSettings()">✕</div>
                  <div style="margin-top: 40px;">
                      <div class="setting-item">Вывод при плохом соединении <div id="bad-conn-switch" class="switch" onclick="toggle(this)"></div></div>
+                     
+                     <div style="margin-top: 25px; font-size: 16px;">Выбор ракетки:</div>
+                     <div class="rocket-selector">
+                         <img src="https://i.postimg.cc/PxbfNvqk/animation-gif-ezgif-com-effects.gif" class="rocket-option" onclick="selectRocket(0)" alt="Новая ракета">
+                         <img src="https://i.postimg.cc/4ynpR8m1/lv-0-20260527162334-ezgif-com-effects.gif" class="rocket-option" onclick="selectRocket(1)" alt="Старая ракета">
+                     </div>
                  </div>
              </div>
              <div class="crash-settings-icon" onclick="showSettings()">⚙️</div>
              <canvas id="grid-canvas"></canvas>
              <canvas id="crash-canvas"></canvas>
              <div class="crash-info">
-                 <img id="rocket-animation" src="https://i.postimg.cc/4ynpR8m1/lv-0-20260527162334-ezgif-com-effects.gif" class="rocket-gif" alt="Rocket">
+                 <img id="rocket-animation" src="https://i.postimg.cc/PxbfNvqk/animation-gif-ezgif-com-effects.gif" class="rocket-gif" alt="Rocket">
                  <div id="crash-status">Ожидание...</div>
                  <div id="crash-multiplier">1.00x</div>
                  <div id="crash-history" class="crash-history-container"></div>
@@ -223,6 +234,23 @@
 
      const tg = window.Telegram.WebApp;
      tg.expand();
+
+     // Логика выбора ракетки
+     const ROCKET_URLS = [
+         "https://i.postimg.cc/PxbfNvqk/animation-gif-ezgif-com-effects.gif",
+         "https://i.postimg.cc/4ynpR8m1/lv-0-20260527162334-ezgif-com-effects.gif"
+     ];
+     let selectedRocketIndex = parseInt(localStorage.getItem('user_rocket_choice') || 0);
+
+     function selectRocket(index) {
+         selectedRocketIndex = index;
+         localStorage.setItem('user_rocket_choice', index);
+         document.getElementById('rocket-animation').src = ROCKET_URLS[index];
+         
+         const options = document.querySelectorAll('.rocket-option');
+         options.forEach(opt => opt.classList.remove('active'));
+         if (options[index]) options[index].classList.add('active');
+     }
 
      let balance = localStorage.getItem('user_balance') !== null ? parseFloat(localStorage.getItem('user_balance')) : 100.00;
      document.getElementById('balance-display').innerText = balance.toFixed(2);
@@ -519,7 +547,9 @@
          requestAnimationFrame(loop);
      }
      
+     // Инициализация выбранной ракетки перед запуском цикла
+     selectRocket(selectedRocketIndex);
      loop();
  </script>
 </body>
-      </html>
+</html>
