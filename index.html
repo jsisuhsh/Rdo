@@ -76,7 +76,6 @@
      .bet-btn.cashout { background: var(--green-color); }
      .bet-btn:disabled { background: #555; cursor: not-allowed; opacity: 0.6; }
 
-     /* Стили для таблицы ставок */
      .bets-list { width: 100%; max-width: 350px; margin: 15px auto 0 auto; background: var(--container-bg); border-radius: 15px; padding: 12px; border: 1px solid rgba(255, 255, 255, 0.05); }
      .bet-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
      .bet-row:last-child { border-bottom: none; }
@@ -178,24 +177,6 @@
      
      const explosionSound = new Audio('https://limewire.com/d/Y5QPU#sHnn64dS9E');
 
-     // Функция для добавления ставки другого игрока в список
-     function addOtherPlayerBet(username, amount, avatarLetter) {
-         const list = document.getElementById('bets-list-container');
-         const row = document.createElement('div');
-         row.className = 'bet-row';
-         row.innerHTML = `
-             <div class="bet-user-meta">
-                 <div class="bet-avatar">${avatarLetter || '?'}</div>
-                 <div class="bet-info">
-                     <div class="bet-username">@${username}</div>
-                     <div class="bet-amount-val">${amount.toFixed(2)} TON</div>
-                 </div>
-             </div>
-             <div class="bet-live-payout">0.00 TON</div>
-         `;
-         list.appendChild(row);
-     }
-
      let rawUsername = "Гость";
      let userLetter = "?";
 
@@ -280,6 +261,7 @@
      const ROUND_DURATION = 15000;
      const WAIT_DURATION = 5000;
 
+     // Изначальная история
      const startHistory = ['1.45x', '2.10x', '1.12x', '5.60x', '1.05x', '3.21x'];
      startHistory.forEach(mult => {
          let item = document.createElement('div');
@@ -316,7 +298,22 @@
              if (currentPhase !== 'wait') { currentPhase = 'wait'; userCashedOut = false; userWinAmount = 0; if (!isPlaying) currentBet = 0; }
          } else if (cycleTime > (WAIT_DURATION + ROUND_DURATION)) {
              statusEl.innerText = "Взрыв!";
-             if (!explosionVibrated) { if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('heavy'); explosionSound.play(); explosionVibrated = true; }
+             if (!explosionVibrated) { 
+                 if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('heavy'); 
+                 explosionSound.play(); 
+                 explosionVibrated = true; 
+                 
+                 // Логика добавления истории: в левую часть
+                 let item = document.createElement('div');
+                 item.className = 'history-item';
+                 item.innerText = multiplierEl.innerText;
+                 historyContainer.insertBefore(item, historyContainer.firstChild);
+                 
+                 // Удаляем старые если их больше 6
+                 if (historyContainer.children.length > 6) {
+                     historyContainer.removeChild(historyContainer.lastChild);
+                 }
+             }
              multiplierEl.style.color = "red";
              rocketAnim.style.visibility = 'hidden';
              if (isPlaying) { isPlaying = false; betBtn.innerText = "Поставить"; betBtn.classList.remove('cashout'); }
