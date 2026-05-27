@@ -209,13 +209,11 @@
      let targetCrashMult = 1.00;
      let lastRoundMult = parseFloat(localStorage.getItem('lastMult') || 1.00);
 
-     // Генерируем ID раунда для синхронизации
      const ROUND_DURATION = 15000;
      const WAIT_DURATION = 5000;
      const TOTAL_ROUND_TIME = ROUND_DURATION + WAIT_DURATION + 2000;
 
      function generateCrashTarget(roundId) {
-         // Детерминированный генератор
          let x = Math.sin(roundId) * 10000;
          let r = x - Math.floor(x);
          
@@ -347,6 +345,18 @@
          crashCanvas.height = gridCanvas.height = crashCanvas.parentElement.clientHeight;
          ctx.clearRect(0, 0, crashCanvas.width, crashCanvas.height);
          gCtx.clearRect(0, 0, gridCanvas.width, gridCanvas.height);
+
+         // Рисование пульсирующей сетки
+         let pulseOffset = Math.sin(Date.now() / 300) * (currentMult * 5); 
+         gCtx.strokeStyle = 'rgba(157, 78, 221, 0.3)';
+         gCtx.lineWidth = 1;
+         let spacing = 40;
+         for (let i = -spacing + pulseOffset; i < gridCanvas.width; i += spacing) {
+             gCtx.beginPath(); gCtx.moveTo(i, 0); gCtx.lineTo(i, gridCanvas.height); gCtx.stroke();
+         }
+         for (let i = 0; i < gridCanvas.height; i += spacing) {
+             gCtx.beginPath(); gCtx.moveTo(0, i); gCtx.lineTo(gridCanvas.width, i); gCtx.stroke();
+         }
 
          let now = Date.now();
          let roundId = Math.floor(now / TOTAL_ROUND_TIME);
