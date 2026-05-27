@@ -295,6 +295,11 @@
          secure: true
      }); 
 
+     // Сразу вешаем обработчик онлайна, чтобы не пропустить первое событие от сервера при подключении
+     socket.on('updateOnline', (count) => { 
+         document.getElementById('online-count').innerText = count; 
+     });
+
      let currentBet = 0;
      let isPlaying = false;
      let currentMult = 1.00;
@@ -437,7 +442,6 @@
      }
 
      socket.on('connect', () => { showToast("✅ Подключено!"); });
-     socket.on('updateOnline', (count) => { document.getElementById('online-count').innerText = count; });
      socket.on('disconnect', () => { showToast("❌ Потеряно соединение"); handleDisconnectCashout(); });
      window.addEventListener('offline', () => { showToast("❌ Нет интернета"); handleDisconnectCashout(); });
 
@@ -593,4 +597,4 @@
      loop();
  </script>
 </body>
-</html>
+ </html>
