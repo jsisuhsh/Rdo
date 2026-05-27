@@ -161,8 +161,8 @@
 
  <script src="https://telegram.org/js/telegram-web-app.js"></script>
  <script>
-     
-     const socket = io('https://rdo-0y8m.onrender.com');
+     // ИНИЦИАЛИЗАЦИЯ SOCKET.IO С ТВОЕЙ ССЫЛКОЙ
+     const socket = io('https://rdo-0y8m.onrender.com'); 
 
      const tg = window.Telegram.WebApp;
      tg.expand();
@@ -377,7 +377,7 @@
          } else {
              uBetEl.innerText = currentBet > 0 ? currentBet.toFixed(2) + " TON" : "0.00 TON";
              uPayoutEl.innerText = "0.00 TON";
-             uPayoutEl.style.color = var(--text-muted);
+             uPayoutEl.style.color = 'var(--text-muted)';
          }
          requestAnimationFrame(loop);
      }
