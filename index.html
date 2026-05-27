@@ -4,6 +4,7 @@
  <meta charset="UTF-8">
  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
  <title>RedoGift App</title>
+ <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
  <style>
      :root {
          --bg-color: #1e1b24;
@@ -160,6 +161,9 @@
 
  <script src="https://telegram.org/js/telegram-web-app.js"></script>
  <script>
+     
+     const socket = io('https://rdo-0y8m.onrender.com');
+
      const tg = window.Telegram.WebApp;
      tg.expand();
 
@@ -176,6 +180,28 @@
      let currentPhase = ""; 
      
      const explosionSound = new Audio('https://limewire.com/d/Y5QPU#sHnn64dS9E');
+
+     // Получение данных от сервера
+     socket.on('newBet', (data) => {
+         addOtherPlayerBet(data.username, data.amount, data.avatarLetter);
+     });
+
+     function addOtherPlayerBet(username, amount, avatarLetter) {
+         const list = document.getElementById('bets-list-container');
+         const row = document.createElement('div');
+         row.className = 'bet-row';
+         row.innerHTML = `
+             <div class="bet-user-meta">
+                 <div class="bet-avatar">${avatarLetter || '?'}</div>
+                 <div class="bet-info">
+                     <div class="bet-username">@${username}</div>
+                     <div class="bet-amount-val">${amount.toFixed(2)} TON</div>
+                 </div>
+             </div>
+             <div class="bet-live-payout">0.00 TON</div>
+         `;
+         list.appendChild(row);
+     }
 
      let rawUsername = "Гость";
      let userLetter = "?";
@@ -218,6 +244,9 @@
              localStorage.setItem('user_balance', balance.toFixed(2));
              document.getElementById('balance-display').innerText = balance.toFixed(2);
              
+             // Отправляем ставку на сервер
+             socket.emit('placeBet', { username: rawUsername, amount: currentBet, avatarLetter: userLetter });
+
              isPlaying = true;
              userCashedOut = false;
              userWinAmount = 0;
@@ -261,7 +290,6 @@
      const ROUND_DURATION = 15000;
      const WAIT_DURATION = 5000;
 
-     // Изначальная история
      const startHistory = ['1.45x', '2.10x', '1.12x', '5.60x', '1.05x', '3.21x'];
      startHistory.forEach(mult => {
          let item = document.createElement('div');
@@ -303,13 +331,11 @@
                  explosionSound.play(); 
                  explosionVibrated = true; 
                  
-                 // Логика добавления истории: в левую часть
                  let item = document.createElement('div');
                  item.className = 'history-item';
                  item.innerText = multiplierEl.innerText;
                  historyContainer.insertBefore(item, historyContainer.firstChild);
                  
-                 // Удаляем старые если их больше 6
                  if (historyContainer.children.length > 6) {
                      historyContainer.removeChild(historyContainer.lastChild);
                  }
@@ -351,11 +377,11 @@
          } else {
              uBetEl.innerText = currentBet > 0 ? currentBet.toFixed(2) + " TON" : "0.00 TON";
              uPayoutEl.innerText = "0.00 TON";
-             uPayoutEl.style.color = "var(--text-muted)";
+             uPayoutEl.style.color = var(--text-muted);
          }
          requestAnimationFrame(loop);
      }
      loop();
  </script>
 </body>
-</html>
+ </html>
