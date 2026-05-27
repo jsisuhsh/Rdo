@@ -161,7 +161,7 @@
 
  <script src="https://telegram.org/js/telegram-web-app.js"></script>
  <script>
-     // ИНИЦИАЛИЗАЦИЯ SOCKET.IO С ТВОЕЙ ССЫЛКОЙ
+     // ИНИЦИАЛИЗАЦИЯ SOCKET.IO С ТВОЕЙ ССЫЛКОЙ ИЗ RENDER
      const socket = io('https://rdo-0y8m.onrender.com'); 
 
      const tg = window.Telegram.WebApp;
@@ -181,10 +181,32 @@
      
      const explosionSound = new Audio('https://limewire.com/d/Y5QPU#sHnn64dS9E');
 
-     // Получение данных от сервера
-     socket.on('newBet', (data) => {
+     // МАССИВ ДЛЯ ЖИВОГО ОТСЛЕЖИВАНИЯ СТАВОК ДРУГИХ ИГРОКОВ
+     let otherBets = [];
+
+     // Слушаем оба возможных события от бэкенда для максимальной совместимости
+     socket.on('newBet', (data) => { handleIncomingBet(data); });
+     socket.on('bet', (data) => { handleIncomingBet(data); });
+
+     function handleIncomingBet(data) {
+         // Игнорируем собственную ставку, чтобы она не дублировалась в списке
+         if (data.username === rawUsername) return;
          addOtherPlayerBet(data.username, data.amount, data.avatarLetter);
-     });
+     }
+
+     // Слушаем события вывода средств другими игроками
+     socket.on('cashOut', (data) => { handleIncomingCashout(data); });
+     socket.on('playerCashedOut', (data) => { handleIncomingCashout(data); });
+
+     function handleIncomingCashout(data) {
+         otherBets.forEach(b => {
+             if (b.username === data.username) {
+                 b.isCashedOut = true;
+                 b.element.innerText = (data.winAmount || (b.amount * (data.mult || currentMult))).toFixed(2) + " TON";
+                 b.element.style.color = "var(--green-color)";
+             }
+         });
+     }
 
      function addOtherPlayerBet(username, amount, avatarLetter) {
          const list = document.getElementById('bets-list-container');
@@ -201,6 +223,14 @@
              <div class="bet-live-payout">0.00 TON</div>
          `;
          list.appendChild(row);
+         
+         // Сохраняем ссылку на элемент выплаты, чтобы обновлять его в реальном времени
+         otherBets.push({
+             username: username,
+             amount: amount,
+             element: row.querySelector('.bet-live-payout'),
+             isCashedOut: false
+         });
      }
 
      let rawUsername = "Гость";
@@ -258,6 +288,9 @@
              balance += userWinAmount;
              localStorage.setItem('user_balance', balance.toFixed(2));
              document.getElementById('balance-display').innerText = balance.toFixed(2);
+             
+             // Отправляем событие вывода на сервер
+             socket.emit('cashOut', { username: rawUsername, winAmount: userWinAmount, mult: currentMult });
              
              isPlaying = false;
              userCashedOut = true;
@@ -323,7 +356,19 @@
              betInput.disabled = false;
              if (!isPlaying) betBtn.disabled = false;
 
-             if (currentPhase !== 'wait') { currentPhase = 'wait'; userCashedOut = false; userWinAmount = 0; if (!isPlaying) currentBet = 0; }
+             if (currentPhase !== 'wait') { 
+                 currentPhase = 'wait'; 
+                 userCashedOut = false; 
+                 userWinAmount = 0; 
+                 if (!isPlaying) currentBet = 0; 
+                 
+                 // ОЧИЩАЕМ СТАВКИ ДРУГИХ ИГРОКОВ ИЗ СПИСКА ПЕРЕД НОВЫМ РАУНДОМ
+                 const list = document.getElementById('bets-list-container');
+                 while (list.children.length > 1) {
+                     list.removeChild(list.lastChild);
+                 }
+                 otherBets = [];
+             }
          } else if (cycleTime > (WAIT_DURATION + ROUND_DURATION)) {
              statusEl.innerText = "Взрыв!";
              if (!explosionVibrated) { 
@@ -360,6 +405,7 @@
              if (currentPhase !== 'flight') { currentPhase = 'flight'; }
          }
 
+         // ОБНОВЛЕНИЕ ТЕКУЩЕГО ПОЛЬЗОВАТЕЛЯ
          const uBetEl = document.getElementById('user-bet-amount');
          const uPayoutEl = document.getElementById('user-bet-payout');
          if (isPlaying) {
@@ -379,9 +425,25 @@
              uPayoutEl.innerText = "0.00 TON";
              uPayoutEl.style.color = 'var(--text-muted)';
          }
+
+         // ДИНАМИЧЕСКОЕ ОБНОВЛЕНИЕ ВЫПЛАТ ДРУГИХ ИГРОКОВ В РЕАЛЬНОМ ВРЕМЕНИ
+         otherBets.forEach(b => {
+             if (b.isCashedOut) return; // Если уже забрал, не трогаем сумму
+             if (currentPhase === 'flight') {
+                 b.element.innerText = (b.amount * currentMult).toFixed(2) + " TON";
+                 b.element.style.color = "var(--green-color)";
+             } else if (currentPhase === 'crash') {
+                 b.element.innerText = "0.00 TON";
+                 b.element.style.color = "#ff4d4d"; // Покраснение при проигрыше
+             } else {
+                 b.element.innerText = "0.00 TON";
+                 b.element.style.color = 'var(--text-muted)';
+             }
+         });
+
          requestAnimationFrame(loop);
      }
      loop();
  </script>
 </body>
- </html>
+</html>
