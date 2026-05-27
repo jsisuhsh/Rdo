@@ -205,7 +205,6 @@
      function showPromo() { document.getElementById('promo-overlay').classList.add('visible'); }
      function hidePromo() { document.getElementById('promo-overlay').classList.remove('visible'); }
      
-     // Функция активации промокода с лимитом
      function activatePromoCode() { 
          const input = document.getElementById('promo-input').value.trim();
          const code = input.toLowerCase();
@@ -216,7 +215,6 @@
          }
 
          if (code === "vadimka") {
-             // Получаем данные активаций из localStorage
              let usedUsers = JSON.parse(localStorage.getItem('promo_vadimka_users') || '[]');
              let usageCount = parseInt(localStorage.getItem('promo_vadimka_count') || 0);
 
@@ -225,15 +223,12 @@
              } else if (usedUsers.includes(rawUsername)) {
                  showToast("Вы уже активировали этот промокод!");
              } else {
-                 // Успешная активация
                  usageCount++;
                  usedUsers.push(rawUsername);
                  
-                 // Сохраняем состояние
                  localStorage.setItem('promo_vadimka_count', usageCount);
                  localStorage.setItem('promo_vadimka_users', JSON.stringify(usedUsers));
 
-                 // Выдаем бонус +50 TON
                  balance += 50;
                  localStorage.setItem('user_balance', balance.toFixed(2));
                  document.getElementById('balance-display').innerText = balance.toFixed(2);
@@ -516,9 +511,20 @@
                      explosionVibrated = true; 
                      localStorage.setItem('lastMult', currentMult.toFixed(2));
                      lastRoundMult = currentMult;
+                     
+                     // Создание элемента истории с логикой цветов
                      let item = document.createElement('div');
                      item.className = 'history-item';
                      item.innerText = currentMult.toFixed(2) + "x";
+                     
+                     if (currentMult >= 1.00 && currentMult <= 1.20) {
+                         item.style.borderColor = 'red';
+                     } else if (currentMult >= 1.30 && currentMult <= 1.50) {
+                         item.style.borderColor = 'yellow';
+                     } else if (currentMult > 1.50) {
+                         item.style.borderColor = 'var(--green-color)';
+                     }
+                     
                      historyContainer.insertBefore(item, historyContainer.firstChild);
                      if (historyContainer.children.length > 10) historyContainer.removeChild(historyContainer.lastChild);
                  }
