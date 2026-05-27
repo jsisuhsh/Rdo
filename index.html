@@ -184,18 +184,20 @@
      // МАССИВ ДЛЯ ЖИВОГО ОТСЛЕЖИВАНИЯ СТАВОК ДРУГИХ ИГРОКОВ
      let otherBets = [];
 
-     // Слушаем оба возможных события от бэкенда для максимальной совместимости
+     // Слушаем ВСЕ возможные варианты событий от бэкенда для ставки
      socket.on('newBet', (data) => { handleIncomingBet(data); });
      socket.on('bet', (data) => { handleIncomingBet(data); });
+     socket.on('placeBet', (data) => { handleIncomingBet(data); }); // Добавлено, часто бэкенды возвращают это же имя
 
      function handleIncomingBet(data) {
-         // Игнорируем собственную ставку, чтобы она не дублировалась в списке
-         if (data.username === rawUsername) return;
+         // Игнорируем собственную ставку, только если это НЕ тестовый "Гость"
+         if (data.username === rawUsername && rawUsername !== "Гость") return;
          addOtherPlayerBet(data.username, data.amount, data.avatarLetter);
      }
 
-     // Слушаем события вывода средств другими игроками
+     // Слушаем ВСЕ события вывода средств другими игроками
      socket.on('cashOut', (data) => { handleIncomingCashout(data); });
+     socket.on('cashout', (data) => { handleIncomingCashout(data); }); // На случай, если на бэкенде с маленькой буквы
      socket.on('playerCashedOut', (data) => { handleIncomingCashout(data); });
 
      function handleIncomingCashout(data) {
