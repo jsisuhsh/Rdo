@@ -1,50 +1,51 @@
 const express = require('express');
 const app = express();
 const http = require('http').createServer(app);
-const io = require('socket.io')(http, {
-    cors: {
-        origin: "*",
-        methods: ["GET", "POST"]
-    }
-});
-const path = require('path');
+const io = require('socket.io')(http, { cors: { origin: "*" } });
 
-// Раздаем статические файлы из текущей папки
 app.use(express.static(__dirname));
 
-// При заходе на главную отдаем index.html
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
+let currentPhase = 'wait'; 
+let targetMultiplier = 1.00;
+let phaseStartTime = Date.now();
 
-// Логика работы с сокетами
+function generateMultiplier() {
+    let r = Math.random() * 100;
+    if (r < 20) return 1.00 + Math.random() * 0.2;
+    if (r < 50) return 1.20 + Math.random() * 0.8;
+    return 2.00 + Math.random() * 8.0;
+}
+
+// Игровой цикл
+setInterval(() => {
+    let now = Date.now();
+    let elapsed = now - phaseStartTime;
+
+    if (currentPhase === 'wait' && elapsed >= 5000) {
+        currentPhase = 'flight';
+        targetMultiplier = parseFloat(generateMultiplier().toFixed(2));
+        phaseStartTime = now;
+        io.emit('gameSync', { phase: 'flight', targetMultiplier, elapsed: 0 });
+    } else if (currentPhase === 'flight') {
+        let currentMult = Math.pow(1.001, elapsed / 20);
+        if (currentMult >= targetMultiplier) {
+            currentPhase = 'crash';
+            phaseStartTime = now;
+            io.emit('gameSync', { phase: 'crash', targetMultiplier, elapsed: 0 });
+        }
+    } else if (currentPhase === 'crash' && elapsed >= 3000) {
+        currentPhase = 'wait';
+        phaseStartTime = now;
+        io.emit('gameSync', { phase: 'wait', targetMultiplier: 0, elapsed: 0 });
+    }
+}, 100);
+
 io.on('connection', (socket) => {
-    console.log('Пользователь подключился: ' + socket.id);
+    // Синхронизируем новичка сразу при подключении
+    socket.emit('gameSync', { phase: currentPhase, targetMultiplier, elapsed: Date.now() - phaseStartTime });
     
-    // Отправляем текущий онлайн всем при подключении нового пользователя
-    io.emit('updateOnline', io.engine.clientsCount);
-
-    // Обработка ставок
-    socket.on('bet', (data) => {
-        console.log('Ставка получена:', data);
-        io.emit('newBet', data);
-    });
-
-    // Обработка вывода средств
-    socket.on('cashOut', (data) => {
-        console.log('Вывод получен:', data);
-        io.emit('cashOut', data);
-    });
-
-    socket.on('disconnect', () => {
-        console.log('Пользователь отключился');
-        // Обновляем онлайн при отключении
-        io.emit('updateOnline', io.engine.clientsCount);
-    });
+    socket.on('bet', (data) => io.emit('newBet', data));
+    socket.on('cashOut', (data) => io.emit('cashOut', data));
 });
 
-// Запуск сервера
-const PORT = process.env.PORT || 3000;
-http.listen(PORT, () => {
-    console.log('Сервер запущен на порту ' + PORT);
-});
+http.listen(process.env.PORT || 3000);
