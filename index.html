@@ -19,7 +19,6 @@
      * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; -webkit-user-select: none; }
      body { background-color: var(--bg-color); color: var(--text-color); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
 
-     /* Уведомление в одну строчку */
      #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #000; border: 2px solid var(--accent-color); color: white; padding: 12px 20px; border-radius: 10px; z-index: 20000; display: none; font-size: 14px; white-space: nowrap; }
 
      .top-balance-box { position: fixed; top: 15px; right: 15px; display: flex; align-items: center; gap: 8px; background: var(--pill-bg); padding: 6px 14px; border-radius: 50px; border: 1px solid rgba(255, 255, 255, 0.1); z-index: 10000; }
@@ -48,13 +47,11 @@
      .nav-counter::after { content: "1x"; animation: countLoop 5s infinite steps(1); }
      @keyframes countLoop { 0%, 24.9% { content: "1x"; } 25%, 49.9% { content: "2x"; } 50%, 74.9% { content: "3x"; } 75%, 100% { content: "4x"; } }
 
-     /* Увеличена высота контейнера на всякий случай для вмещения смещенного текста */
      .crash-container { position: relative; background: var(--container-bg); border-radius: 15px; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 380px; margin-top: 20px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.05); }
      #crash-canvas, #grid-canvas { position: absolute; bottom: 0; left: 0; width: 100%; height: 100%; }
      #grid-canvas { z-index: 0; }
      #crash-canvas { z-index: 1; }
    
-     /* Меню настроек */
      #settings-menu { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--container-bg); z-index: 10; display: none; padding: 20px; flex-direction: column; gap: 20px; border-radius: 15px; }
      .setting-item { display: flex; justify-content: space-between; align-items: center; font-size: 16px; }
      .switch { width: 50px; height: 25px; background: #555; border-radius: 25px; position: relative; cursor: pointer; transition: 0.3s; }
@@ -62,20 +59,14 @@
      .switch::before { content: ""; position: absolute; top: 2px; left: 2px; width: 21px; height: 21px; background: white; border-radius: 50%; transition: 0.3s; }
      .switch.on::before { left: 27px; }
 
-     /* Кнопка закрытия настроек */
      .close-settings { position: absolute; top: 15px; right: 15px; font-size: 24px; cursor: pointer; color: white; }
-
      .crash-settings-icon { position: absolute; top: 15px; right: 15px; font-size: 18px; z-index: 3; cursor: pointer; background: rgba(157, 78, 221, 0.3); padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
      .crash-info { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; pointer-events: none; width: 100%; }
      
-     /* Зафиксированы пропорции и размер ракеты с запретом на сжатие (flex-shrink: 0) */
      .rocket-gif { width: 200px; height: auto; flex-shrink: 0; object-fit: contain; visibility: hidden; margin-bottom: 10px; will-change: transform; image-rendering: -webkit-optimize-contrast; }
-     
-     /* Сдвигаем статус, а за ним коэффициент и историю ниже */
      #crash-status { margin-top: 25px; }
      #crash-multiplier { font-size: 52px; font-weight: 800; color: #fff; margin-bottom: 10px; }
 
-     /* Стили для истории раундов строго под коэффициентом х */
      .crash-history-container { display: flex; gap: 6px; overflow: hidden; justify-content: center; margin-top: 10px; width: 100%; max-width: 95%; }
      .history-item { background-color: #161d31; border: 2px solid var(--accent-color); color: #ffffff; padding: 4px 12px; border-radius: 50px; font-size: 13px; font-weight: 700; white-space: nowrap; transition: all 0.3s ease; }
 
@@ -85,7 +76,7 @@
      .bet-btn.cashout { background: var(--green-color); }
      .bet-btn:disabled { background: #555; cursor: not-allowed; opacity: 0.6; }
 
-     /* Стили для таблицы текущих ставок игроков */
+     /* Стили для таблицы ставок */
      .bets-list { width: 100%; max-width: 350px; margin: 15px auto 0 auto; background: var(--container-bg); border-radius: 15px; padding: 12px; border: 1px solid rgba(255, 255, 255, 0.05); }
      .bet-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
      .bet-row:last-child { border-bottom: none; }
@@ -147,7 +138,21 @@
                  </div>
                  <div id="user-bet-payout" class="bet-live-payout">0.00 TON</div>
              </div>
+             <div class="bet-row">
+                 <div class="bet-user-meta">
+                     <div class="bet-avatar" style="background:#555">A</div>
+                     <div class="bet-info"><div class="bet-username">@Andrey</div><div class="bet-amount-val">2.50 TON</div></div>
+                 </div>
+                 <div class="bet-live-payout" style="color:var(--text-muted)">0.00 TON</div>
              </div>
+             <div class="bet-row">
+                 <div class="bet-user-meta">
+                     <div class="bet-avatar" style="background:#555">S</div>
+                     <div class="bet-info"><div class="bet-username">@Sergey</div><div class="bet-amount-val">10.00 TON</div></div>
+                 </div>
+                 <div class="bet-live-payout" style="color:var(--green-color)">15.20 TON</div>
+             </div>
+         </div>
      </div>
      <div id="tab-profile" class="tab-content">
          <div class="bg-characters"></div>
@@ -196,28 +201,13 @@
          userLetter = (user.username ? user.username[0] : user.first_name[0]).toUpperCase();
          document.getElementById('username-display').innerText = user.username ? '@' + user.username : user.first_name;
          document.getElementById('user-avatar').innerText = userLetter;
+     } else {
+         document.getElementById('username-display').innerText = "Гость";
+         document.getElementById('user-avatar').innerText = "?";
      }
 
      document.getElementById('user-bet-avatar').innerText = userLetter;
      document.getElementById('user-bet-username').innerText = "@" + rawUsername.substring(0, 5) + "...";
-
-     // Функция для отрисовки ставок других игроков (можно вызывать динамически)
-     function addOtherPlayerBet(username, amount) {
-         const list = document.getElementById('bets-list-container');
-         const div = document.createElement('div');
-         div.className = 'bet-row';
-         div.innerHTML = `
-             <div class="bet-user-meta">
-                 <div class="bet-avatar">${username[0].toUpperCase()}</div>
-                 <div class="bet-info">
-                     <div class="bet-username">${username}</div>
-                     <div class="bet-amount-val">${amount.toFixed(2)} TON</div>
-                 </div>
-             </div>
-             <div class="bet-live-payout">0.00 TON</div>
-         `;
-         list.appendChild(div);
-     }
 
      function showSettings() { document.getElementById('settings-menu').style.display = 'flex'; }
      function hideSettings() { document.getElementById('settings-menu').style.display = 'none'; }
@@ -237,10 +227,12 @@
              let amount = parseFloat(rawInput);
              if (isNaN(amount) || amount < 0.1 || amount > 100) { showToast("Ограничение 0,1-100!"); return; }
              if (amount > balance) return;
+
              currentBet = amount;
              balance -= amount;
              localStorage.setItem('user_balance', balance.toFixed(2));
              document.getElementById('balance-display').innerText = balance.toFixed(2);
+             
              isPlaying = true;
              userCashedOut = false;
              userWinAmount = 0;
@@ -252,6 +244,7 @@
              balance += userWinAmount;
              localStorage.setItem('user_balance', balance.toFixed(2));
              document.getElementById('balance-display').innerText = balance.toFixed(2);
+             
              isPlaying = false;
              userCashedOut = true;
              betBtn.innerText = "Поставить";
@@ -300,6 +293,12 @@
          let now = Date.now();
          let cycleTime = now % (ROUND_DURATION + WAIT_DURATION + 2000);
 
+         let pulse = (cycleTime > WAIT_DURATION && cycleTime <= (WAIT_DURATION + ROUND_DURATION)) ? Math.sin(now / 200) * (currentMult * 2) : 0;
+         gCtx.strokeStyle = 'rgba(157, 78, 221, 0.2)';
+         gCtx.lineWidth = 1;
+         for(let i = 0; i < gridCanvas.width; i += 40) { gCtx.beginPath(); gCtx.moveTo(i + pulse, 0); gCtx.lineTo(i + pulse, gridCanvas.height); gCtx.stroke(); }
+         for(let i = 0; i < gridCanvas.height; i += 40) { gCtx.beginPath(); gCtx.moveTo(0, i); gCtx.lineTo(gridCanvas.width, i); gCtx.stroke(); }
+
          if (cycleTime < WAIT_DURATION) {
              explosionVibrated = false;
              statusEl.innerText = `Ожидание (${Math.ceil((WAIT_DURATION - cycleTime) / 1000)}с)`;
@@ -309,6 +308,7 @@
              rocketAnim.style.visibility = 'hidden';
              betInput.disabled = false;
              if (!isPlaying) betBtn.disabled = false;
+
              if (currentPhase !== 'wait') { currentPhase = 'wait'; userCashedOut = false; userWinAmount = 0; if (!isPlaying) currentBet = 0; }
          } else if (cycleTime > (WAIT_DURATION + ROUND_DURATION)) {
              statusEl.innerText = "Взрыв!";
@@ -318,15 +318,18 @@
              if (isPlaying) { isPlaying = false; betBtn.innerText = "Поставить"; betBtn.classList.remove('cashout'); }
              betInput.disabled = true;
              betBtn.disabled = true;
+
              if (currentPhase !== 'crash') { currentPhase = 'crash'; }
          } else {
              statusEl.innerText = "В полете...";
-             currentMult = Math.pow(1.001, (cycleTime - WAIT_DURATION) / 20);
+             let timeElapsed = cycleTime - WAIT_DURATION;
+             currentMult = Math.pow(1.001, timeElapsed / 20);
              multiplierEl.innerText = currentMult.toFixed(2) + "x";
              multiplierEl.style.color = "#fff";
              rocketAnim.style.visibility = 'visible';
              betInput.disabled = true;
              if (isPlaying) betBtn.disabled = false; else betBtn.disabled = true;
+
              if (currentPhase !== 'flight') { currentPhase = 'flight'; }
          }
 
@@ -340,6 +343,10 @@
              uBetEl.innerText = currentBet.toFixed(2) + " TON";
              uPayoutEl.innerText = userWinAmount.toFixed(2) + " TON";
              uPayoutEl.style.color = "var(--green-color)";
+         } else if (currentPhase === 'crash' && currentBet > 0) {
+             uBetEl.innerText = currentBet.toFixed(2) + " TON";
+             uPayoutEl.innerText = "0.00 TON";
+             uPayoutEl.style.color = "#ff4d4d";
          } else {
              uBetEl.innerText = currentBet > 0 ? currentBet.toFixed(2) + " TON" : "0.00 TON";
              uPayoutEl.innerText = "0.00 TON";
