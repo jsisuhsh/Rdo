@@ -4,38 +4,32 @@ const http = require('http').createServer(app);
 const io = require('socket.io')(http);
 const path = require('path');
 
-// Указываем, что все статические файлы (html, css, js) лежат в папке public
-app.use(express.static(path.join(__dirname, 'public')));
+// Раздаем статические файлы из текущей папки
+app.use(express.static(__dirname));
 
-// Обработка подключения игроков
-io.on('connection', (socket) => {
-  console.log('Игрок подключился: ' + socket.id);
-
-  // Когда игрок делает ставку, мы рассылаем её всем остальным
-  socket.on('bet', (data) => {
-    // Рассылаем всем информацию о новой ставке
-    io.emit('new_bet', { 
-      id: socket.id, 
-      username: data.username, 
-      amount: data.amount 
-    });
-  });
-
-  // Когда игрок выводит ставку
-  socket.on('cashout', (data) => {
-    io.emit('player_cashout', {
-      id: socket.id,
-      multiplier: data.multiplier
-    });
-  });
-
-  socket.on('disconnect', () => {
-    console.log('Игрок ушел');
-  });
+// При заходе на главную отдаем index.html
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Используем порт, который предоставляет сервер, или 3000 по умолчанию
+// Логика работы с сокетами
+io.on('connection', (socket) => {
+    console.log('Пользователь подключился: ' + socket.id);
+
+    // Пример обработки сообщения от клиента
+    socket.on('bet', (data) => {
+        console.log('Ставка получена:', data);
+        // Отправляем всем остальным игрокам
+        io.emit('new-bet', data);
+    });
+
+    socket.on('disconnect', () => {
+        console.log('Пользователь отключился');
+    });
+});
+
+// Запуск сервера
 const PORT = process.env.PORT || 3000;
 http.listen(PORT, () => {
-  console.log('Сервер запущен на порту ' + PORT);
+    console.log('Сервер запущен на порту ' + PORT);
 });
