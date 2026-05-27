@@ -312,10 +312,11 @@
              socket.emit('bet', { username: rawUsername, amount: currentBet, avatarLetter: userLetter });
              isPlaying = true; userCashedOut = false; userWinAmount = 0; betBtn.innerText = "Забрать"; betBtn.classList.add('cashout'); showToast("Ставка сделана!");
          } else {
-             userWinAmount = currentBet * targetCrashMult;
+             // ИСПРАВЛЕНО: Умножаем на currentMult (текущий множитель на экране)
+             userWinAmount = currentBet * currentMult; 
              balance += userWinAmount; localStorage.setItem('user_balance', balance.toFixed(2));
              document.getElementById('balance-display').innerText = balance.toFixed(2);
-             socket.emit('cashOut', { username: rawUsername, winAmount: userWinAmount, mult: targetCrashMult });
+             socket.emit('cashOut', { username: rawUsername, winAmount: userWinAmount, mult: currentMult });
              isPlaying = false; userCashedOut = true; betBtn.innerText = "Поставить"; betBtn.classList.remove('cashout'); showToast("Ставка выведена");
          }
      }
@@ -425,4 +426,4 @@
      loop();
  </script>
 </body>
-</html>
+ </html>
