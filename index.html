@@ -138,20 +138,6 @@
                  </div>
                  <div id="user-bet-payout" class="bet-live-payout">0.00 TON</div>
              </div>
-             <div class="bet-row">
-                 <div class="bet-user-meta">
-                     <div class="bet-avatar" style="background:#555">A</div>
-                     <div class="bet-info"><div class="bet-username">@Andrey</div><div class="bet-amount-val">2.50 TON</div></div>
-                 </div>
-                 <div class="bet-live-payout" style="color:var(--text-muted)">0.00 TON</div>
-             </div>
-             <div class="bet-row">
-                 <div class="bet-user-meta">
-                     <div class="bet-avatar" style="background:#555">S</div>
-                     <div class="bet-info"><div class="bet-username">@Sergey</div><div class="bet-amount-val">10.00 TON</div></div>
-                 </div>
-                 <div class="bet-live-payout" style="color:var(--green-color)">15.20 TON</div>
-             </div>
          </div>
      </div>
      <div id="tab-profile" class="tab-content">
@@ -191,6 +177,24 @@
      let currentPhase = ""; 
      
      const explosionSound = new Audio('https://limewire.com/d/Y5QPU#sHnn64dS9E');
+
+     // Функция для добавления ставки другого игрока в список
+     function addOtherPlayerBet(username, amount, avatarLetter) {
+         const list = document.getElementById('bets-list-container');
+         const row = document.createElement('div');
+         row.className = 'bet-row';
+         row.innerHTML = `
+             <div class="bet-user-meta">
+                 <div class="bet-avatar">${avatarLetter || '?'}</div>
+                 <div class="bet-info">
+                     <div class="bet-username">@${username}</div>
+                     <div class="bet-amount-val">${amount.toFixed(2)} TON</div>
+                 </div>
+             </div>
+             <div class="bet-live-payout">0.00 TON</div>
+         `;
+         list.appendChild(row);
+     }
 
      let rawUsername = "Гость";
      let userLetter = "?";
