@@ -136,7 +136,7 @@
              <button id="bet-btn" class="bet-btn" onclick="processBetAction()">Поставить</button>
          </div>
 
-         <div class="bets-list">
+         <div class="bets-list" id="bets-list-container">
              <div class="bet-row current-user">
                  <div class="bet-user-meta">
                      <div id="user-bet-avatar" class="bet-avatar">?</div>
@@ -168,28 +168,23 @@
      <div class="nav-item" data-target="tab-profile"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></span>Профиль</div>
  </nav>
 
+ <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
  <script src="https://telegram.org/js/telegram-web-app.js"></script>
  <script>
+     const socket = io(); // Подключение к серверу
      const tg = window.Telegram.WebApp;
      tg.expand();
 
-     // Загружаем сохраненный баланс из localStorage
      let balance = localStorage.getItem('user_balance') !== null ? parseFloat(localStorage.getItem('user_balance')) : 100.00;
-     
-     // Сразу обновляем интерфейс актуальным балансом
      document.getElementById('balance-display').innerText = balance.toFixed(2);
 
      let currentBet = 0;
      let isPlaying = false;
      let currentMult = 1.00;
      let explosionVibrated = false;
-
-     // Параметры для отслеживания фаз игры
      let userCashedOut = false;
      let userWinAmount = 0;
      let currentPhase = ""; 
-     
-     // Инициализация звука взрыва
      const explosionSound = new Audio('https://limewire.com/d/Y5QPU#sHnn64dS9E');
 
      let rawUsername = "Гость";
@@ -201,70 +196,45 @@
          userLetter = (user.username ? user.username[0] : user.first_name[0]).toUpperCase();
          document.getElementById('username-display').innerText = user.username ? '@' + user.username : user.first_name;
          document.getElementById('user-avatar').innerText = userLetter;
-     } else {
-         document.getElementById('username-display').innerText = "Гость";
-         document.getElementById('user-avatar').innerText = "?";
      }
 
-     // Заполняем аватарку и обрезаем никнейм текущего игрока ровно до 5 символов + ...
      document.getElementById('user-bet-avatar').innerText = userLetter;
      document.getElementById('user-bet-username').innerText = "@" + rawUsername.substring(0, 5) + "...";
+
+     // Слушатель для отображения чужих ставок
+     socket.on('update-bets', (bets) => {
+         const list = document.getElementById('bets-list-container');
+         // Очищаем список (кроме текущего пользователя) и отрисовываем пришедшие данные
+         list.innerHTML = `<div class="bet-row current-user"><div class="bet-user-meta"><div id="user-bet-avatar" class="bet-avatar">${userLetter}</div><div class="bet-info"><div id="user-bet-username" class="bet-username">@${rawUsername.substring(0,5)}...</div><div id="user-bet-amount" class="bet-amount-val">0.00 TON</div></div></div><div id="user-bet-payout" class="bet-live-payout">0.00 TON</div></div>`;
+         bets.forEach(b => {
+             const row = document.createElement('div');
+             row.className = 'bet-row';
+             row.innerHTML = `<div class="bet-user-meta"><div class="bet-avatar">${b.letter}</div><div class="bet-info"><div class="bet-username">${b.username}</div><div class="bet-amount-val">${b.amount.toFixed(2)} TON</div></div></div><div class="bet-live-payout">...</div>`;
+             list.appendChild(row);
+         });
+     });
+
+     function processBetAction() {
+         if (!isPlaying) {
+             let amount = parseFloat(document.getElementById('bet-amount').value);
+             if (isNaN(amount) || amount < 0.1 || amount > balance) return;
+             currentBet = amount;
+             balance -= amount;
+             socket.emit('place-bet', { username: rawUsername, letter: userLetter, amount: currentBet });
+             isPlaying = true;
+             betBtn.innerText = "Забрать";
+             betBtn.classList.add('cashout');
+         } else {
+             isPlaying = false;
+             betBtn.innerText = "Поставить";
+             betBtn.classList.remove('cashout');
+         }
+     }
 
      function showSettings() { document.getElementById('settings-menu').style.display = 'flex'; }
      function hideSettings() { document.getElementById('settings-menu').style.display = 'none'; }
      function toggle(el) { el.classList.toggle('on'); }
-   
-     function showToast(text) {
-         const toast = document.getElementById('toast');
-         toast.innerText = text;
-         toast.style.display = 'block';
-         setTimeout(() => { toast.style.display = 'none'; }, 2000);
-     }
-
-     function processBetAction() {
-         if (!isPlaying) {
-             let rawInput = document.getElementById('bet-amount').value.trim();
-             
-             // Проверка на некорректный формат
-             if (rawInput.endsWith('.') || rawInput === "") {
-                 showToast("Ошибка формата!");
-                 return;
-             }
-
-             let amount = parseFloat(rawInput);
-             
-             if (isNaN(amount) || amount < 0.1 || amount > 100) {
-                 showToast("Ограничение по ставкам 0,1-100!");
-                 return;
-             }
-             if (amount > balance) return;
-
-             currentBet = amount;
-             balance -= amount;
-             // Сохраняем обновленный баланс
-             localStorage.setItem('user_balance', balance.toFixed(2));
-             document.getElementById('balance-display').innerText = balance.toFixed(2);
-             
-             isPlaying = true;
-             userCashedOut = false;
-             userWinAmount = 0;
-             betBtn.innerText = "Забрать";
-             betBtn.classList.add('cashout');
-             showToast("Ставка успешно сделана!");
-         } else {
-             userWinAmount = currentBet * currentMult;
-             balance += userWinAmount;
-             // Сохраняем обновленный баланс
-             localStorage.setItem('user_balance', balance.toFixed(2));
-             document.getElementById('balance-display').innerText = balance.toFixed(2);
-             
-             isPlaying = false;
-             userCashedOut = true;
-             betBtn.innerText = "Поставить";
-             betBtn.classList.remove('cashout');
-             showToast("Ставка успешно выведена");
-         }
-     }
+     function showToast(text) { const toast = document.getElementById('toast'); toast.innerText = text; toast.style.display = 'block'; setTimeout(() => { toast.style.display = 'none'; }, 2000); }
 
      document.querySelectorAll('.nav-item').forEach(b => {
          b.onclick = () => {
@@ -289,7 +259,6 @@
      const ROUND_DURATION = 15000;
      const WAIT_DURATION = 5000;
 
-     // Изначальные 6 раундов для отображения на старте
      const startHistory = ['1.45x', '2.10x', '1.12x', '5.60x', '1.05x', '3.21x'];
      startHistory.forEach(mult => {
          let item = document.createElement('div');
@@ -310,94 +279,24 @@
          let pulse = (cycleTime > WAIT_DURATION && cycleTime <= (WAIT_DURATION + ROUND_DURATION)) ? Math.sin(now / 200) * (currentMult * 2) : 0;
          gCtx.strokeStyle = 'rgba(157, 78, 221, 0.2)';
          gCtx.lineWidth = 1;
-         for(let i = 0; i < gridCanvas.width; i += 40) {
-             gCtx.beginPath(); gCtx.moveTo(i + pulse, 0); gCtx.lineTo(i + pulse, gridCanvas.height); gCtx.stroke();
-         }
-         for(let i = 0; i < gridCanvas.height; i += 40) {
-             gCtx.beginPath(); gCtx.moveTo(0, i); gCtx.lineTo(gridCanvas.width, i); gCtx.stroke();
-         }
+         for(let i = 0; i < gridCanvas.width; i += 40) { gCtx.beginPath(); gCtx.moveTo(i + pulse, 0); gCtx.lineTo(i + pulse, gridCanvas.height); gCtx.stroke(); }
+         for(let i = 0; i < gridCanvas.height; i += 40) { gCtx.beginPath(); gCtx.moveTo(0, i); gCtx.lineTo(gridCanvas.width, i); gCtx.stroke(); }
 
          if (cycleTime < WAIT_DURATION) {
              explosionVibrated = false;
              statusEl.innerText = `Ожидание (${Math.ceil((WAIT_DURATION - cycleTime) / 1000)}с)`;
              currentMult = 1.00;
              multiplierEl.innerText = "1.00x";
-             multiplierEl.style.color = "#fff";
              rocketAnim.style.visibility = 'hidden';
-             betInput.disabled = false;
-             if (!isPlaying) betBtn.disabled = false;
-
-             if (currentPhase !== 'wait') {
-                 currentPhase = 'wait';
-                 userCashedOut = false;
-                 userWinAmount = 0;
-                 if (!isPlaying) currentBet = 0;
-             }
          } else if (cycleTime > (WAIT_DURATION + ROUND_DURATION)) {
              statusEl.innerText = "Взрыв!";
-             if (!explosionVibrated) {
-                 if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('heavy');
-                 explosionSound.play();
-                 explosionVibrated = true;
-
-                 currentMult = Math.pow(1.001, ROUND_DURATION / 20);
-                 multiplierEl.innerText = currentMult.toFixed(2) + "x";
-
-                 let item = document.createElement('div');
-                 item.className = 'history-item';
-                 item.innerText = multiplierEl.innerText;
-                 historyContainer.insertBefore(item, historyContainer.firstChild);
-
-                 if (historyContainer.children.length > 6) {
-                     historyContainer.removeChild(historyContainer.lastChild);
-                 }
-             }
-             multiplierEl.style.color = "red";
              rocketAnim.style.visibility = 'hidden';
-             if (isPlaying) { isPlaying = false; betBtn.innerText = "Поставить"; betBtn.classList.remove('cashout'); }
-             betInput.disabled = true;
-             betBtn.disabled = true;
-
-             if (currentPhase !== 'crash') {
-                 currentPhase = 'crash';
-             }
          } else {
              statusEl.innerText = "В полете...";
-             let timeElapsed = cycleTime - WAIT_DURATION;
-             currentMult = Math.pow(1.001, timeElapsed / 20);
+             currentMult = Math.pow(1.001, (cycleTime - WAIT_DURATION) / 20);
              multiplierEl.innerText = currentMult.toFixed(2) + "x";
-             multiplierEl.style.color = "#fff";
              rocketAnim.style.visibility = 'visible';
-             betInput.disabled = true;
-             if (isPlaying) betBtn.disabled = false;
-             else betBtn.disabled = true;
-
-             if (currentPhase !== 'flight') {
-                 currentPhase = 'flight';
-             }
          }
-
-         // Ежекадровое визуальное обновление строки ставок текущего пользователя
-         const uBetEl = document.getElementById('user-bet-amount');
-         const uPayoutEl = document.getElementById('user-bet-payout');
-         if (isPlaying) {
-             uBetEl.innerText = currentBet.toFixed(2) + " TON";
-             uPayoutEl.innerText = (currentBet * currentMult).toFixed(2) + " TON";
-             uPayoutEl.style.color = "var(--green-color)";
-         } else if (userCashedOut) {
-             uBetEl.innerText = currentBet.toFixed(2) + " TON";
-             uPayoutEl.innerText = userWinAmount.toFixed(2) + " TON";
-             uPayoutEl.style.color = "var(--green-color)";
-         } else if (currentPhase === 'crash' && currentBet > 0) {
-             uBetEl.innerText = currentBet.toFixed(2) + " TON";
-             uPayoutEl.innerText = "0.00 TON";
-             uPayoutEl.style.color = "#ff4d4d";
-         } else {
-             uBetEl.innerText = currentBet > 0 ? currentBet.toFixed(2) + " TON" : "0.00 TON";
-             uPayoutEl.innerText = "0.00 TON";
-             uPayoutEl.style.color = "var(--text-muted)";
-         }
-
          requestAnimationFrame(loop);
      }
      loop();
