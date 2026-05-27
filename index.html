@@ -119,8 +119,7 @@
              <div id="settings-menu">
                  <div class="close-settings" onclick="hideSettings()">✕</div>
                  <div style="margin-top: 40px;">
-                     <div class="setting-item">Вывод при плохом соединении <div class="switch" onclick="toggle(this)"></div></div>
-                     <div class="setting-item" style="margin-top: 20px;">Отключить вибрацию <div class="switch" onclick="toggle(this)"></div></div>
+                     <div class="setting-item">Вывод при плохом соединении <div id="bad-conn-switch" class="switch" onclick="toggle(this)"></div></div>
                  </div>
              </div>
              <div class="crash-settings-icon" onclick="showSettings()">⚙️</div>
@@ -188,9 +187,39 @@
          secure: true
      }); 
 
+     // Логика авто-вывода при потере связи
+     function handleDisconnectCashout() {
+         const badConnSwitch = document.getElementById('bad-conn-switch');
+         if (badConnSwitch && badConnSwitch.classList.contains('on')) {
+             if (isPlaying && currentPhase === 'flight') {
+                 userWinAmount = currentBet * currentMult; 
+                 balance += userWinAmount; 
+                 localStorage.setItem('user_balance', balance.toFixed(2));
+                 document.getElementById('balance-display').innerText = balance.toFixed(2);
+                 
+                 // Попытка отправить данные на сервер (на случай если это баг клиента/сокета, а инет есть)
+                 socket.emit('cashOut', { username: rawUsername, winAmount: userWinAmount, mult: currentMult });
+                 
+                 isPlaying = false; 
+                 userCashedOut = true; 
+                 betBtn.innerText = "Поставить"; 
+                 betBtn.classList.remove('cashout'); 
+                 showToast("Авто-вывод при потере связи!");
+             }
+         }
+     }
+
      socket.on('connect', () => { showToast("✅ Подключено!"); });
      socket.on('updateOnline', (count) => { document.getElementById('online-count').innerText = count; });
-     socket.on('disconnect', () => { showToast("❌ Потеряно соединение"); });
+     socket.on('disconnect', () => { 
+         showToast("❌ Потеряно соединение"); 
+         handleDisconnectCashout();
+     });
+     
+     window.addEventListener('offline', () => {
+         showToast("❌ Нет интернета");
+         handleDisconnectCashout();
+     });
 
      const tg = window.Telegram.WebApp;
      tg.expand();
@@ -401,7 +430,6 @@
                  if (!isPlaying) betBtn.disabled = false;
              }
          } else if (currentPhase === 'flight') {
-             // Плавный рост коэффициента без ограничения по фиксированному времени
              currentMult = Math.pow(1.001, timeElapsed / 20);
 
              if (currentMult >= targetCrashMult) {
@@ -494,4 +522,4 @@
      loop();
  </script>
 </body>
-</html>
+      </html>
