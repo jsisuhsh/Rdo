@@ -84,6 +84,18 @@
      .bet-btn { background: var(--accent-color); border: none; padding: 8px 18px; border-radius: 20px; color: white; font-weight: bold; font-size: 14px; cursor: pointer; }
      .bet-btn.cashout { background: var(--green-color); }
      .bet-btn:disabled { background: #555; cursor: not-allowed; opacity: 0.6; }
+
+     /* Стили для таблицы текущих ставок игроков */
+     .bets-list { width: 100%; max-width: 350px; margin: 15px auto 0 auto; background: var(--container-bg); border-radius: 15px; padding: 12px; border: 1px solid rgba(255, 255, 255, 0.05); }
+     .bet-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+     .bet-row:last-child { border-bottom: none; }
+     .bet-row.current-user { background: rgba(157, 78, 221, 0.12); border-radius: 10px; padding: 8px; margin-bottom: 4px; }
+     .bet-user-meta { display: flex; align-items: center; }
+     .bet-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--accent-color); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; margin-right: 12px; }
+     .bet-info { display: flex; flex-direction: column; }
+     .bet-username { font-size: 14px; font-weight: 600; color: var(--text-color); }
+     .bet-amount-val { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+     .bet-live-payout { font-size: 14px; font-weight: 700; color: var(--text-muted); text-align: right; }
  </style>
 </head>
 <body>
@@ -123,6 +135,49 @@
              <input type="number" id="bet-amount" class="bet-input" placeholder="0.00 TON">
              <button id="bet-btn" class="bet-btn" onclick="processBetAction()">Поставить</button>
          </div>
+
+         <div class="bets-list">
+             <div class="bet-row current-user">
+                 <div class="bet-user-meta">
+                     <div id="user-bet-avatar" class="bet-avatar">?</div>
+                     <div class="bet-info">
+                         <div id="user-bet-username" class="bet-username">@Загру...</div>
+                         <div id="user-bet-amount" class="bet-amount-val">0.00 TON</div>
+                     </div>
+                 </div>
+                 <div id="user-bet-payout" class="bet-live-payout">0.00 TON</div>
+             </div>
+             <div class="bet-row">
+                 <div class="bet-user-meta">
+                     <div class="bet-avatar" style="background-color: #3a86ff;">C</div>
+                     <div class="bet-info">
+                         <div class="bet-username">@Crypt...</div>
+                         <div id="bot-bet-0" class="bet-amount-val">0.00 TON</div>
+                     </div>
+                 </div>
+                 <div id="bot-payout-0" class="bet-live-payout">0.00 TON</div>
+             </div>
+             <div class="bet-row">
+                 <div class="bet-user-meta">
+                     <div class="bet-avatar" style="background-color: #ff006e;">T</div>
+                     <div class="bet-info">
+                         <div class="bet-username">@TonHo...</div>
+                         <div id="bot-bet-1" class="bet-amount-val">0.00 TON</div>
+                     </div>
+                 </div>
+                 <div id="bot-payout-1" class="bet-live-payout">0.00 TON</div>
+             </div>
+             <div class="bet-row">
+                 <div class="bet-user-meta">
+                     <div class="bet-avatar" style="background-color: #8338ec;">L</div>
+                     <div class="bet-info">
+                         <div class="bet-username">@Lucky...</div>
+                         <div id="bot-bet-2" class="bet-amount-val">0.00 TON</div>
+                     </div>
+                 </div>
+                 <div id="bot-payout-2" class="bet-live-payout">0.00 TON</div>
+             </div>
+         </div>
      </div>
      <div id="tab-profile" class="tab-content">
          <div class="bg-characters"></div>
@@ -158,20 +213,38 @@
      let isPlaying = false;
      let currentMult = 1.00;
      let explosionVibrated = false;
+
+     // Параметры для отслеживания фаз игры и ставок игроков в таблице
+     let userCashedOut = false;
+     let userWinAmount = 0;
+     let currentPhase = ""; 
+
+     let bots = [
+         { bet: 0, cashedOutAt: 0, status: 'waiting', winAmount: 0 },
+         { bet: 0, cashedOutAt: 0, status: 'waiting', winAmount: 0 },
+         { bet: 0, cashedOutAt: 0, status: 'waiting', winAmount: 0 }
+     ];
      
      // Инициализация звука взрыва
      const explosionSound = new Audio('https://limewire.com/d/Y5QPU#sHnn64dS9E');
 
+     let rawUsername = "Гость";
+     let userLetter = "?";
+
      if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
          const user = tg.initDataUnsafe.user;
+         rawUsername = user.username ? user.username : user.first_name;
+         userLetter = (user.username ? user.username[0] : user.first_name[0]).toUpperCase();
          document.getElementById('username-display').innerText = user.username ? '@' + user.username : user.first_name;
-         document.getElementById('user-avatar').innerText = (user.username ? user.username[0] : user.first_name[0]).toUpperCase();
+         document.getElementById('user-avatar').innerText = userLetter;
      } else {
          document.getElementById('username-display').innerText = "Гость";
          document.getElementById('user-avatar').innerText = "?";
      }
 
-     // Удален блок принудительного сброса баланса до 100 при обнаружении NaN по просьбе пользователя
+     // Заполняем аватарку и обрезаем никнейм текущего игрока ровно до 5 символов + ...
+     document.getElementById('user-bet-avatar').innerText = userLetter;
+     document.getElementById('user-bet-username').innerText = "@" + rawUsername.substring(0, 5) + "...";
 
      function showSettings() { document.getElementById('settings-menu').style.display = 'flex'; }
      function hideSettings() { document.getElementById('settings-menu').style.display = 'none'; }
@@ -209,17 +282,20 @@
              document.getElementById('balance-display').innerText = balance.toFixed(2);
              
              isPlaying = true;
+             userCashedOut = false;
+             userWinAmount = 0;
              betBtn.innerText = "Забрать";
              betBtn.classList.add('cashout');
              showToast("Ставка успешно сделана!");
          } else {
-             let win = currentBet * currentMult;
-             balance += win;
+             userWinAmount = currentBet * currentMult;
+             balance += userWinAmount;
              // Сохраняем обновленный баланс
              localStorage.setItem('user_balance', balance.toFixed(2));
              document.getElementById('balance-display').innerText = balance.toFixed(2);
              
              isPlaying = false;
+             userCashedOut = true;
              betBtn.innerText = "Поставить";
              betBtn.classList.remove('cashout');
              showToast("Ставка успешно выведена");
@@ -286,6 +362,25 @@
              rocketAnim.style.visibility = 'hidden';
              betInput.disabled = false;
              if (!isPlaying) betBtn.disabled = false;
+
+             // Переход в фазу ожидания раунда
+             if (currentPhase !== 'wait') {
+                 currentPhase = 'wait';
+                 userCashedOut = false;
+                 userWinAmount = 0;
+                 if (!isPlaying) currentBet = 0;
+
+                 // Генерация новых случайных ставок для остальных игроков
+                 bots.forEach((bot, index) => {
+                     bot.bet = parseFloat((Math.random() * 12 + 1).toFixed(2));
+                     bot.cashedOutAt = parseFloat((Math.random() * 3.2 + 1.1).toFixed(2));
+                     bot.status = 'playing';
+                     document.getElementById(`bot-bet-${index}`).innerText = bot.bet.toFixed(2) + " TON";
+                     let payoutEl = document.getElementById(`bot-payout-${index}`);
+                     payoutEl.innerText = "0.00 TON";
+                     payoutEl.style.color = "var(--text-muted)";
+                 });
+             }
          } else if (cycleTime > (WAIT_DURATION + ROUND_DURATION)) {
              statusEl.innerText = "Взрыв!";
              if (!explosionVibrated) {
@@ -313,6 +408,19 @@
              if (isPlaying) { isPlaying = false; betBtn.innerText = "Поставить"; betBtn.classList.remove('cashout'); }
              betInput.disabled = true;
              betBtn.disabled = true;
+
+             // Переход в фазу взрыва в таблице игроков
+             if (currentPhase !== 'crash') {
+                 currentPhase = 'crash';
+                 bots.forEach((bot, index) => {
+                     if (bot.status === 'playing') {
+                         bot.status = 'crashed';
+                         let payoutEl = document.getElementById(`bot-payout-${index}`);
+                         payoutEl.innerText = "0.00 TON";
+                         payoutEl.style.color = "#ff4d4d";
+                     }
+                 });
+             }
          } else {
              statusEl.innerText = "В полете...";
              let timeElapsed = cycleTime - WAIT_DURATION;
@@ -323,7 +431,50 @@
              betInput.disabled = true;
              if (isPlaying) betBtn.disabled = false;
              else betBtn.disabled = true;
+
+             if (currentPhase !== 'flight') {
+                 currentPhase = 'flight';
+             }
+
+             // Динамический расчёт выигрыша других игроков в реальном времени
+             bots.forEach((bot, index) => {
+                 let payoutEl = document.getElementById(`bot-payout-${index}`);
+                 if (bot.status === 'playing') {
+                     if (currentMult >= bot.cashedOutAt) {
+                         bot.status = 'cashed_out';
+                         bot.winAmount = bot.bet * bot.cashedOutAt;
+                         payoutEl.innerText = bot.winAmount.toFixed(2) + " TON";
+                         payoutEl.style.color = "var(--green-color)";
+                     } else {
+                         let livePay = bot.bet * currentMult;
+                         payoutEl.innerText = livePay.toFixed(2) + " TON";
+                         payoutEl.style.color = "var(--green-color)";
+                     }
+                 }
+             });
          }
+
+         // Ежекадровое визуальное обновление строки ставок текущего пользователя (на 1 месте)
+         const uBetEl = document.getElementById('user-bet-amount');
+         const uPayoutEl = document.getElementById('user-bet-payout');
+         if (isPlaying) {
+             uBetEl.innerText = currentBet.toFixed(2) + " TON";
+             uPayoutEl.innerText = (currentBet * currentMult).toFixed(2) + " TON";
+             uPayoutEl.style.color = "var(--green-color)";
+         } else if (userCashedOut) {
+             uBetEl.innerText = currentBet.toFixed(2) + " TON";
+             uPayoutEl.innerText = userWinAmount.toFixed(2) + " TON";
+             uPayoutEl.style.color = "var(--green-color)";
+         } else if (currentPhase === 'crash' && currentBet > 0) {
+             uBetEl.innerText = currentBet.toFixed(2) + " TON";
+             uPayoutEl.innerText = "0.00 TON";
+             uPayoutEl.style.color = "#ff4d4d";
+         } else {
+             uBetEl.innerText = currentBet > 0 ? currentBet.toFixed(2) + " TON" : "0.00 TON";
+             uPayoutEl.innerText = "0.00 TON";
+             uPayoutEl.style.color = "var(--text-muted)";
+         }
+
          requestAnimationFrame(loop);
      }
      loop();
