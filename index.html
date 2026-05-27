@@ -56,7 +56,12 @@
      #crash-canvas, #grid-canvas { position: absolute; bottom: 0; left: 0; width: 100%; height: 100%; }
      #grid-canvas { z-index: 0; }
      #crash-canvas { z-index: 1; }
-   
+     
+     /* Countdown Animation Styles */
+     #countdown-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 100px; font-weight: 800; color: #ffffff; z-index: 5; pointer-events: none; display: none; text-shadow: 0 0 20px rgba(0,0,0,0.5); }
+     @keyframes pop { 0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; } 50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(1); opacity: 0; } }
+     .pop-anim { animation: pop 1s ease-out; }
+
      #settings-menu { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--container-bg); z-index: 10; display: none; padding: 20px; flex-direction: column; gap: 20px; border-radius: 15px; }
      .setting-item { display: flex; justify-content: space-between; align-items: center; font-size: 16px; }
      .switch { width: 50px; height: 25px; background: #555; border-radius: 25px; position: relative; cursor: pointer; transition: 0.3s; }
@@ -141,6 +146,7 @@
              <div class="crash-settings-icon" onclick="showSettings()">⚙️</div>
              <canvas id="grid-canvas"></canvas>
              <canvas id="crash-canvas"></canvas>
+             <div id="countdown-overlay"></div>
              <div class="crash-info">
                  <img id="rocket-animation" src="https://i.postimg.cc/PxbfNvqk/animation-gif-ezgif-com-effects.gif" class="rocket-gif" alt="Rocket">
                  <div id="crash-status">Ожидание...</div>
@@ -309,6 +315,7 @@
      let explosionVibrated = false;
      let userCashedOut = false;
      let userWinAmount = 0;
+     let lastCountdownNum = 0;
      
      let currentPhase = 'wait'; 
      let phaseStartTime = Date.now();
@@ -458,6 +465,7 @@
      const betInput = document.getElementById('bet-amount');
      const betBtn = document.getElementById('bet-btn');
      const historyContainer = document.getElementById('crash-history');
+     const countdownOverlay = document.getElementById('countdown-overlay');
 
      function loop() {
          crashCanvas.width = gridCanvas.width = crashCanvas.parentElement.clientWidth;
@@ -480,6 +488,22 @@
          let timeElapsed = now - phaseStartTime;
 
          if (currentPhase === 'wait') {
+             // Countdown animation
+             let secondsRemaining = Math.ceil((WAIT_DURATION - timeElapsed) / 1000);
+             if (secondsRemaining > 0 && secondsRemaining <= 5) {
+                 if (secondsRemaining !== lastCountdownNum) {
+                     lastCountdownNum = secondsRemaining;
+                     countdownOverlay.innerText = secondsRemaining;
+                     countdownOverlay.style.display = 'block';
+                     countdownOverlay.classList.remove('pop-anim');
+                     void countdownOverlay.offsetWidth; 
+                     countdownOverlay.classList.add('pop-anim');
+                 }
+             } else {
+                 lastCountdownNum = 0;
+                 countdownOverlay.style.display = 'none';
+             }
+
              if (timeElapsed >= WAIT_DURATION) {
                  targetCrashMult = generateCrashTarget();
                  currentPhase = 'flight';
@@ -496,6 +520,7 @@
                  if (!isPlaying) betBtn.disabled = false;
              }
          } else if (currentPhase === 'flight') {
+             countdownOverlay.style.display = 'none';
              currentMult = Math.pow(1.001, timeElapsed / 20);
 
              if (currentMult >= targetCrashMult) {
