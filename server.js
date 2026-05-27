@@ -1,7 +1,12 @@
 const express = require('express');
 const app = express();
 const http = require('http').createServer(app);
-const io = require('socket.io')(http);
+const io = require('socket.io')(http, {
+    cors: {
+        origin: "*",
+        methods: ["GET", "POST"]
+    }
+});
 const path = require('path');
 
 // Раздаем статические файлы из текущей папки
@@ -15,16 +20,26 @@ app.get('/', (req, res) => {
 // Логика работы с сокетами
 io.on('connection', (socket) => {
     console.log('Пользователь подключился: ' + socket.id);
+    
+    // Отправляем текущий онлайн всем при подключении нового пользователя
+    io.emit('updateOnline', io.engine.clientsCount);
 
-    // Пример обработки сообщения от клиента
+    // Обработка ставок
     socket.on('bet', (data) => {
         console.log('Ставка получена:', data);
-        // Отправляем всем остальным игрокам
         io.emit('newBet', data);
+    });
+
+    // Обработка вывода средств
+    socket.on('cashOut', (data) => {
+        console.log('Вывод получен:', data);
+        io.emit('cashOut', data);
     });
 
     socket.on('disconnect', () => {
         console.log('Пользователь отключился');
+        // Обновляем онлайн при отключении
+        io.emit('updateOnline', io.engine.clientsCount);
     });
 });
 
