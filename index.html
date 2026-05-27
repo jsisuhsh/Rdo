@@ -161,11 +161,35 @@
 
  <script src="https://telegram.org/js/telegram-web-app.js"></script>
  <script>
-     // Принудительно включаем websocket для надежного обхода блокировок Telegram Web App
+     function showToast(text) {
+         const toast = document.getElementById('toast');
+         toast.innerText = text;
+         toast.style.display = 'block';
+         setTimeout(() => { toast.style.display = 'none'; }, 2500);
+     }
+
+     // Жесткие настройки сокетов: защита от таймаута спящего Render и принудительные транспорты
      const socket = io('https://rdo-0y8m.onrender.com', {
          transports: ['websocket', 'polling'],
-         reconnection: true
+         reconnection: true,
+         reconnectionAttempts: Infinity,
+         reconnectionDelay: 1000,
+         timeout: 20000,
+         secure: true
      }); 
+
+     // Отслеживаем статус соединения, чтобы понимать, живой ли бэкенд
+     socket.on('connect', () => {
+         showToast("✅ Подключено к серверу!");
+     });
+
+     socket.on('disconnect', () => {
+         showToast("❌ Потеряно соединение");
+     });
+
+     socket.on('connect_error', (error) => {
+         console.error("Ошибка подключения:", error);
+     });
 
      const tg = window.Telegram.WebApp;
      tg.expand();
@@ -186,9 +210,14 @@
 
      let otherBets = [];
 
-     // Универсальный парсер входящих ставок реальных игроков
+     // Универсальный парсер входящих ставок (защищенный от строк)
      function handleIncomingBet(data) {
          if (!data) return;
+         
+         // Если сервер присылает данные строкой (String), делаем из нее объект (JSON)
+         if (typeof data === 'string') {
+             try { data = JSON.parse(data); } catch (e) { return; }
+         }
          
          let username = data.username || data.user || data.name || "Игрок";
          let amount = parseFloat(data.amount || data.bet || data.value || 0);
@@ -206,6 +235,11 @@
 
      function handleIncomingCashout(data) {
          if (!data) return;
+         
+         if (typeof data === 'string') {
+             try { data = JSON.parse(data); } catch (e) { return; }
+         }
+
          let username = data.username || data.user || data.name;
          otherBets.forEach(b => {
              if (b.username === username) {
@@ -264,13 +298,6 @@
      function showSettings() { document.getElementById('settings-menu').style.display = 'flex'; }
      function hideSettings() { document.getElementById('settings-menu').style.display = 'none'; }
      function toggle(el) { el.classList.toggle('on'); }
-   
-     function showToast(text) {
-         const toast = document.getElementById('toast');
-         toast.innerText = text;
-         toast.style.display = 'block';
-         setTimeout(() => { toast.style.display = 'none'; }, 2000);
-     }
 
      function processBetAction() {
          if (!isPlaying) {
