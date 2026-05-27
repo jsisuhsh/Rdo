@@ -512,17 +512,19 @@
                      localStorage.setItem('lastMult', currentMult.toFixed(2));
                      lastRoundMult = currentMult;
                      
-                     // Создание элемента истории с логикой цветов
                      let item = document.createElement('div');
                      item.className = 'history-item';
                      item.innerText = currentMult.toFixed(2) + "x";
                      
                      if (currentMult >= 1.00 && currentMult <= 1.20) {
                          item.style.borderColor = 'red';
+                         item.style.backgroundColor = 'rgba(255, 0, 0, 0.2)';
                      } else if (currentMult >= 1.30 && currentMult <= 1.50) {
                          item.style.borderColor = 'yellow';
+                         item.style.backgroundColor = 'rgba(255, 255, 0, 0.2)';
                      } else if (currentMult > 1.50) {
                          item.style.borderColor = 'var(--green-color)';
+                         item.style.backgroundColor = 'rgba(40, 167, 69, 0.2)';
                      }
                      
                      historyContainer.insertBefore(item, historyContainer.firstChild);
