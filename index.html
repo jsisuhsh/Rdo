@@ -4,6 +4,7 @@
  <meta charset="UTF-8">
  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
  <title>RedoGift App</title>
+ <!-- Подключаем библиотеку для связи с сервером -->
  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
  <style>
      :root {
@@ -168,7 +169,6 @@
          setTimeout(() => { toast.style.display = 'none'; }, 2500);
      }
 
-     // Жесткие настройки сокетов: защита от таймаута спящего Render и принудительные транспорты
      const socket = io('https://rdo-0y8m.onrender.com', {
          transports: ['websocket', 'polling'],
          reconnection: true,
@@ -178,7 +178,6 @@
          secure: true
      }); 
 
-     // Отслеживаем статус соединения, чтобы понимать, живой ли бэкенд
      socket.on('connect', () => {
          showToast("✅ Подключено к серверу!");
      });
@@ -210,11 +209,9 @@
 
      let otherBets = [];
 
-     // Универсальный парсер входящих ставок (защищенный от строк)
      function handleIncomingBet(data) {
          if (!data) return;
          
-         // Если сервер присылает данные строкой (String), делаем из нее объект (JSON)
          if (typeof data === 'string') {
              try { data = JSON.parse(data); } catch (e) { return; }
          }
@@ -223,7 +220,6 @@
          let amount = parseFloat(data.amount || data.bet || data.value || 0);
          let avatarLetter = data.avatarLetter || data.avatar || username.charAt(0).toUpperCase() || "?";
 
-         // Игнорируем собственную ставку
          if (username === rawUsername && rawUsername !== "Гость") return;
 
          addOtherPlayerBet(username, amount, avatarLetter);
@@ -312,7 +308,8 @@
              localStorage.setItem('user_balance', balance.toFixed(2));
              document.getElementById('balance-display').innerText = balance.toFixed(2);
              
-             socket.emit('placeBet', { username: rawUsername, amount: currentBet, avatarLetter: userLetter });
+             // ИСПРАВЛЕНИЕ ЗДЕСЬ: отправляем событие 'bet'
+             socket.emit('bet', { username: rawUsername, amount: currentBet, avatarLetter: userLetter });
 
              isPlaying = true;
              userCashedOut = false;
