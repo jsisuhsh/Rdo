@@ -504,23 +504,29 @@
                  countdownOverlay.style.display = 'none';
              }
 
+             // Скрываем элементы во время отсчета
+             statusEl.style.visibility = 'hidden';
+             multiplierEl.style.visibility = 'hidden';
+
              if (timeElapsed >= WAIT_DURATION) {
                  targetCrashMult = generateCrashTarget();
                  currentPhase = 'flight';
                  phaseStartTime = now;
              } else {
                  explosionVibrated = false;
-                 statusEl.innerText = `Ожидание (${Math.ceil((WAIT_DURATION - timeElapsed) / 1000)}с)`;
+                 // statusEl и multiplierEl скрыты выше
                  currentMult = 1.00;
-                 multiplierEl.innerText = "1.00x";
-                 multiplierEl.style.color = "#fff";
                  rocketAnim.style.visibility = 'hidden';
                  betInput.disabled = false;
                  betBtn.style.display = 'inline-block';
                  if (!isPlaying) betBtn.disabled = false;
              }
          } else if (currentPhase === 'flight') {
+             // Показываем элементы во время полета
+             statusEl.style.visibility = 'visible';
+             multiplierEl.style.visibility = 'visible';
              countdownOverlay.style.display = 'none';
+             
              currentMult = Math.pow(1.001, timeElapsed / 20);
 
              if (currentMult >= targetCrashMult) {
