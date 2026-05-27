@@ -209,8 +209,16 @@
      let targetCrashMult = 1.00;
      let lastRoundMult = parseFloat(localStorage.getItem('lastMult') || 1.00);
 
-     function generateCrashTarget() {
-         let r = Math.random();
+     // Генерируем ID раунда для синхронизации
+     const ROUND_DURATION = 15000;
+     const WAIT_DURATION = 5000;
+     const TOTAL_ROUND_TIME = ROUND_DURATION + WAIT_DURATION + 2000;
+
+     function generateCrashTarget(roundId) {
+         // Детерминированный генератор
+         let x = Math.sin(roundId) * 10000;
+         let r = x - Math.floor(x);
+         
          let betModifier = Math.floor(currentBet / 10) * 0.1;
          if (lastRoundMult > 2.0) r += 0.40;
          r += betModifier;
@@ -333,9 +341,6 @@
      const betInput = document.getElementById('bet-amount');
      const betBtn = document.getElementById('bet-btn');
      const historyContainer = document.getElementById('crash-history');
-   
-     const ROUND_DURATION = 15000;
-     const WAIT_DURATION = 5000;
 
      function loop() {
          crashCanvas.width = gridCanvas.width = crashCanvas.parentElement.clientWidth;
@@ -344,7 +349,8 @@
          gCtx.clearRect(0, 0, gridCanvas.width, gridCanvas.height);
 
          let now = Date.now();
-         let cycleTime = now % (ROUND_DURATION + WAIT_DURATION + 2000);
+         let roundId = Math.floor(now / TOTAL_ROUND_TIME);
+         let cycleTime = now % TOTAL_ROUND_TIME;
 
          if (cycleTime < WAIT_DURATION) {
              explosionVibrated = false;
@@ -358,7 +364,7 @@
              if (!isPlaying) betBtn.disabled = false;
              if (currentPhase !== 'wait') { 
                  currentPhase = 'wait'; userCashedOut = false; userWinAmount = 0; if (!isPlaying) currentBet = 0;
-                 targetCrashMult = generateCrashTarget(); 
+                 targetCrashMult = generateCrashTarget(roundId); 
                  const list = document.getElementById('bets-list-container');
                  while (list.children.length > 1) { list.removeChild(list.lastChild); }
                  otherBets = [];
