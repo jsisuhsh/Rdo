@@ -4,7 +4,6 @@
  <meta charset="UTF-8">
  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
  <title>RedoGift App</title>
- <!-- Подключаем библиотеку для связи с сервером -->
  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
  <style>
      :root {
@@ -22,6 +21,10 @@
      body { background-color: var(--bg-color); color: var(--text-color); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
 
      #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #000; border: 2px solid var(--accent-color); color: white; padding: 12px 20px; border-radius: 10px; z-index: 20000; display: none; font-size: 14px; white-space: nowrap; }
+
+     /* Стиль для онлайн счетчика */
+     #online-counter { position: fixed; top: 15px; left: 15px; z-index: 10000; display: flex; align-items: center; gap: 8px; background: rgba(40, 167, 69, 0.2); border: 2px solid var(--green-color); padding: 5px 12px; border-radius: 50px; font-weight: bold; font-size: 14px; color: white; }
+     .user-icon { width: 18px; height: 18px; border: 2px solid var(--green-color); border-radius: 50%; }
 
      .top-balance-box { position: fixed; top: 15px; right: 15px; display: flex; align-items: center; gap: 8px; background: var(--pill-bg); padding: 6px 14px; border-radius: 50px; border: 1px solid rgba(255, 255, 255, 0.1); z-index: 10000; }
      #balance-display { font-size: 18px; font-weight: 700; color: #ffffff !important; }
@@ -93,6 +96,8 @@
 <body>
 
  <div id="toast"></div>
+
+ <div id="online-counter"><div class="user-icon"></div> <span id="online-count">0</span></div>
 
  <div class="top-balance-box">
      <span id="balance-display">100.00</span>
@@ -182,12 +187,13 @@
          showToast("✅ Подключено к серверу!");
      });
 
-     socket.on('disconnect', () => {
-         showToast("❌ Потеряно соединение");
+     // Обработка онлайна
+     socket.on('updateOnline', (count) => {
+         document.getElementById('online-count').innerText = count;
      });
 
-     socket.on('connect_error', (error) => {
-         console.error("Ошибка подключения:", error);
+     socket.on('disconnect', () => {
+         showToast("❌ Потеряно соединение");
      });
 
      const tg = window.Telegram.WebApp;
@@ -211,17 +217,13 @@
 
      function handleIncomingBet(data) {
          if (!data) return;
-         
          if (typeof data === 'string') {
              try { data = JSON.parse(data); } catch (e) { return; }
          }
-         
          let username = data.username || data.user || data.name || "Игрок";
          let amount = parseFloat(data.amount || data.bet || data.value || 0);
          let avatarLetter = data.avatarLetter || data.avatar || username.charAt(0).toUpperCase() || "?";
-
          if (username === rawUsername && rawUsername !== "Гость") return;
-
          addOtherPlayerBet(username, amount, avatarLetter);
      }
 
@@ -231,11 +233,9 @@
 
      function handleIncomingCashout(data) {
          if (!data) return;
-         
          if (typeof data === 'string') {
              try { data = JSON.parse(data); } catch (e) { return; }
          }
-
          let username = data.username || data.user || data.name;
          otherBets.forEach(b => {
              if (b.username === username) {
@@ -265,13 +265,7 @@
              <div class="bet-live-payout">0.00 TON</div>
          `;
          list.appendChild(row);
-
-         otherBets.push({
-             username: username,
-             amount: amount,
-             element: row.querySelector('.bet-live-payout'),
-             isCashedOut: false
-         });
+         otherBets.push({ username: username, amount: amount, element: row.querySelector('.bet-live-payout'), isCashedOut: false });
      }
 
      let rawUsername = "Гость";
@@ -302,15 +296,11 @@
              let amount = parseFloat(rawInput);
              if (isNaN(amount) || amount < 0.1 || amount > 100) { showToast("Ограничение 0,1-100!"); return; }
              if (amount > balance) return;
-
              currentBet = amount;
              balance -= amount;
              localStorage.setItem('user_balance', balance.toFixed(2));
              document.getElementById('balance-display').innerText = balance.toFixed(2);
-             
-             // ИСПРАВЛЕНИЕ ЗДЕСЬ: отправляем событие 'bet'
              socket.emit('bet', { username: rawUsername, amount: currentBet, avatarLetter: userLetter });
-
              isPlaying = true;
              userCashedOut = false;
              userWinAmount = 0;
@@ -322,9 +312,7 @@
              balance += userWinAmount;
              localStorage.setItem('user_balance', balance.toFixed(2));
              document.getElementById('balance-display').innerText = balance.toFixed(2);
-             
              socket.emit('cashOut', { username: rawUsername, winAmount: userWinAmount, mult: currentMult });
-             
              isPlaying = false;
              userCashedOut = true;
              betBtn.innerText = "Поставить";
@@ -372,7 +360,6 @@
 
          let now = Date.now();
          let cycleTime = now % (ROUND_DURATION + WAIT_DURATION + 2000);
-
          let pulse = (cycleTime > WAIT_DURATION && cycleTime <= (WAIT_DURATION + ROUND_DURATION)) ? Math.sin(now / 200) * (currentMult * 2) : 0;
          gCtx.strokeStyle = 'rgba(157, 78, 221, 0.2)';
          gCtx.lineWidth = 1;
@@ -388,41 +375,24 @@
              rocketAnim.style.visibility = 'hidden';
              betInput.disabled = false;
              if (!isPlaying) betBtn.disabled = false;
-
-             if (currentPhase !== 'wait') { 
-                 currentPhase = 'wait'; 
-                 userCashedOut = false; 
-                 userWinAmount = 0; 
-                 if (!isPlaying) currentBet = 0; 
-                 
+             if (currentPhase !== 'wait') { currentPhase = 'wait'; userCashedOut = false; userWinAmount = 0; if (!isPlaying) currentBet = 0; 
                  const list = document.getElementById('bets-list-container');
-                 while (list.children.length > 1) {
-                     list.removeChild(list.lastChild);
-                 }
+                 while (list.children.length > 1) { list.removeChild(list.lastChild); }
                  otherBets = [];
              }
          } else if (cycleTime > (WAIT_DURATION + ROUND_DURATION)) {
              statusEl.innerText = "Взрыв!";
-             if (!explosionVibrated) { 
-                 if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('heavy'); 
-                 explosionSound.play(); 
-                 explosionVibrated = true; 
-                 
+             if (!explosionVibrated) { if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('heavy'); explosionSound.play(); explosionVibrated = true; 
                  let item = document.createElement('div');
                  item.className = 'history-item';
                  item.innerText = multiplierEl.innerText;
                  historyContainer.insertBefore(item, historyContainer.firstChild);
-                 
-                 if (historyContainer.children.length > 6) {
-                     historyContainer.removeChild(historyContainer.lastChild);
-                 }
+                 if (historyContainer.children.length > 6) { historyContainer.removeChild(historyContainer.lastChild); }
              }
              multiplierEl.style.color = "red";
              rocketAnim.style.visibility = 'hidden';
              if (isPlaying) { isPlaying = false; betBtn.innerText = "Поставить"; betBtn.classList.remove('cashout'); }
-             betInput.disabled = true;
-             betBtn.disabled = true;
-
+             betInput.disabled = true; betBtn.disabled = true;
              if (currentPhase !== 'crash') { currentPhase = 'crash'; }
          } else {
              statusEl.innerText = "В полете...";
@@ -433,44 +403,17 @@
              rocketAnim.style.visibility = 'visible';
              betInput.disabled = true;
              if (isPlaying) betBtn.disabled = false; else betBtn.disabled = true;
-
              if (currentPhase !== 'flight') { currentPhase = 'flight'; }
          }
 
          const uBetEl = document.getElementById('user-bet-amount');
          const uPayoutEl = document.getElementById('user-bet-payout');
-         if (isPlaying) {
-             uBetEl.innerText = currentBet.toFixed(2) + " TON";
-             uPayoutEl.innerText = (currentBet * currentMult).toFixed(2) + " TON";
-             uPayoutEl.style.color = "var(--green-color)";
-         } else if (userCashedOut) {
-             uBetEl.innerText = currentBet.toFixed(2) + " TON";
-             uPayoutEl.innerText = userWinAmount.toFixed(2) + " TON";
-             uPayoutEl.style.color = "var(--green-color)";
-         } else if (currentPhase === 'crash' && currentBet > 0) {
-             uBetEl.innerText = currentBet.toFixed(2) + " TON";
-             uPayoutEl.innerText = "0.00 TON";
-             uPayoutEl.style.color = "#ff4d4d";
-         } else {
-             uBetEl.innerText = currentBet > 0 ? currentBet.toFixed(2) + " TON" : "0.00 TON";
-             uPayoutEl.innerText = "0.00 TON";
-             uPayoutEl.style.color = 'var(--text-muted)';
-         }
+         if (isPlaying) { uBetEl.innerText = currentBet.toFixed(2) + " TON"; uPayoutEl.innerText = (currentBet * currentMult).toFixed(2) + " TON"; uPayoutEl.style.color = "var(--green-color)"; }
+         else if (userCashedOut) { uBetEl.innerText = currentBet.toFixed(2) + " TON"; uPayoutEl.innerText = userWinAmount.toFixed(2) + " TON"; uPayoutEl.style.color = "var(--green-color)"; }
+         else if (currentPhase === 'crash' && currentBet > 0) { uBetEl.innerText = currentBet.toFixed(2) + " TON"; uPayoutEl.innerText = "0.00 TON"; uPayoutEl.style.color = "#ff4d4d"; }
+         else { uBetEl.innerText = currentBet > 0 ? currentBet.toFixed(2) + " TON" : "0.00 TON"; uPayoutEl.innerText = "0.00 TON"; uPayoutEl.style.color = 'var(--text-muted)'; }
 
-         otherBets.forEach(b => {
-             if (b.isCashedOut) return; 
-             if (currentPhase === 'flight') {
-                 b.element.innerText = (b.amount * currentMult).toFixed(2) + " TON";
-                 b.element.style.color = "var(--green-color)";
-             } else if (currentPhase === 'crash') {
-                 b.element.innerText = "0.00 TON";
-                 b.element.style.color = "#ff4d4d"; 
-             } else {
-                 b.element.innerText = "0.00 TON";
-                 b.element.style.color = 'var(--text-muted)';
-             }
-         });
-
+         otherBets.forEach(b => { if (b.isCashedOut) return; if (currentPhase === 'flight') { b.element.innerText = (b.amount * currentMult).toFixed(2) + " TON"; b.element.style.color = "var(--green-color)"; } else if (currentPhase === 'crash') { b.element.innerText = "0.00 TON"; b.element.style.color = "#ff4d4d"; } else { b.element.innerText = "0.00 TON"; b.element.style.color = 'var(--text-muted)'; } });
          requestAnimationFrame(loop);
      }
      loop();
