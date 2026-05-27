@@ -206,26 +206,49 @@
      let userWinAmount = 0;
      let currentPhase = ""; 
      
-     let targetCrashMult = 1.00;
+     let targetCrashMult = 10000;
      let lastRoundMult = parseFloat(localStorage.getItem('lastMult') || 1.00);
 
      const ROUND_DURATION = 15000;
      const WAIT_DURATION = 5000;
      const TOTAL_ROUND_TIME = ROUND_DURATION + WAIT_DURATION + 2000;
 
-     function generateCrashTarget(roundId) {
-         let x = Math.sin(roundId) * 10000;
-         let r = x - Math.floor(x);
+     function generateCrashTarget() {
+         let sumBets = currentBet;
+         otherBets.forEach(b => sumBets += b.amount);
          
-         let betModifier = Math.floor(currentBet / 10) * 0.1;
-         if (lastRoundMult > 2.0) r += 0.40;
-         r += betModifier;
+         let betModifier = 0;
+         if (sumBets >= 5 && sumBets < 10) {
+             betModifier = 10;
+         } else if (sumBets >= 10 && sumBets < 20) {
+             betModifier = 15;
+         } else if (sumBets >= 20) {
+             let steps = Math.floor((sumBets - 20) / 10);
+             if (steps > 8) steps = 8;
+             betModifier = 20 + steps * 5;
+         }
+         
+         let crashBonus = betModifier;
+         if (lastRoundMult > 2.00) {
+             crashBonus += 40;
+         }
 
-         if (r < 0.10) return 1.05;
-         if (r < 0.35) return 1.35;
-         if (r < 0.85) return 1.60;
-         if (r < 1.00) return 1.85;
-         return 2.50;
+         let r = Math.random() * 100;
+         let t1 = 10 + crashBonus;
+         let t2 = 25 + crashBonus;
+         let t3 = 45 + crashBonus;
+         let t4 = 80 + crashBonus;
+
+         let min, max;
+         if (r <= t1) { min = 1.00; max = 1.10; }
+         else if (r <= t2) { min = 1.10; max = 1.50; }
+         else if (r <= t3) { min = 1.50; max = 2.50; }
+         else if (r <= t4) { min = 2.50; max = 5.00; }
+         else { min = 5.00; max = 10.00; }
+
+         let result = min + Math.random() * (max - min);
+         if (result > 10.00) result = 10.00;
+         return parseFloat(result.toFixed(2));
      }
 
      const explosionSound = new Audio('https://limewire.com/d/Y5QPU#sHnn64dS9E');
@@ -312,7 +335,6 @@
              socket.emit('bet', { username: rawUsername, amount: currentBet, avatarLetter: userLetter });
              isPlaying = true; userCashedOut = false; userWinAmount = 0; betBtn.innerText = "Забрать"; betBtn.classList.add('cashout'); showToast("Ставка сделана!");
          } else {
-             // ИСПРАВЛЕНО: Умножаем на currentMult (текущий множитель на экране)
              userWinAmount = currentBet * currentMult; 
              balance += userWinAmount; localStorage.setItem('user_balance', balance.toFixed(2));
              document.getElementById('balance-display').innerText = balance.toFixed(2);
@@ -347,7 +369,6 @@
          ctx.clearRect(0, 0, crashCanvas.width, crashCanvas.height);
          gCtx.clearRect(0, 0, gridCanvas.width, gridCanvas.height);
 
-         // Рисование пульсирующей сетки
          let pulseOffset = Math.sin(Date.now() / 300) * (currentMult * 5); 
          gCtx.strokeStyle = 'rgba(157, 78, 221, 0.3)';
          gCtx.lineWidth = 1;
@@ -360,7 +381,6 @@
          }
 
          let now = Date.now();
-         let roundId = Math.floor(now / TOTAL_ROUND_TIME);
          let cycleTime = now % TOTAL_ROUND_TIME;
 
          if (cycleTime < WAIT_DURATION) {
@@ -375,42 +395,51 @@
              if (!isPlaying) betBtn.disabled = false;
              if (currentPhase !== 'wait') { 
                  currentPhase = 'wait'; userCashedOut = false; userWinAmount = 0; if (!isPlaying) currentBet = 0;
-                 targetCrashMult = generateCrashTarget(roundId); 
+                 targetCrashMult = 10000;
                  const list = document.getElementById('bets-list-container');
                  while (list.children.length > 1) { list.removeChild(list.lastChild); }
                  otherBets = [];
              }
-         } else if (cycleTime > (WAIT_DURATION + ROUND_DURATION) || currentMult >= targetCrashMult) {
-             currentMult = targetCrashMult;
-             multiplierEl.innerText = currentMult.toFixed(2) + "x";
-             statusEl.innerText = "Взрыв!";
-             if (!explosionVibrated) { 
-                 if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('heavy'); 
-                 explosionSound.play(); explosionVibrated = true; 
-                 localStorage.setItem('lastMult', currentMult.toFixed(2));
-                 lastRoundMult = currentMult;
-                 let item = document.createElement('div');
-                 item.className = 'history-item';
-                 item.innerText = currentMult.toFixed(2) + "x";
-                 historyContainer.insertBefore(item, historyContainer.firstChild);
-                 if (historyContainer.children.length > 10) historyContainer.removeChild(historyContainer.lastChild);
-             }
-             multiplierEl.style.color = "red";
-             rocketAnim.style.visibility = 'hidden';
-             if (isPlaying) { isPlaying = false; betBtn.innerText = "Поставить"; betBtn.classList.remove('cashout'); }
-             betInput.disabled = true; betBtn.disabled = true;
-             currentPhase = 'crash';
          } else {
-             statusEl.innerText = "В полете...";
-             let timeElapsed = cycleTime - WAIT_DURATION;
-             currentMult = Math.pow(1.001, timeElapsed / 20);
-             multiplierEl.innerText = currentMult.toFixed(2) + "x";
-             multiplierEl.style.color = "#fff";
-             rocketAnim.style.visibility = 'visible';
-             betInput.disabled = true;
-             betBtn.style.display = 'inline-block';
-             if (isPlaying) betBtn.disabled = false; else betBtn.disabled = true;
-             currentPhase = 'flight';
+             if (currentPhase === 'wait') {
+                 targetCrashMult = generateCrashTarget();
+                 currentPhase = 'flight';
+             }
+
+             if (cycleTime > (WAIT_DURATION + ROUND_DURATION) || currentMult >= targetCrashMult) {
+                 if (currentPhase !== 'crash') {
+                     currentMult = targetCrashMult;
+                     multiplierEl.innerText = currentMult.toFixed(2) + "x";
+                     statusEl.innerText = "Взрыв!";
+                     if (!explosionVibrated) { 
+                         if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('heavy'); 
+                         explosionSound.play(); explosionVibrated = true; 
+                         localStorage.setItem('lastMult', currentMult.toFixed(2));
+                         lastRoundMult = currentMult;
+                         let item = document.createElement('div');
+                         item.className = 'history-item';
+                         item.innerText = currentMult.toFixed(2) + "x";
+                         historyContainer.insertBefore(item, historyContainer.firstChild);
+                         if (historyContainer.children.length > 10) historyContainer.removeChild(historyContainer.lastChild);
+                     }
+                     multiplierEl.style.color = "red";
+                     rocketAnim.style.visibility = 'hidden';
+                     if (isPlaying) { isPlaying = false; betBtn.innerText = "Поставить"; betBtn.classList.remove('cashout'); }
+                     betInput.disabled = true; betBtn.disabled = true;
+                     currentPhase = 'crash';
+                 }
+             } else {
+                 statusEl.innerText = "В полете...";
+                 let timeElapsed = cycleTime - WAIT_DURATION;
+                 currentMult = Math.pow(1.001, timeElapsed / 20);
+                 multiplierEl.innerText = currentMult.toFixed(2) + "x";
+                 multiplierEl.style.color = "#fff";
+                 rocketAnim.style.visibility = 'visible';
+                 betInput.disabled = true;
+                 betBtn.style.display = 'inline-block';
+                 if (isPlaying) betBtn.disabled = false; else betBtn.disabled = true;
+                 currentPhase = 'flight';
+             }
          }
 
          const uBetEl = document.getElementById('user-bet-amount');
@@ -426,4 +455,4 @@
      loop();
  </script>
 </body>
- </html>
+</html>
