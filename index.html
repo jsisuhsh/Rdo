@@ -103,6 +103,33 @@
      #promo-overlay { position: fixed; bottom: -50vh; left: 0; width: 100%; height: 50vh; background: var(--container-bg); z-index: 20000; border-top-left-radius: 25px; border-top-right-radius: 25px; border: 1px solid rgba(255,255,255,0.1); padding: 25px; transition: bottom 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
      #promo-overlay.visible { bottom: 0; }
      #promo-overlay h3 { margin-bottom: 20px; text-align: center; }
+
+     /* === НОВЫЕ СТИЛИ ДЛЯ КЕЙСОВ И РУЛЕТКИ === */
+     .cases-grid { display: flex; gap: 15px; margin-top: 20px; }
+     .case-card { background: var(--container-bg); border-radius: 15px; padding: 15px; display: flex; flex-direction: column; align-items: center; width: 140px; border: 1px solid rgba(255, 255, 255, 0.05); cursor: pointer; transition: transform 0.2s; }
+     .case-card:active { transform: scale(0.95); }
+     .case-img { width: 100px; height: 100px; object-fit: contain; }
+     .case-name { color: #9d4edd; font-weight: 700; margin-top: 8px; font-size: 16px; text-transform: uppercase; }
+     
+     .case-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); z-index: 25000; display: none; align-items: center; justify-content: center; padding: 20px; }
+     .case-modal-overlay.visible { display: flex; }
+     .case-modal-content { background: var(--container-bg); border-radius: 20px; width: 100%; max-width: 360px; padding: 20px; border: 1px solid rgba(255, 255, 255, 0.1); position: relative; }
+     .close-case-modal { position: absolute; top: 15px; right: 15px; font-size: 20px; cursor: pointer; color: var(--text-muted); transition: color 0.2s; }
+     .close-case-modal:hover { color: white; }
+     .close-case-modal.disabled { pointer-events: none; opacity: 0.3; }
+     
+     .roulette-viewport { position: relative; width: 100%; height: 110px; background: #16121e; border-radius: 12px; overflow: hidden; border: 2px solid #3c354a; margin-top: 15px; }
+     .roulette-marker { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 4px; height: 100%; background: #ff4d4d; z-index: 10; box-shadow: 0 0 8px #ff4d4d; }
+     .roulette-track { display: flex; position: absolute; left: 0; top: 5px; height: 100px; will-change: transform; }
+     
+     .roulette-item { width: 90px; height: 90px; background: rgba(255, 255, 255, 0.03); margin: 5px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid rgba(255, 255, 255, 0.05); }
+     .roulette-item img { width: 40px; height: 40px; object-fit: contain; margin-bottom: 4px; }
+     .roulette-item span { font-size: 12px; font-weight: 700; color: #ffffff; }
+     
+     .possible-drops-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; max-height: 160px; overflow-y: auto; margin-top: 5px; }
+     .drop-item { background: rgba(255, 255, 255, 0.03); border-radius: 8px; padding: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid rgba(255, 255, 255, 0.05); }
+     .drop-item img { width: 30px; height: 30px; object-fit: contain; margin-bottom: 2px; }
+     .drop-item span { font-size: 11px; font-weight: 600; color: #ffffff; text-align: center; }
  </style>
 </head>
 <body>
@@ -125,7 +152,16 @@
  </div>
 
  <main>
-     <div id="tab-cases" class="tab-content active"><h2>Кейсы</h2></div>
+     <div id="tab-cases" class="tab-content active">
+         <h2>Кейсы</h2>
+         <div class="cases-grid">
+             <div class="case-card" onclick="openCaseModal()">
+                 <img src="content (12).png" alt="Daily Case" class="case-img">
+                 <div class="case-name">Daily</div>
+             </div>
+         </div>
+     </div>
+     
      <div id="tab-crash" class="tab-content">
          <h2>Краш</h2>
          <div class="crash-container">
@@ -183,6 +219,32 @@
          </div>
      </div>
  </main>
+
+ <div id="case-modal" class="case-modal-overlay">
+     <div class="case-modal-content">
+         <div id="close-case-btn" class="close-case-modal" onclick="closeCaseModal()">✕</div>
+         <h3 style="text-align: center; font-size: 18px;">Ежедневный кейс</h3>
+         
+         <div class="roulette-viewport">
+             <div class="roulette-marker"></div>
+             <div id="roulette-track" class="roulette-track"></div>
+         </div>
+         
+         <button id="spin-case-btn" class="btn btn-fill" style="width: 100%; margin: 15px 0 20px 0;" onclick="spinCase()">Открыть</button>
+         
+         <h4 style="color: var(--text-muted); font-size: 13px; margin-bottom: 8px; text-align: center;">Что может выпасть:</h4>
+         <div class="possible-drops-grid">
+             <div class="drop-item"><img src="500px-Gram_cryptocurrency_logo.svg.png"><span>0.01 TON</span></div>
+             <div class="drop-item"><img src="500px-Gram_cryptocurrency_logo.svg.png"><span>0.05 TON</span></div>
+             <div class="drop-item"><img src="500px-Gram_cryptocurrency_logo.svg.png"><span>0.1 TON</span></div>
+             <div class="drop-item"><img src="500px-Gram_cryptocurrency_logo.svg.png"><span>0.2 TON</span></div>
+             <div class="drop-item"><img src="500px-Gram_cryptocurrency_logo.svg.png"><span>1 TON</span></div>
+             <div class="drop-item"><img src="500px-Gram_cryptocurrency_logo.svg.png"><span>2 TON</span></div>
+             <div class="drop-item"><img src="500px-Gram_cryptocurrency_logo.svg.png"><span>3 TON</span></div>
+             <div class="drop-item"><img src="500px-Gram_cryptocurrency_logo.svg.png"><span>4 TON</span></div>
+         </div>
+     </div>
+ </div>
 
  <div id="promo-overlay">
      <div style="text-align: right; cursor: pointer; margin-bottom: 10px;" onclick="hidePromo()">✕</div>
@@ -315,21 +377,17 @@
 
      // === ЛОГИКА СИНХРОНИЗАЦИИ (НОВАЯ) ===
      socket.on('gameSync', (data) => {
-         // Сохраняем предыдущую фазу, чтобы отловить момент смены
          let prevPhase = currentPhase;
-         
          currentPhase = data.phase;
          phaseStartTime = Date.now() - (data.elapsed || 0);
          if (data.targetMultiplier !== undefined) targetCrashMult = parseFloat(data.targetMultiplier);
 
-         // Если сервер перевел игру в режим ожидания нового раунда
          if (currentPhase === 'wait' && prevPhase !== 'wait') {
              explosionVibrated = false;
              userCashedOut = false; 
              userWinAmount = 0; 
              if (!isPlaying) currentBet = 0;
              
-             // Очищаем список ставок других игроков
              const list = document.getElementById('bets-list-container');
              while (list.children.length > 1) { list.removeChild(list.lastChild); }
              otherBets = [];
@@ -438,9 +496,7 @@
 
      socket.on('connect', () => { showToast("✅ Подключено!"); });
      
-     // --- ОБРАБОТЧИК ОНЛАЙНА ---
      socket.on('updateOnline', (count) => { 
-         // Приводим к числу, чтобы гарантировать корректное отображение
          let parsed = parseInt(count);
          if (!isNaN(parsed)) {
              document.getElementById('online-count').innerText = parsed; 
@@ -449,6 +505,105 @@
      
      socket.on('disconnect', () => { showToast("❌ Потеряно соединение"); handleDisconnectCashout(); });
      window.addEventListener('offline', () => { showToast("❌ Нет интернета"); handleDisconnectCashout(); });
+
+     // === ЛОГИКА КЕЙСА И РУЛЕТКИ (НОВАЯ) ===
+     let isSpinningCase = false;
+     const caseRewards = [
+         { val: 0.01, chance: 0.50 },
+         { val: 0.05, chance: 0.30 },
+         { val: 0.1,  chance: 0.13 },
+         { val: 0.2,  chance: 0.05 },
+         { val: 1,    chance: 0.01 },
+         { val: 2,    chance: 0.005 },
+         { val: 3,    chance: 0.002 },
+         { val: 4,    chance: 0.001 }
+     ];
+
+     function openCaseModal() {
+         if (isSpinningCase) return;
+         document.getElementById('case-modal').classList.add('visible');
+         buildInitialTrack();
+     }
+
+     function closeCaseModal() {
+         if (isSpinningCase) return;
+         document.getElementById('case-modal').classList.remove('visible');
+     }
+
+     function getWeightedRandomReward() {
+         let r = Math.random();
+         let cumulative = 0;
+         for (let item of caseRewards) {
+             cumulative += item.chance;
+             if (r <= cumulative) return item.val;
+         }
+         return 0.01;
+     }
+
+     function createRouletteItemNode(val) {
+         let div = document.createElement('div');
+         div.className = 'roulette-item';
+         div.innerHTML = `<img src="500px-Gram_cryptocurrency_logo.svg.png"><span>${val} TON</span>`;
+         return div;
+     }
+
+     function buildInitialTrack() {
+         const track = document.getElementById('roulette-track');
+         track.style.transition = 'none';
+         track.style.transform = 'translateX(0px)';
+         track.innerHTML = '';
+         for (let i = 0; i < 6; i++) {
+             let val = caseRewards[Math.floor(Math.random() * caseRewards.length)].val;
+             track.appendChild(createRouletteItemNode(val));
+         }
+     }
+
+     function spinCase() {
+         if (isSpinningCase) return;
+         isSpinningCase = true;
+         
+         document.getElementById('spin-case-btn').disabled = true;
+         document.getElementById('close-case-btn').classList.add('disabled');
+         
+         const track = document.getElementById('roulette-track');
+         track.style.transition = 'none';
+         track.style.transform = 'translateX(0px)';
+         track.innerHTML = '';
+         
+         const totalItems = 35;
+         const winnerIndex = 26; 
+         let winningVal = getWeightedRandomReward();
+         
+         for (let i = 0; i < totalItems; i++) {
+             let val = (i === winnerIndex) ? winningVal : caseRewards[Math.floor(Math.random() * caseRewards.length)].val;
+             track.appendChild(createRouletteItemNode(val));
+         }
+         
+         track.offsetHeight; // Сброс кэша стилей браузера
+         
+         const viewportWidth = document.querySelector('.roulette-viewport').clientWidth;
+         const viewportCenter = viewportWidth / 2;
+         const itemCenter = (winnerIndex * 100) + 50; 
+         const randomOffset = Math.floor(Math.random() * 60) - 30; // Случайное смещение внутри ячейки
+         
+         const targetX = viewportCenter - itemCenter + randomOffset;
+         
+         track.style.transition = 'transform 5s cubic-bezier(0.1, 0.8, 0.1, 1)';
+         track.style.transform = `translateX(${targetX}px)`;
+         
+         setTimeout(() => {
+             balance += winningVal;
+             localStorage.setItem('user_balance', balance.toFixed(2));
+             document.getElementById('balance-display').innerText = balance.toFixed(2);
+             
+             showToast(`🎉 Вы выиграли ${winningVal} TON!`);
+             if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+             
+             isSpinningCase = false;
+             document.getElementById('spin-case-btn').disabled = false;
+             document.getElementById('close-case-btn').classList.remove('disabled');
+         }, 5200);
+     }
 
      // === ИГРОВОЙ ЦИКЛ (ОТРИСОВКА) ===
      const crashCanvas = document.getElementById('crash-canvas');
@@ -467,7 +622,6 @@
          ctx.clearRect(0, 0, crashCanvas.width, crashCanvas.height);
          gCtx.clearRect(0, 0, gridCanvas.width, gridCanvas.height);
 
-         // Отрисовка сетки
          let pulseOffset = Math.sin(Date.now() / 300) * (currentMult * 5); 
          gCtx.strokeStyle = 'rgba(157, 78, 221, 0.3)';
          gCtx.lineWidth = 1;
@@ -482,9 +636,7 @@
          let now = Date.now();
          let timeElapsed = now - phaseStartTime;
 
-         // Логика фаз диктуется сервером
          if (currentPhase === 'wait') {
-             // 5000ms = 5 sec wait time
              let secondsRemaining = Math.ceil((5000 - timeElapsed) / 1000);
              if (secondsRemaining > 0 && secondsRemaining <= 5) {
                  if (secondsRemaining !== lastCountdownNum) {
@@ -512,9 +664,7 @@
              multiplierEl.style.visibility = 'visible';
              countdownOverlay.style.display = 'none';
              
-             // Вычисляем множитель на основе прошедшего времени (синхронизировано с сервером)
              currentMult = Math.pow(1.001, timeElapsed / 20);
-             // Ограничитель, чтобы визуал не перескочил цель сервера
              if (currentMult > targetCrashMult) currentMult = targetCrashMult;
 
              statusEl.innerText = "В полете...";
@@ -526,7 +676,7 @@
              if (isPlaying) betBtn.disabled = false; else betBtn.disabled = true;
 
          } else if (currentPhase === 'crash') {
-             currentMult = targetCrashMult; // Жестко ставим серверную цель
+             currentMult = targetCrashMult; 
              
              multiplierEl.innerText = currentMult.toFixed(2) + "x";
              statusEl.innerText = "Взрыв!";
@@ -542,7 +692,6 @@
                  explosionVibrated = true; 
                  localStorage.setItem('lastMult', currentMult.toFixed(2));
                  
-                 // Добавление в историю
                  let item = document.createElement('div');
                  item.className = 'history-item';
                  item.innerText = currentMult.toFixed(2) + "x";
@@ -554,7 +703,6 @@
                  historyContainer.insertBefore(item, historyContainer.firstChild);
                  if (historyContainer.children.length > 10) historyContainer.removeChild(historyContainer.lastChild);
                  
-                 // Если игрок не успел вывести деньги
                  if (isPlaying) { 
                      isPlaying = false; 
                      betBtn.innerText = "Поставить"; 
@@ -563,7 +711,6 @@
              }
          }
 
-         // === ОБНОВЛЕНИЕ UI СТАВОК ===
          const uBetEl = document.getElementById('user-bet-amount');
          const uPayoutEl = document.getElementById('user-bet-payout');
          if (isPlaying) { 
@@ -598,8 +745,7 @@
          requestAnimationFrame(loop);
      }
      
-     // Запуск цикла
      loop();
  </script>
 </body>
-</html>
+ </html>
