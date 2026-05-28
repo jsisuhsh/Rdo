@@ -298,8 +298,12 @@
 
      // Сразу вешаем обработчик онлайна ДО того, как сокет подключится
      socket.on('updateOnline', (count) => { 
-         if (count !== undefined && count !== null) {
-             document.getElementById('online-count').innerText = count; 
+         let parsed = parseInt(count);
+         if (!isNaN(parsed) && parsed > 0) {
+             document.getElementById('online-count').innerText = parsed; 
+         } else {
+             // Защита: если сервер прислал пустышку, ставим 1 (так как вы сами онлайн)
+             document.getElementById('online-count').innerText = "1";
          }
      });
 
@@ -441,7 +445,14 @@
          }
      }
 
-     socket.on('connect', () => { showToast("✅ Подключено!"); });
+     socket.on('connect', () => { 
+         showToast("✅ Подключено!"); 
+         // Защита №2: принудительное обновление онлайна, если пакет "проскочил"
+         let currentCount = parseInt(document.getElementById('online-count').innerText);
+         if (isNaN(currentCount) || currentCount === 0) {
+             document.getElementById('online-count').innerText = "1";
+         }
+     });
      socket.on('disconnect', () => { showToast("❌ Потеряно соединение"); handleDisconnectCashout(); });
      window.addEventListener('offline', () => { showToast("❌ Нет интернета"); handleDisconnectCashout(); });
 
@@ -600,4 +611,4 @@
      loop();
  </script>
 </body>
-</html>                                                                                                      </html>
+</html>
