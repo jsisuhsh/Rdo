@@ -292,12 +292,15 @@
          reconnectionAttempts: Infinity,
          reconnectionDelay: 1000,
          timeout: 20000,
-         secure: true
+         secure: true,
+         autoConnect: false // ВАЖНО: Отключаем автоконнект, чтобы успеть повесить слушатели!
      }); 
 
-     // Сразу вешаем обработчик онлайна, чтобы не пропустить первое событие от сервера при подключении
+     // Сразу вешаем обработчик онлайна ДО того, как сокет подключится
      socket.on('updateOnline', (count) => { 
-         document.getElementById('online-count').innerText = count; 
+         if (count !== undefined && count !== null) {
+             document.getElementById('online-count').innerText = count; 
+         }
      });
 
      let currentBet = 0;
@@ -318,23 +321,20 @@
      const betInput = document.getElementById('bet-amount');
      const betBtn = document.getElementById('bet-btn');
 
-     // === ЛОГИКА СИНХРОНИЗАЦИИ (НОВАЯ) ===
+     // === ЛОГИКА СИНХРОНИЗАЦИИ ===
      socket.on('gameSync', (data) => {
-         // Сохраняем предыдущую фазу, чтобы отловить момент смены
          let prevPhase = currentPhase;
          
          currentPhase = data.phase;
          phaseStartTime = Date.now() - (data.elapsed || 0);
          if (data.targetMultiplier !== undefined) targetCrashMult = parseFloat(data.targetMultiplier);
 
-         // Если сервер перевел игру в режим ожидания нового раунда
          if (currentPhase === 'wait' && prevPhase !== 'wait') {
              explosionVibrated = false;
              userCashedOut = false; 
              userWinAmount = 0; 
              if (!isPlaying) currentBet = 0;
              
-             // Очищаем список ставок других игроков
              const list = document.getElementById('bets-list-container');
              while (list.children.length > 1) { list.removeChild(list.lastChild); }
              otherBets = [];
@@ -444,6 +444,9 @@
      socket.on('connect', () => { showToast("✅ Подключено!"); });
      socket.on('disconnect', () => { showToast("❌ Потеряно соединение"); handleDisconnectCashout(); });
      window.addEventListener('offline', () => { showToast("❌ Нет интернета"); handleDisconnectCashout(); });
+
+     // ВСЕ слушатели назначены, ТЕПЕРЬ даем команду на подключение к серверу
+     socket.connect();
 
      // === ИГРОВОЙ ЦИКЛ (ОТРИСОВКА) ===
      const crashCanvas = document.getElementById('crash-canvas');
@@ -597,4 +600,4 @@
      loop();
  </script>
 </body>
- </html>
+</html>                                                                                                      </html>
