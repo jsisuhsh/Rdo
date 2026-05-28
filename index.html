@@ -116,13 +116,13 @@
          display: flex; 
          flex-direction: column; 
          align-items: center; 
-         width: 140px; 
+         width: 180px; /* Увеличено, чтобы поместилась картинка 150px */
          cursor: pointer; 
          transition: transform 0.2s; 
          backdrop-filter: blur(5px); 
      }
      .case-card:active { transform: scale(0.95); }
-     .case-img { width: 100px; height: 100px; object-fit: contain; }
+     .case-img { width: 150px; height: 150px; object-fit: contain; } /* Увеличено в 1.5 раза */
      .case-name { color: #ffffff; font-weight: 700; margin-top: 8px; font-size: 16px; text-transform: uppercase; }
      
      .case-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); z-index: 25000; display: none; align-items: center; justify-content: center; padding: 20px; }
@@ -193,7 +193,7 @@
          <h2>Кейсы</h2>
          <div class="cases-grid">
              <div class="case-card" onclick="openCaseModal()">
-                 <img src="https://i.postimg.cc/436GWySv/content-(12).png" alt="Daily Case" class="case-img">
+                 <img src="https://i.postimg.cc/d0zvZ74K/lv-0-20260528223928.png" alt="Daily Case" class="case-img">
                  <div class="case-name">Daily</div>
              </div>
          </div>
@@ -297,7 +297,6 @@
 
  <script src="https://telegram.org/js/telegram-web-app.js"></script>
  <script>
-     // === ЛОГИКА ЭКРАНА ЗАГРУЗКИ ===
      document.addEventListener("DOMContentLoaded", () => {
          const loadingScreen = document.getElementById('loading-screen');
          const loadingBarFill = document.getElementById('loading-bar-fill');
@@ -310,29 +309,21 @@
 
          const loadingInterval = setInterval(() => {
              progress += step;
-             
              if (progress >= 100) {
                  progress = 100;
                  clearInterval(loadingInterval);
-                 
                  setTimeout(() => {
                      loadingScreen.style.opacity = '0';
-                     setTimeout(() => {
-                         loadingScreen.style.display = 'none';
-                     }, 500);
+                     setTimeout(() => { loadingScreen.style.display = 'none'; }, 500);
                  }, 200);
              }
-
              loadingBarFill.style.width = progress + '%';
              loadingText.innerText = Math.floor(progress) + '%';
-             
              const hue = (progress / 100) * 120;
              loadingBarFill.style.backgroundColor = `hsl(${hue}, 100%, 50%)`;
-             
          }, intervalTime);
      });
 
-     // === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ===
      function showToast(text) {
          const toast = document.getElementById('toast');
          toast.innerText = text;
@@ -371,7 +362,6 @@
      function hideSettings() { document.getElementById('settings-menu').style.display = 'none'; }
      function toggle(el) { el.classList.toggle('on'); }
 
-     // === ИНИЦИАЛИЗАЦИЯ ПОЛЬЗОВАТЕЛЯ И ДАННЫХ ===
      const tg = window.Telegram.WebApp;
      tg.expand();
 
@@ -418,15 +408,7 @@
          }
      });
 
-     // === ИГРОВЫЕ ПЕРЕМЕННЫЕ И СОКЕТ ===
-     const socket = io('https://rdo-0y8m.onrender.com', {
-         transports: ['websocket', 'polling'],
-         reconnection: true,
-         reconnectionAttempts: Infinity,
-         reconnectionDelay: 1000,
-         timeout: 20000,
-         secure: true
-     }); 
+     const socket = io('https://rdo-0y8m.onrender.com', { transports: ['websocket', 'polling'], reconnection: true }); 
 
      let currentBet = 0;
      let isPlaying = false;
@@ -440,10 +422,6 @@
      let phaseStartTime = Date.now();
      let targetCrashMult = 1.00;
      let otherBets = [];
-
-     const explosionSound = new Audio('https://limewire.com/d/Y5QPU#sHnn64dS9E');
-     const betInput = document.getElementById('bet-amount');
-     const betBtn = document.getElementById('bet-btn');
 
      socket.on('gameSync', (data) => {
          let prevPhase = currentPhase;
@@ -818,4 +796,4 @@
      loop();
  </script>
 </body>
-                                                                                                                     </html>
+                                                                                                     </html>
