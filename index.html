@@ -106,11 +106,24 @@
      #promo-overlay.visible { bottom: 0; }
      #promo-overlay h3 { margin-bottom: 20px; text-align: center; }
 
+     /* === НОВЫЕ СТИЛИ ДЛЯ КЕЙСОВ И РУЛЕТКИ === */
      .cases-grid { display: flex; gap: 15px; margin-top: 20px; }
-     .case-card { background: linear-gradient(to bottom, #000000, var(--container-bg)) padding-box, linear-gradient(to bottom, #000000, rgba(157, 78, 221, 0.3)) border-box; border: 1px solid transparent; border-radius: 15px; padding: 15px; display: flex; flex-direction: column; align-items: center; width: 140px; cursor: pointer; transition: transform 0.2s; backdrop-filter: blur(5px); }
+     .case-card { 
+         background: linear-gradient(to top, #000000 0%, #4a1c78 100%); 
+         border: 1px solid rgba(157, 78, 221, 0.4); 
+         border-radius: 15px; 
+         padding: 15px; 
+         display: flex; 
+         flex-direction: column; 
+         align-items: center; 
+         width: 140px; 
+         cursor: pointer; 
+         transition: transform 0.2s; 
+         backdrop-filter: blur(5px); 
+     }
      .case-card:active { transform: scale(0.95); }
      .case-img { width: 100px; height: 100px; object-fit: contain; }
-     .case-name { color: #9d4edd; font-weight: 700; margin-top: 8px; font-size: 16px; text-transform: uppercase; }
+     .case-name { color: #ffffff; font-weight: 700; margin-top: 8px; font-size: 16px; text-transform: uppercase; }
      
      .case-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); z-index: 25000; display: none; align-items: center; justify-content: center; padding: 20px; }
      .case-modal-overlay.visible { display: flex; }
@@ -127,7 +140,20 @@
      .roulette-item img { width: 40px; height: 40px; object-fit: contain; margin-bottom: 4px; }
      .roulette-item span { font-size: 12px; font-weight: 700; color: #ffffff; }
      
-     .possible-drops-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; max-height: 160px; overflow-y: auto; margin-top: 5px; }
+     .possible-drops-grid { 
+         display: grid; 
+         grid-template-columns: repeat(2, 1fr); 
+         gap: 8px; 
+         max-height: 180px; 
+         overflow-y: auto; 
+         margin-top: 5px; 
+         padding-right: 5px;
+     }
+     
+     .possible-drops-grid::-webkit-scrollbar { width: 4px; }
+     .possible-drops-grid::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 4px; }
+     .possible-drops-grid::-webkit-scrollbar-thumb { background: var(--accent-color); border-radius: 4px; }
+     
      .drop-item { background: rgba(255, 255, 255, 0.03); border-radius: 8px; padding: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid rgba(255, 255, 255, 0.05); }
      .drop-item img { width: 30px; height: 30px; object-fit: contain; margin-bottom: 2px; }
      .drop-item span { font-size: 11px; font-weight: 600; color: #ffffff; text-align: center; }
@@ -792,4 +818,4 @@
      loop();
  </script>
 </body>
-</html>
+      </html>
