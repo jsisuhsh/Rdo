@@ -1,51 +1,113 @@
 const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
+const cors = require('cors');
+
 const app = express();
-const http = require('http').createServer(app);
-const io = require('socket.io')(http, { cors: { origin: "*" } });
+app.use(cors());
 
-app.use(express.static(__dirname));
-
-let currentPhase = 'wait'; 
-let targetMultiplier = 1.00;
-let phaseStartTime = Date.now();
-
-function generateMultiplier() {
-    let r = Math.random() * 100;
-    if (r < 20) return 1.00 + Math.random() * 0.2;
-    if (r < 50) return 1.20 + Math.random() * 0.8;
-    return 2.00 + Math.random() * 8.0;
-}
-
-// Игровой цикл
-setInterval(() => {
-    let now = Date.now();
-    let elapsed = now - phaseStartTime;
-
-    if (currentPhase === 'wait' && elapsed >= 5000) {
-        currentPhase = 'flight';
-        targetMultiplier = parseFloat(generateMultiplier().toFixed(2));
-        phaseStartTime = now;
-        io.emit('gameSync', { phase: 'flight', targetMultiplier, elapsed: 0 });
-    } else if (currentPhase === 'flight') {
-        let currentMult = Math.pow(1.001, elapsed / 20);
-        if (currentMult >= targetMultiplier) {
-            currentPhase = 'crash';
-            phaseStartTime = now;
-            io.emit('gameSync', { phase: 'crash', targetMultiplier, elapsed: 0 });
-        }
-    } else if (currentPhase === 'crash' && elapsed >= 3000) {
-        currentPhase = 'wait';
-        phaseStartTime = now;
-        io.emit('gameSync', { phase: 'wait', targetMultiplier: 0, elapsed: 0 });
+const server = http.createServer(app);
+const io = new Server(server, {
+    cors: {
+        origin: "*",
+        methods: ["GET", "POST"]
     }
-}, 100);
-
-io.on('connection', (socket) => {
-    // Синхронизируем новичка сразу при подключении
-    socket.emit('gameSync', { phase: currentPhase, targetMultiplier, elapsed: Date.now() - phaseStartTime });
-    
-    socket.on('bet', (data) => io.emit('newBet', data));
-    socket.on('cashOut', (data) => io.emit('cashOut', data));
 });
 
-http.listen(process.env.PORT || 3000);
+let onlineCount = 0;
+let currentPhase = 'wait'; // Возможные фазы: 'wait', 'flight', 'crash'
+let phaseStartTime = Date.now();
+let targetMultiplier = 1.00;
+
+// Математическая функция генерации точки взрыва (Crash)
+function generateCrashMultiplier() {
+    const r = Math.random();
+    if (r < 0.03) return 1.00; // 3% шанс моментального взрыва на 1.00x
+    return parseFloat((99 / (100 - r * 100)).toFixed(2));
+}
+
+// Фаза ожидания ставок (5 секунд)
+function startWaitPhase() {
+    currentPhase = 'wait';
+    phaseStartTime = Date.now();
+    targetMultiplier = generateCrashMultiplier();
+    
+    io.emit('gameSync', {
+        phase: currentPhase,
+        elapsed: 0,
+        targetMultiplier: targetMultiplier
+    });
+
+    setTimeout(startFlightPhase, 5000);
+}
+
+// Фаза полёта ракеты
+function startFlightPhase() {
+    currentPhase = 'flight';
+    phaseStartTime = Date.now();
+
+    io.emit('gameSync', {
+        phase: currentPhase,
+        elapsed: 0,
+        targetMultiplier: targetMultiplier
+    });
+
+    // Вычисляем точное время полёта до точки краша по формуле из клиента:
+    // mult = Math.pow(1.001, timeElapsed / 20)
+    let flightDuration = 0;
+    if (targetMultiplier > 1.00) {
+        flightDuration = (20 * Math.log(targetMultiplier)) / Math.log(1.001);
+    }
+
+    setTimeout(startCrashPhase, flightDuration);
+}
+
+// Фаза взрыва (3 секунды перед новым раундом)
+function startCrashPhase() {
+    currentPhase = 'crash';
+    phaseStartTime = Date.now();
+
+    io.emit('gameSync', {
+        phase: currentPhase,
+        elapsed: 0,
+        targetMultiplier: targetMultiplier
+    });
+
+    setTimeout(startWaitPhase, 3000);
+}
+
+// Запуск бесконечного игрового цикла на сервере
+startWaitPhase();
+
+io.on('connection', (socket) => {
+    onlineCount++;
+    io.emit('updateOnline', onlineCount);
+
+    // Синхронизируем вошедшего игрока с текущим состоянием игры
+    socket.emit('gameSync', {
+        phase: currentPhase,
+        elapsed: Date.now() - phaseStartTime,
+        targetMultiplier: targetMultiplier
+    });
+
+    // Обработка и трансляция ставки игрока остальным участникам
+    socket.on('bet', (data) => {
+        socket.broadcast.emit('bet', data);
+    });
+
+    // Обработка и трансляция вывода (кэшаута) игрока остальным участникам
+    socket.on('cashOut', (data) => {
+        socket.broadcast.emit('cashOut', data);
+    });
+
+    socket.on('disconnect', () => {
+        onlineCount--;
+        if (onlineCount < 0) onlineCount = 0;
+        io.emit('updateOnline', onlineCount);
+    });
+});
+
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+    console.log(`Сервер успешно запущен на порту ${PORT}`);
+});
