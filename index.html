@@ -134,6 +134,14 @@
 </head>
 <body>
 
+ <div id="loading-screen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #2a2a2a; z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease;">
+     <img src="https://i.postimg.cc/PxbfNvqk/animation-gif-ezgif-com-effects.gif" alt="Loading" style="width: 150px; margin-bottom: 20px;">
+     <div style="width: 80%; max-width: 300px; height: 15px; background: rgba(0,0,0,0.5); border-radius: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1);">
+         <div id="loading-bar-fill" style="height: 100%; width: 0%; background: hsl(0, 100%, 50%); transition: width 0.1s linear, background-color 0.1s linear;"></div>
+     </div>
+     <div id="loading-text" style="margin-top: 10px; font-weight: bold; font-size: 16px; color: white;">0%</div>
+ </div>
+
  <div id="toast"></div>
 
  <div id="online-counter">
@@ -220,13 +228,11 @@
      </div>
  </main>
 
- <!-- Модальное окно открытия кейса -->
  <div id="case-modal" class="case-modal-overlay">
      <div class="case-modal-content">
          <div id="close-case-btn" class="close-case-modal" onclick="closeCaseModal()">✕</div>
          <h3 style="text-align: center; font-size: 18px;">Ежедневный кейс</h3>
          
-         <!-- Рулетка -->
          <div class="roulette-viewport">
              <div class="roulette-marker"></div>
              <div id="roulette-track" class="roulette-track"></div>
@@ -263,6 +269,43 @@
 
  <script src="https://telegram.org/js/telegram-web-app.js"></script>
  <script>
+     // === ЛОГИКА ЭКРАНА ЗАГРУЗКИ ===
+     document.addEventListener("DOMContentLoaded", () => {
+         const loadingScreen = document.getElementById('loading-screen');
+         const loadingBarFill = document.getElementById('loading-bar-fill');
+         const loadingText = document.getElementById('loading-text');
+
+         let progress = 0;
+         const duration = 10000; // 10 секунд
+         const intervalTime = 50; 
+         const step = (100 / (duration / intervalTime));
+
+         const loadingInterval = setInterval(() => {
+             progress += step;
+             
+             if (progress >= 100) {
+                 progress = 100;
+                 clearInterval(loadingInterval);
+                 
+                 // Плавное исчезновение
+                 setTimeout(() => {
+                     loadingScreen.style.opacity = '0';
+                     setTimeout(() => {
+                         loadingScreen.style.display = 'none';
+                     }, 500);
+                 }, 200);
+             }
+
+             loadingBarFill.style.width = progress + '%';
+             loadingText.innerText = Math.floor(progress) + '%';
+             
+             // Меняем цвет от красного (hue 0) к зеленому (hue 120)
+             const hue = (progress / 100) * 120;
+             loadingBarFill.style.backgroundColor = `hsl(${hue}, 100%, 50%)`;
+             
+         }, intervalTime);
+     });
+
      // === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ===
      function showToast(text) {
          const toast = document.getElementById('toast');
@@ -750,4 +793,4 @@
      loop();
  </script>
 </body>
-</html>
+ </html>
