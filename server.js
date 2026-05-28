@@ -108,6 +108,15 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
+const path = require('path');
+
+// Укажите, что статические файлы лежат в папке, где находится server.js
+app.use(express.static(path.join(__dirname)));
+
+// Маршрут для отдачи index.html
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
 server.listen(PORT, () => {
     console.log(`Сервер успешно запущен на порту ${PORT}`);
 });
