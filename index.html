@@ -20,7 +20,6 @@
      * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; -webkit-user-select: none; }
      body { background-color: var(--bg-color); color: var(--text-color); height: 100vh; overflow: hidden; display: flex; flex-direction: column; position: relative; }
 
-     /* ГЛОБАЛЬНЫЙ ФОН С ЧЕРНЫМ КОНТУРОМ ПЕРСОНАЖЕЙ, УМЕНЬШЕННЫМ В 3 РАЗА */
      .bg-characters { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: url('character.png'); background-size: 16px; background-repeat: repeat; filter: brightness(0); opacity: 0.35; z-index: -1; pointer-events: none; }
 
      #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #000; border: 2px solid var(--accent-color); color: white; padding: 12px 20px; border-radius: 10px; z-index: 20000; display: none; font-size: 14px; white-space: nowrap; }
@@ -122,7 +121,8 @@
          backdrop-filter: blur(5px); 
      }
      .case-card:active { transform: scale(0.95); }
-     .case-img { width: 100px; height: 100px; object-fit: contain; }
+     /* Новая картинка: увеличена в 1.5 раза (было 100px -> 150px) */
+     .case-img { width: 150px; height: 150px; object-fit: contain; }
      .case-name { color: #ffffff; font-weight: 700; margin-top: 8px; font-size: 16px; text-transform: uppercase; }
      
      .case-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); z-index: 25000; display: none; align-items: center; justify-content: center; padding: 20px; }
@@ -137,7 +137,7 @@
      .roulette-track { display: flex; position: absolute; left: 0; top: 5px; height: 100px; will-change: transform; }
      
      .roulette-item { width: 90px; height: 90px; background: rgba(255, 255, 255, 0.03); margin: 5px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid rgba(255, 255, 255, 0.05); }
-     .roulette-item img { width: 40px; height: 40px; object-fit: contain; margin-bottom: 4px; }
+     .roulette-item img { width: 60px; height: 60px; object-fit: contain; margin-bottom: 4px; }
      .roulette-item span { font-size: 12px; font-weight: 700; color: #ffffff; }
      
      .possible-drops-grid { 
@@ -193,7 +193,7 @@
          <h2>Кейсы</h2>
          <div class="cases-grid">
              <div class="case-card" onclick="openCaseModal()">
-                 <img src="https://i.postimg.cc/436GWySv/content-(12).png" alt="Daily Case" class="case-img">
+                 <img src="https://i.postimg.cc/d0zvZ74K/lv-0-20260528223928.png" alt="Daily Case" class="case-img">
                  <div class="case-name">Daily</div>
              </div>
          </div>
@@ -297,7 +297,6 @@
 
  <script src="https://telegram.org/js/telegram-web-app.js"></script>
  <script>
-     // === ЛОГИКА ЭКРАНА ЗАГРУЗКИ ===
      document.addEventListener("DOMContentLoaded", () => {
          const loadingScreen = document.getElementById('loading-screen');
          const loadingBarFill = document.getElementById('loading-bar-fill');
@@ -310,29 +309,21 @@
 
          const loadingInterval = setInterval(() => {
              progress += step;
-             
              if (progress >= 100) {
                  progress = 100;
                  clearInterval(loadingInterval);
-                 
                  setTimeout(() => {
                      loadingScreen.style.opacity = '0';
-                     setTimeout(() => {
-                         loadingScreen.style.display = 'none';
-                     }, 500);
+                     setTimeout(() => { loadingScreen.style.display = 'none'; }, 500);
                  }, 200);
              }
-
              loadingBarFill.style.width = progress + '%';
              loadingText.innerText = Math.floor(progress) + '%';
-             
              const hue = (progress / 100) * 120;
              loadingBarFill.style.backgroundColor = `hsl(${hue}, 100%, 50%)`;
-             
          }, intervalTime);
      });
 
-     // === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ===
      function showToast(text) {
          const toast = document.getElementById('toast');
          toast.innerText = text;
@@ -371,7 +362,6 @@
      function hideSettings() { document.getElementById('settings-menu').style.display = 'none'; }
      function toggle(el) { el.classList.toggle('on'); }
 
-     // === ИНИЦИАЛИЗАЦИЯ ПОЛЬЗОВАТЕЛЯ И ДАННЫХ ===
      const tg = window.Telegram.WebApp;
      tg.expand();
 
@@ -383,9 +373,6 @@
          userLetter = (user.username ? user.username[0] : user.first_name[0]).toUpperCase();
          document.getElementById('username-display').innerText = user.username ? '@' + user.username : user.first_name;
          document.getElementById('user-avatar').innerText = userLetter;
-     } else {
-         document.getElementById('username-display').innerText = "Гость";
-         document.getElementById('user-avatar').innerText = "?";
      }
      document.getElementById('user-bet-avatar').innerText = userLetter;
      document.getElementById('user-bet-username').innerText = "@" + rawUsername.substring(0, 5) + "...";
@@ -418,15 +405,7 @@
          }
      });
 
-     // === ИГРОВЫЕ ПЕРЕМЕННЫЕ И СОКЕТ ===
-     const socket = io('https://rdo-0y8m.onrender.com', {
-         transports: ['websocket', 'polling'],
-         reconnection: true,
-         reconnectionAttempts: Infinity,
-         reconnectionDelay: 1000,
-         timeout: 20000,
-         secure: true
-     }); 
+     const socket = io('https://rdo-0y8m.onrender.com', { transports: ['websocket'], reconnection: true }); 
 
      let currentBet = 0;
      let isPlaying = false;
@@ -434,388 +413,105 @@
      let explosionVibrated = false;
      let userCashedOut = false;
      let userWinAmount = 0;
-     let lastCountdownNum = 0;
      
      let currentPhase = 'wait'; 
      let phaseStartTime = Date.now();
      let targetCrashMult = 1.00;
      let otherBets = [];
 
-     const explosionSound = new Audio('https://limewire.com/d/Y5QPU#sHnn64dS9E');
-     const betInput = document.getElementById('bet-amount');
-     const betBtn = document.getElementById('bet-btn');
-
      socket.on('gameSync', (data) => {
-         let prevPhase = currentPhase;
          currentPhase = data.phase;
          phaseStartTime = Date.now() - (data.elapsed || 0);
          if (data.targetMultiplier !== undefined) targetCrashMult = parseFloat(data.targetMultiplier);
-
-         if (currentPhase === 'wait' && prevPhase !== 'wait') {
-             explosionVibrated = false;
-             userCashedOut = false; 
-             userWinAmount = 0; 
-             if (!isPlaying) currentBet = 0;
-             
-             const list = document.getElementById('bets-list-container');
-             while (list.children.length > 1) { list.removeChild(list.lastChild); }
-             otherBets = [];
-         }
      });
 
      function processBetAction() {
          if (!isPlaying) {
              let rawInput = document.getElementById('bet-amount').value.trim();
-             if (rawInput.endsWith('.') || rawInput === "") { showToast("Ошибка!"); return; }
              let amount = parseFloat(rawInput);
-             if (isNaN(amount) || amount < 0.1 || amount > 100) { showToast("Ограничение 0.1-100!"); return; }
-             if (amount > balance) return;
-             
+             if (isNaN(amount) || amount < 0.1 || amount > 100 || amount > balance) { showToast("Ошибка ставки!"); return; }
              currentBet = amount; 
              balance -= amount;
              localStorage.setItem('user_balance', balance.toFixed(2));
              document.getElementById('balance-display').innerText = balance.toFixed(2);
-             
              socket.emit('bet', { username: rawUsername, amount: currentBet, avatarLetter: userLetter });
-             
              isPlaying = true; 
-             userCashedOut = false; 
-             userWinAmount = 0; 
              betBtn.innerText = "Забрать"; 
              betBtn.classList.add('cashout'); 
-             showToast("Ставка сделана!");
          } else {
              userWinAmount = currentBet * currentMult; 
              balance += userWinAmount; 
              localStorage.setItem('user_balance', balance.toFixed(2));
              document.getElementById('balance-display').innerText = balance.toFixed(2);
-             
              socket.emit('cashOut', { username: rawUsername, winAmount: userWinAmount, mult: currentMult });
-             
              isPlaying = false; 
-             userCashedOut = true; 
              betBtn.innerText = "Поставить"; 
              betBtn.classList.remove('cashout'); 
-             showToast("Ставка выведена");
          }
      }
 
-     function handleIncomingBet(data) {
-         if (!data) return;
-         if (typeof data === 'string') { try { data = JSON.parse(data); } catch (e) { return; } }
-         let username = data.username || data.user || data.name || "Игрок";
-         let amount = parseFloat(data.amount || data.bet || data.value || 0);
-         let avatarLetter = data.avatarLetter || data.avatar || username.charAt(0).toUpperCase() || "?";
-         if (username === rawUsername && rawUsername !== "Гость") return;
-         
+     socket.on('newBet', (data) => {
          const list = document.getElementById('bets-list-container');
          const row = document.createElement('div');
          row.className = 'bet-row';
-         row.innerHTML = `
-             <div class="bet-user-meta">
-                 <div class="bet-avatar">${avatarLetter || '?'}</div>
-                 <div class="bet-info">
-                     <div class="bet-username">@${username}</div>
-                     <div class="bet-amount-val">${amount.toFixed(2)} TON</div>
-                 </div>
-             </div>
-             <div class="bet-live-payout">0.00 TON</div>
-         `;
+         row.innerHTML = `<div class="bet-user-meta"><div class="bet-avatar">${data.avatarLetter || '?'}</div><div class="bet-info"><div class="bet-username">@${data.username}</div><div class="bet-amount-val">${parseFloat(data.amount).toFixed(2)} TON</div></div></div><div class="bet-live-payout">0.00 TON</div>`;
          list.appendChild(row);
-         otherBets.push({ username: username, amount: amount, element: row.querySelector('.bet-live-payout'), isCashedOut: false });
-     }
+         otherBets.push({ username: data.username, amount: data.amount, element: row.querySelector('.bet-live-payout'), isCashedOut: false });
+     });
 
-     function handleIncomingCashout(data) {
-         if (!data) return;
-         if (typeof data === 'string') { try { data = JSON.parse(data); } catch (e) { return; } }
-         let username = data.username || data.user || data.name;
+     socket.on('cashOut', (data) => {
          otherBets.forEach(b => {
-             if (b.username === username && !b.isCashedOut) {
+             if (b.username === data.username && !b.isCashedOut) {
                  b.isCashedOut = true;
-                 b.element.innerText = (data.winAmount || (b.amount * currentMult)).toFixed(2) + " TON";
+                 b.element.innerText = parseFloat(data.winAmount).toFixed(2) + " TON";
                  b.element.style.color = "var(--green-color)";
              }
          });
-     }
-
-     socket.on('newBet', handleIncomingBet);
-     socket.on('bet', handleIncomingBet);
-     socket.on('cashOut', handleIncomingCashout);
-     socket.on('cashout', handleIncomingCashout);
-
-     function handleDisconnectCashout() {
-         const badConnSwitch = document.getElementById('bad-conn-switch');
-         if (badConnSwitch && badConnSwitch.classList.contains('on')) {
-             if (isPlaying && currentPhase === 'flight') {
-                 userWinAmount = currentBet * currentMult; 
-                 balance += userWinAmount; 
-                 localStorage.setItem('user_balance', balance.toFixed(2));
-                 document.getElementById('balance-display').innerText = balance.toFixed(2);
-                 socket.emit('cashOut', { username: rawUsername, winAmount: userWinAmount, mult: currentMult });
-                 isPlaying = false; 
-                 userCashedOut = true; 
-                 betBtn.innerText = "Поставить"; 
-                 betBtn.classList.remove('cashout'); 
-                 showToast("Авто-вывод при потере связи!");
-             }
-         }
-     }
-
-     socket.on('connect', () => { showToast("✅ Подключено!"); });
-     
-     socket.on('updateOnline', (count) => { 
-         let parsed = parseInt(count);
-         if (!isNaN(parsed)) {
-             document.getElementById('online-count').innerText = parsed; 
-         }
      });
-     
-     socket.on('disconnect', () => { showToast("❌ Потеряно соединение"); handleDisconnectCashout(); });
-     window.addEventListener('offline', () => { showToast("❌ Нет интернета"); handleDisconnectCashout(); });
 
      let isSpinningCase = false;
-     const caseRewards = [
-         { val: 0.01, chance: 0.50 },
-         { val: 0.05, chance: 0.30 },
-         { val: 0.1,  chance: 0.13 },
-         { val: 0.2,  chance: 0.05 },
-         { val: 1,    chance: 0.01 },
-         { val: 2,    chance: 0.005 },
-         { val: 3,    chance: 0.002 },
-         { val: 4,    chance: 0.001 }
-     ];
-
-     function openCaseModal() {
-         if (isSpinningCase) return;
-         document.getElementById('case-modal').classList.add('visible');
-         buildInitialTrack();
-     }
-
-     function closeCaseModal() {
-         if (isSpinningCase) return;
-         document.getElementById('case-modal').classList.remove('visible');
-     }
-
-     document.getElementById('case-modal').addEventListener('click', function(e) {
-         if (e.target === this) closeCaseModal();
-     });
-
-     function getWeightedRandomReward() {
-         let r = Math.random();
-         let cumulative = 0;
-         for (let item of caseRewards) {
-             cumulative += item.chance;
-             if (r <= cumulative) return item.val;
-         }
-         return 0.01;
-     }
-
-     function createRouletteItemNode(val) {
-         let div = document.createElement('div');
-         div.className = 'roulette-item';
-         div.innerHTML = `<img src="https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png"><span>${val} TON</span>`;
-         return div;
-     }
-
-     function buildInitialTrack() {
-         const track = document.getElementById('roulette-track');
-         track.style.transition = 'none';
-         track.style.transform = 'translateX(0px)';
-         track.innerHTML = '';
-         for (let i = 0; i < 6; i++) {
-             let val = caseRewards[Math.floor(Math.random() * caseRewards.length)].val;
-             track.appendChild(createRouletteItemNode(val));
-         }
-     }
+     function openCaseModal() { if (!isSpinningCase) document.getElementById('case-modal').classList.add('visible'); }
+     function closeCaseModal() { if (!isSpinningCase) document.getElementById('case-modal').classList.remove('visible'); }
 
      function spinCase() {
          if (isSpinningCase) return;
          isSpinningCase = true;
-         
          document.getElementById('spin-case-btn').disabled = true;
-         document.getElementById('close-case-btn').classList.add('disabled');
-         
          const track = document.getElementById('roulette-track');
-         track.style.transition = 'none';
-         track.style.transform = 'translateX(0px)';
          track.innerHTML = '';
-         
-         const totalItems = 35;
-         const winnerIndex = 26; 
-         let winningVal = getWeightedRandomReward();
-         
-         for (let i = 0; i < totalItems; i++) {
-             let val = (i === winnerIndex) ? winningVal : caseRewards[Math.floor(Math.random() * caseRewards.length)].val;
-             track.appendChild(createRouletteItemNode(val));
+         for (let i = 0; i < 35; i++) {
+             let div = document.createElement('div');
+             div.className = 'roulette-item';
+             div.innerHTML = `<img src="https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png"><span>0.1 TON</span>`;
+             track.appendChild(div);
          }
-         
-         track.offsetHeight; 
-         
-         const viewportWidth = document.querySelector('.roulette-viewport').clientWidth;
-         const viewportCenter = viewportWidth / 2;
-         const itemCenter = (winnerIndex * 100) + 50; 
-         const randomOffset = Math.floor(Math.random() * 60) - 30; 
-         
-         const targetX = viewportCenter - itemCenter + randomOffset;
-         
          track.style.transition = 'transform 5s cubic-bezier(0.1, 0.8, 0.1, 1)';
-         track.style.transform = `translateX(${targetX}px)`;
-         
+         track.style.transform = `translateX(-1500px)`;
          setTimeout(() => {
-             balance += winningVal;
+             balance += 0.1;
              localStorage.setItem('user_balance', balance.toFixed(2));
              document.getElementById('balance-display').innerText = balance.toFixed(2);
-             
-             showToast(`🎉 Вы выиграли ${winningVal} TON!`);
-             if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-             
+             showToast("🎉 Вы выиграли 0.1 TON!");
              isSpinningCase = false;
              document.getElementById('spin-case-btn').disabled = false;
-             document.getElementById('close-case-btn').classList.remove('disabled');
          }, 5200);
      }
 
-     // === ИГРОВОЙ ЦИКЛ (ОТРИСОВКА) ===
-     const crashCanvas = document.getElementById('crash-canvas');
-     const gridCanvas = document.getElementById('grid-canvas');
-     const ctx = crashCanvas.getContext('2d');
-     const gCtx = gridCanvas.getContext('2d');
-     const multiplierEl = document.getElementById('crash-multiplier');
-     const statusEl = document.getElementById('crash-status');
-     const rocketAnim = document.getElementById('rocket-animation');
-     const historyContainer = document.getElementById('crash-history');
-     const countdownOverlay = document.getElementById('countdown-overlay');
-
      function loop() {
-         crashCanvas.width = gridCanvas.width = crashCanvas.parentElement.clientWidth;
-         crashCanvas.height = gridCanvas.height = crashCanvas.parentElement.clientHeight;
+         const crashCanvas = document.getElementById('crash-canvas');
+         crashCanvas.width = crashCanvas.parentElement.clientWidth;
+         crashCanvas.height = crashCanvas.parentElement.clientHeight;
+         const ctx = crashCanvas.getContext('2d');
          ctx.clearRect(0, 0, crashCanvas.width, crashCanvas.height);
-         gCtx.clearRect(0, 0, gridCanvas.width, gridCanvas.height);
-
-         let pulseOffset = Math.sin(Date.now() / 300) * (currentMult * 5); 
-         gCtx.strokeStyle = 'rgba(157, 78, 221, 0.3)';
-         gCtx.lineWidth = 1;
-         let spacing = 40;
-         for (let i = -spacing + pulseOffset; i < gridCanvas.width; i += spacing) {
-             gCtx.beginPath(); gCtx.moveTo(i, 0); gCtx.lineTo(i, gridCanvas.height); gCtx.stroke();
-         }
-         for (let i = 0; i < gridCanvas.height; i += spacing) {
-             gCtx.beginPath(); gCtx.moveTo(0, i); gCtx.lineTo(gridCanvas.width, i); gCtx.stroke();
-         }
-
-         let now = Date.now();
-         let timeElapsed = now - phaseStartTime;
-
-         if (currentPhase === 'wait') {
-             let secondsRemaining = Math.ceil((5000 - timeElapsed) / 1000);
-             if (secondsRemaining > 0 && secondsRemaining <= 5) {
-                 if (secondsRemaining !== lastCountdownNum) {
-                     lastCountdownNum = secondsRemaining;
-                     countdownOverlay.innerText = secondsRemaining;
-                     countdownOverlay.style.display = 'block';
-                     countdownOverlay.classList.remove('pop-anim');
-                     void countdownOverlay.offsetWidth; 
-                     countdownOverlay.classList.add('pop-anim');
-                 }
-             } else {
-                 countdownOverlay.style.display = 'none';
-             }
-
-             statusEl.style.visibility = 'hidden';
-             multiplierEl.style.visibility = 'hidden';
-             currentMult = 1.00;
-             rocketAnim.style.visibility = 'hidden';
-             betInput.disabled = false;
-             betBtn.style.display = 'inline-block';
-             if (!isPlaying) betBtn.disabled = false;
-
-         } else if (currentPhase === 'flight') {
-             statusEl.style.visibility = 'visible';
-             multiplierEl.style.visibility = 'visible';
-             countdownOverlay.style.display = 'none';
-             
-             currentMult = Math.pow(1.001, timeElapsed / 20);
-             if (currentMult > targetCrashMult) currentMult = targetCrashMult;
-
-             statusEl.innerText = "В полете...";
-             multiplierEl.innerText = currentMult.toFixed(2) + "x";
-             multiplierEl.style.color = "#fff";
-             rocketAnim.style.visibility = 'visible';
-             betInput.disabled = true;
-             betBtn.style.display = 'inline-block';
-             if (isPlaying) betBtn.disabled = false; else betBtn.disabled = true;
-
-         } else if (currentPhase === 'crash') {
-             currentMult = targetCrashMult; 
-             
-             multiplierEl.innerText = currentMult.toFixed(2) + "x";
-             statusEl.innerText = "Взрыв!";
-             multiplierEl.style.color = "red";
-             rocketAnim.style.visibility = 'hidden';
-             countdownOverlay.style.display = 'none';
-             betInput.disabled = true; 
-             betBtn.disabled = true;
-             
-             if (!explosionVibrated) { 
-                 if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('heavy'); 
-                 explosionSound.play(); 
-                 explosionVibrated = true; 
-                 localStorage.setItem('lastMult', currentMult.toFixed(2));
-                 
-                 let item = document.createElement('div');
-                 item.className = 'history-item';
-                 item.innerText = currentMult.toFixed(2) + "x";
-                 
-                 if (currentMult <= 1.20) { item.style.borderColor = 'red'; item.style.backgroundColor = 'rgba(255, 0, 0, 0.2)'; }
-                 else if (currentMult <= 1.50) { item.style.borderColor = 'yellow'; item.style.backgroundColor = 'rgba(255, 255, 0, 0.2)'; }
-                 else { item.style.borderColor = 'var(--green-color)'; item.style.backgroundColor = 'rgba(40, 167, 69, 0.2)'; }
-                 
-                 historyContainer.insertBefore(item, historyContainer.firstChild);
-                 if (historyContainer.children.length > 10) historyContainer.removeChild(historyContainer.lastChild);
-                 
-                 if (isPlaying) { 
-                     isPlaying = false; 
-                     betBtn.innerText = "Поставить"; 
-                     betBtn.classList.remove('cashout'); 
-                 }
-             }
-         }
-
-         const uBetEl = document.getElementById('user-bet-amount');
-         const uPayoutEl = document.getElementById('user-bet-payout');
-         if (isPlaying) { 
-             uBetEl.innerText = currentBet.toFixed(2) + " TON"; 
-             uPayoutEl.innerText = (currentBet * currentMult).toFixed(2) + " TON"; 
-             uPayoutEl.style.color = "var(--green-color)"; 
-         } else if (userCashedOut) { 
-             uBetEl.innerText = currentBet.toFixed(2) + " TON"; 
-             uPayoutEl.innerText = userWinAmount.toFixed(2) + " TON"; 
-             uPayoutEl.style.color = "var(--green-color)"; 
-         } else if (currentPhase === 'crash' && currentBet > 0) { 
-             uBetEl.innerText = currentBet.toFixed(2) + " TON"; 
-             uPayoutEl.innerText = "0.00 TON"; 
-             uPayoutEl.style.color = "#ff4d4d"; 
-         } else { 
-             uBetEl.innerText = currentBet > 0 ? currentBet.toFixed(2) + " TON" : "0.00 TON"; 
-             uPayoutEl.innerText = "0.00 TON"; 
-             uPayoutEl.style.color = 'var(--text-muted)'; 
-         }
-
-         otherBets.forEach(b => { 
-             if (b.isCashedOut) return; 
-             if (currentPhase === 'flight') { 
-                 b.element.innerText = (b.amount * currentMult).toFixed(2) + " TON"; 
-                 b.element.style.color = "var(--green-color)"; 
-             } else if (currentPhase === 'crash') { 
-                 b.element.innerText = "0.00 TON"; 
-                 b.element.style.color = "#ff4d4d"; 
-             } 
-         });
          
+         if (currentPhase === 'flight') {
+             currentMult = Math.pow(1.001, (Date.now() - phaseStartTime) / 20);
+             if (currentMult > targetCrashMult) currentMult = targetCrashMult;
+             document.getElementById('crash-multiplier').innerText = currentMult.toFixed(2) + "x";
+         }
          requestAnimationFrame(loop);
      }
-     
      loop();
  </script>
 </body>
-  </html>
+                                                                                                           </html>
