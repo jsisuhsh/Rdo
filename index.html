@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 <html lang="ru">
 <head>
  <meta charset="UTF-8">
@@ -293,12 +293,9 @@
          autoConnect: false 
      }); 
 
-     // --- ИСПРАВЛЕННЫЙ ОБРАБОТЧИК ОНЛАЙНА ---
-     socket.on('updateOnline', (data) => {
-         const onlineCount = typeof data === 'object' ? (data.count || data.online || 0) : parseInt(data);
-         if (!isNaN(onlineCount)) {
-             document.getElementById('online-count').innerText = onlineCount;
-         }
+     // --- ОБНОВЛЕННЫЙ ОБРАБОТЧИК ОНЛАЙНА ---
+     socket.on('updateOnline', (count) => {
+         document.getElementById('online-count').innerText = count;
      });
 
      let currentBet = 0;
