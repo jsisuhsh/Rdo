@@ -437,7 +437,16 @@
      }
 
      socket.on('connect', () => { showToast("✅ Подключено!"); });
-     socket.on('updateOnline', (count) => { document.getElementById('online-count').innerText = count; });
+     
+     // --- ОБРАБОТЧИК ОНЛАЙНА ---
+     socket.on('updateOnline', (count) => { 
+         // Приводим к числу, чтобы гарантировать корректное отображение
+         let parsed = parseInt(count);
+         if (!isNaN(parsed)) {
+             document.getElementById('online-count').innerText = parsed; 
+         }
+     });
+     
      socket.on('disconnect', () => { showToast("❌ Потеряно соединение"); handleDisconnectCashout(); });
      window.addEventListener('offline', () => { showToast("❌ Нет интернета"); handleDisconnectCashout(); });
 
@@ -593,4 +602,4 @@
      loop();
  </script>
 </body>
- </html>
+</html>
