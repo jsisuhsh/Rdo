@@ -7,8 +7,8 @@
  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
  <style>
      :root {
-         --bg-color: #1e1b24;
-         --container-bg: #2d2836;
+         --bg-color: #08080a;
+         --container-bg: rgba(20, 18, 26, 0.85);
          --accent-color: #9d4edd;
          --green-color: #28a745;
          --text-color: #f3f0f7;
@@ -18,22 +18,23 @@
      }
 
      * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; -webkit-user-select: none; }
-     body { background-color: var(--bg-color); color: var(--text-color); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+     body { background-color: var(--bg-color); color: var(--text-color); height: 100vh; overflow: hidden; display: flex; flex-direction: column; position: relative; }
+
+     /* ГЛОБАЛЬНЫЙ ФОН С ЧЕРНЫМ КОНТУРОМ ПЕРСОНАЖЕЙ, УМЕНЬШЕННЫМ В 3 РАЗА */
+     .bg-characters { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: url('character.png'); background-size: 16px; background-repeat: repeat; filter: brightness(0); opacity: 0.35; z-index: -1; pointer-events: none; }
 
      #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #000; border: 2px solid var(--accent-color); color: white; padding: 12px 20px; border-radius: 10px; z-index: 20000; display: none; font-size: 14px; white-space: nowrap; }
 
-     #online-counter { position: fixed; top: 15px; left: 15px; z-index: 10000; display: flex; align-items: center; gap: 6px; background: rgba(40, 167, 69, 0.2); border: 2px solid var(--green-color); padding: 5px 10px; border-radius: 50px; font-weight: bold; font-size: 14px; color: white; }
+     #online-counter { position: fixed; top: 15px; left: 15px; z-index: 10000; display: flex; align-items: center; gap: 6px; background: rgba(40, 167, 69, 0.2); border: 2px solid var(--green-color); padding: 5px 10px; border-radius: 50px; font-weight: bold; font-size: 14px; color: white; backdrop-filter: blur(5px); }
      .user-icon { width: 18px; height: 18px; color: var(--green-color); stroke: currentColor; fill: none; }
 
-     .top-balance-box { position: fixed; top: 15px; right: 15px; display: flex; align-items: center; gap: 8px; background: var(--pill-bg); padding: 6px 14px; border-radius: 50px; border: 1px solid rgba(255, 255, 255, 0.1); z-index: 10000; }
+     .top-balance-box { position: fixed; top: 15px; right: 15px; display: flex; align-items: center; gap: 8px; background: var(--pill-bg); padding: 6px 14px; border-radius: 50px; border: 1px solid rgba(255, 255, 255, 0.1); z-index: 10000; backdrop-filter: blur(5px); }
      #balance-display { font-size: 18px; font-weight: 700; color: #ffffff !important; }
      .ton-icon-wrapper { width: 24px; height: 24px; background-color: var(--ton-blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
 
-     main { flex: 1; overflow-y: auto; padding: 20px; margin-top: 50px; position: relative; }
+     main { flex: 1; overflow-y: auto; padding: 20px; margin-top: 50px; position: relative; z-index: 1; }
      .tab-content { display: none; }
      .tab-content.active { display: block; }
-   
-     .bg-characters { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: url('character.png'); background-size: 50px; opacity: 0.1; z-index: 0; pointer-events: none; }
 
      .profile-header { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; margin-top: 30px; }
      .avatar { width: 80px; height: 80px; background: #007bff; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: bold; margin-bottom: 15px; }
@@ -43,7 +44,7 @@
      .btn-outline { background-color: rgba(157, 78, 221, 0.2); border: 2px solid var(--accent-color); color: white; }
      .btn-blue { background-color: var(--ton-blue); color: white; }
 
-     nav { height: 80px; background: var(--container-bg); border-top: 1px solid #3c354a; display: flex; justify-content: space-around; align-items: center; padding-bottom: 5px; }
+     nav { height: 80px; background: var(--container-bg); border-top: 1px solid rgba(60, 53, 74, 0.5); display: flex; justify-content: space-around; align-items: center; padding-bottom: 5px; backdrop-filter: blur(10px); position: relative; z-index: 10; }
      .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-muted); cursor: pointer; padding: 5px; width: 33%; font-size: 13px; }
      .nav-item.active { color: var(--accent-color); }
      .nav-icon { margin-bottom: 2px; height: 24px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px; }
@@ -52,7 +53,7 @@
      .nav-counter::after { content: "1x"; animation: countLoop 5s infinite steps(1); }
      @keyframes countLoop { 0%, 24.9% { content: "1x"; } 25%, 49.9% { content: "2x"; } 50%, 74.9% { content: "3x"; } 75%, 100% { content: "4x"; } }
 
-     .crash-container { position: relative; background: var(--container-bg); border-radius: 15px; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 380px; margin-top: 20px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.05); }
+     .crash-container { position: relative; background: var(--container-bg); border-radius: 15px; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 380px; margin-top: 20px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.05); backdrop-filter: blur(5px); }
      #crash-canvas, #grid-canvas { position: absolute; bottom: 0; left: 0; width: 100%; height: 100%; }
      #grid-canvas { z-index: 0; }
      #crash-canvas { z-index: 1; }
@@ -61,7 +62,7 @@
      @keyframes pop { 0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; } 50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(1); opacity: 0; } }
      .pop-anim { animation: pop 1s ease-out; }
 
-     #settings-menu { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--container-bg); z-index: 10; display: none; padding: 20px; flex-direction: column; gap: 20px; border-radius: 15px; }
+     #settings-menu { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #16141c; z-index: 10; display: none; padding: 20px; flex-direction: column; gap: 20px; border-radius: 15px; }
      .setting-item { display: flex; justify-content: space-between; align-items: center; font-size: 16px; }
      .switch { width: 50px; height: 25px; background: #555; border-radius: 25px; position: relative; cursor: pointer; transition: 0.3s; }
      .switch.on { background: #4CAF50; }
@@ -83,13 +84,14 @@
      .crash-history-container { display: flex; gap: 6px; overflow-x: auto; overflow-y: hidden; justify-content: flex-start; margin-top: 10px; width: 100%; max-width: 95%; padding-bottom: 5px; white-space: nowrap; }
      .history-item { background-color: #161d31; border: 2px solid var(--accent-color); color: #ffffff; padding: 4px 12px; border-radius: 50px; font-size: 13px; font-weight: 700; white-space: nowrap; transition: all 0.3s ease; }
 
-     .bet-container { width: 100%; max-width: 350px; display: flex; gap: 8px; margin-top: 15px; margin-left: auto; margin-right: auto; }
-     .bet-input { flex: 1; background: var(--pill-bg); border: none; padding: 8px 12px; border-radius: 20px; color: white; font-size: 14px; text-align: center; }
+     .bet-container { width: 100%; max-width: 350px; display: flex; gap: 8px; margin-top: 15px; margin-left: auto; margin-right: auto; position: relative; z-index: 2; }
+     .bet-input { flex: 1; background: var(--pill-bg); border: none; padding: 8px 12px; border-radius: 20px; color: white; font-size: 14px; text-align: center; backdrop-filter: blur(5px); }
+     .bet-input::placeholder { color: rgba(255,255,255,0.5); }
      .bet-btn { background: var(--accent-color); border: none; padding: 8px 18px; border-radius: 20px; color: white; font-weight: bold; font-size: 14px; cursor: pointer; display: inline-block; }
      .bet-btn.cashout { background: var(--green-color); }
      .bet-btn:disabled { background: #555; cursor: not-allowed; opacity: 0.6; }
 
-     .bets-list { width: 100%; max-width: 350px; margin: 15px auto 0 auto; background: var(--container-bg); border-radius: 15px; padding: 12px; border: 1px solid rgba(255, 255, 255, 0.05); }
+     .bets-list { width: 100%; max-width: 350px; margin: 15px auto 0 auto; background: var(--container-bg); border-radius: 15px; padding: 12px; border: 1px solid rgba(255, 255, 255, 0.05); backdrop-filter: blur(5px); }
      .bet-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
      .bet-row:last-child { border-bottom: none; }
      .bet-row.current-user { background: rgba(157, 78, 221, 0.12); border-radius: 10px; padding: 8px; margin-bottom: 4px; }
@@ -100,20 +102,19 @@
      .bet-amount-val { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
      .bet-live-payout { font-size: 14px; font-weight: 700; color: var(--text-muted); text-align: right; }
      
-     #promo-overlay { position: fixed; bottom: -50vh; left: 0; width: 100%; height: 50vh; background: var(--container-bg); z-index: 20000; border-top-left-radius: 25px; border-top-right-radius: 25px; border: 1px solid rgba(255,255,255,0.1); padding: 25px; transition: bottom 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+     #promo-overlay { position: fixed; bottom: -50vh; left: 0; width: 100%; height: 50vh; background: #1a1721; z-index: 20000; border-top-left-radius: 25px; border-top-right-radius: 25px; border: 1px solid rgba(255,255,255,0.1); padding: 25px; transition: bottom 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
      #promo-overlay.visible { bottom: 0; }
      #promo-overlay h3 { margin-bottom: 20px; text-align: center; }
 
-     /* === НОВЫЕ СТИЛИ ДЛЯ КЕЙСОВ И РУЛЕТКИ === */
      .cases-grid { display: flex; gap: 15px; margin-top: 20px; }
-     .case-card { background: linear-gradient(to bottom, #000000, var(--container-bg)) padding-box, linear-gradient(to bottom, #000000, rgba(157, 78, 221, 0.3)) border-box; border: 1px solid transparent; border-radius: 15px; padding: 15px; display: flex; flex-direction: column; align-items: center; width: 140px; cursor: pointer; transition: transform 0.2s; }
+     .case-card { background: linear-gradient(to bottom, #000000, var(--container-bg)) padding-box, linear-gradient(to bottom, #000000, rgba(157, 78, 221, 0.3)) border-box; border: 1px solid transparent; border-radius: 15px; padding: 15px; display: flex; flex-direction: column; align-items: center; width: 140px; cursor: pointer; transition: transform 0.2s; backdrop-filter: blur(5px); }
      .case-card:active { transform: scale(0.95); }
      .case-img { width: 100px; height: 100px; object-fit: contain; }
      .case-name { color: #9d4edd; font-weight: 700; margin-top: 8px; font-size: 16px; text-transform: uppercase; }
      
      .case-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); z-index: 25000; display: none; align-items: center; justify-content: center; padding: 20px; }
      .case-modal-overlay.visible { display: flex; }
-     .case-modal-content { background: var(--container-bg); border-radius: 20px; width: 100%; max-width: 360px; padding: 20px; border: 1px solid rgba(255, 255, 255, 0.1); position: relative; }
+     .case-modal-content { background: #1c1924; border-radius: 20px; width: 100%; max-width: 360px; padding: 20px; border: 1px solid rgba(255, 255, 255, 0.1); position: relative; }
      .close-case-modal { position: absolute; top: 15px; right: 15px; font-size: 20px; cursor: pointer; color: var(--text-muted); transition: color 0.2s; }
      .close-case-modal:hover { color: white; }
      .close-case-modal.disabled { pointer-events: none; opacity: 0.3; }
@@ -133,6 +134,8 @@
  </style>
 </head>
 <body>
+
+ <div class="bg-characters"></div>
 
  <div id="loading-screen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #2a2a2a; z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease;">
      <img src="https://i.postimg.cc/PxbfNvqk/animation-gif-ezgif-com-effects.gif" alt="Loading" style="width: 150px; margin-bottom: 20px;">
@@ -215,7 +218,6 @@
          </div>
      </div>
      <div id="tab-profile" class="tab-content">
-         <div class="bg-characters"></div>
          <div class="profile-header">
              <div id="user-avatar" class="avatar">?</div>
              <div id="username-display" style="font-size: 20px; font-weight: 600; margin-bottom: 5px;">Загрузка...</div>
@@ -276,7 +278,7 @@
          const loadingText = document.getElementById('loading-text');
 
          let progress = 0;
-         const duration = 10000; // 10 секунд
+         const duration = 10000; 
          const intervalTime = 50; 
          const step = (100 / (duration / intervalTime));
 
@@ -287,7 +289,6 @@
                  progress = 100;
                  clearInterval(loadingInterval);
                  
-                 // Плавное исчезновение
                  setTimeout(() => {
                      loadingScreen.style.opacity = '0';
                      setTimeout(() => {
@@ -299,7 +300,6 @@
              loadingBarFill.style.width = progress + '%';
              loadingText.innerText = Math.floor(progress) + '%';
              
-             // Меняем цвет от красного (hue 0) к зеленому (hue 120)
              const hue = (progress / 100) * 120;
              loadingBarFill.style.backgroundColor = `hsl(${hue}, 100%, 50%)`;
              
@@ -410,7 +410,6 @@
      let userWinAmount = 0;
      let lastCountdownNum = 0;
      
-     // Серверные переменные
      let currentPhase = 'wait'; 
      let phaseStartTime = Date.now();
      let targetCrashMult = 1.00;
@@ -420,7 +419,6 @@
      const betInput = document.getElementById('bet-amount');
      const betBtn = document.getElementById('bet-btn');
 
-     // === ЛОГИКА СИНХРОНИЗАЦИИ (НОВАЯ) ===
      socket.on('gameSync', (data) => {
          let prevPhase = currentPhase;
          currentPhase = data.phase;
@@ -439,7 +437,6 @@
          }
      });
 
-     // === ЛОГИКА СТАВОК ===
      function processBetAction() {
          if (!isPlaying) {
              let rawInput = document.getElementById('bet-amount').value.trim();
@@ -520,7 +517,6 @@
      socket.on('cashOut', handleIncomingCashout);
      socket.on('cashout', handleIncomingCashout);
 
-     // === СЕТЕВЫЕ СОБЫТИЯ ===
      function handleDisconnectCashout() {
          const badConnSwitch = document.getElementById('bad-conn-switch');
          if (badConnSwitch && badConnSwitch.classList.contains('on')) {
@@ -551,7 +547,6 @@
      socket.on('disconnect', () => { showToast("❌ Потеряно соединение"); handleDisconnectCashout(); });
      window.addEventListener('offline', () => { showToast("❌ Нет интернета"); handleDisconnectCashout(); });
 
-     // === ЛОГИКА КЕЙСА И РУЛЕТКИ (НОВАЯ) ===
      let isSpinningCase = false;
      const caseRewards = [
          { val: 0.01, chance: 0.50 },
@@ -574,6 +569,10 @@
          if (isSpinningCase) return;
          document.getElementById('case-modal').classList.remove('visible');
      }
+
+     document.getElementById('case-modal').addEventListener('click', function(e) {
+         if (e.target === this) closeCaseModal();
+     });
 
      function getWeightedRandomReward() {
          let r = Math.random();
@@ -624,12 +623,12 @@
              track.appendChild(createRouletteItemNode(val));
          }
          
-         track.offsetHeight; // Сброс кэша стилей браузера
+         track.offsetHeight; 
          
          const viewportWidth = document.querySelector('.roulette-viewport').clientWidth;
          const viewportCenter = viewportWidth / 2;
          const itemCenter = (winnerIndex * 100) + 50; 
-         const randomOffset = Math.floor(Math.random() * 60) - 30; // Случайное смещение внутри ячейки
+         const randomOffset = Math.floor(Math.random() * 60) - 30; 
          
          const targetX = viewportCenter - itemCenter + randomOffset;
          
@@ -793,4 +792,4 @@
      loop();
  </script>
 </body>
- </html>
+</html>
