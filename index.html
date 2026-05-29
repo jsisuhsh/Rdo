@@ -112,17 +112,17 @@
          background: linear-gradient(to bottom, #000000 0%, #4a1c78 100%); 
          border: 1px solid rgba(157, 78, 221, 0.4); 
          border-radius: 15px; 
-         padding: 10px; /* Уменьшили отступ, чтобы картинка была ближе к краям */
+         padding: 15px; 
          display: flex; 
          flex-direction: column; 
          align-items: center; 
-         width: 140px; /* Вернули исходную ширину карточки */
+         width: 180px; /* Увеличено, чтобы поместилась картинка 150px */
          cursor: pointer; 
          transition: transform 0.2s; 
          backdrop-filter: blur(5px); 
      }
      .case-card:active { transform: scale(0.95); }
-     .case-img { width: 120px; height: 120px; object-fit: contain; } /* Увеличили картинку внутри карточки почти до краев */
+     .case-img { width: 150px; height: 150px; object-fit: contain; } /* Увеличено в 1.5 раза */
      .case-name { color: #ffffff; font-weight: 700; margin-top: 8px; font-size: 16px; text-transform: uppercase; }
      
      .case-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); z-index: 25000; display: none; align-items: center; justify-content: center; padding: 20px; }
@@ -653,12 +653,18 @@
          }, 5200);
      }
 
+     // === ИГРОВОЙ ЦИКЛ (ОТРИСОВКА) ===
+     const crashCanvas = document.getElementById('crash-canvas');
+     const gridCanvas = document.getElementById('grid-canvas');
+     const ctx = crashCanvas.getContext('2d');
+     const gCtx = gridCanvas.getContext('2d');
+     const multiplierEl = document.getElementById('crash-multiplier');
+     const statusEl = document.getElementById('crash-status');
+     const rocketAnim = document.getElementById('rocket-animation');
+     const historyContainer = document.getElementById('crash-history');
+     const countdownOverlay = document.getElementById('countdown-overlay');
+
      function loop() {
-         const crashCanvas = document.getElementById('crash-canvas');
-         const gridCanvas = document.getElementById('grid-canvas');
-         const ctx = crashCanvas.getContext('2d');
-         const gCtx = gridCanvas.getContext('2d');
-         
          crashCanvas.width = gridCanvas.width = crashCanvas.parentElement.clientWidth;
          crashCanvas.height = gridCanvas.height = crashCanvas.parentElement.clientHeight;
          ctx.clearRect(0, 0, crashCanvas.width, crashCanvas.height);
@@ -675,57 +681,58 @@
              gCtx.beginPath(); gCtx.moveTo(0, i); gCtx.lineTo(gridCanvas.width, i); gCtx.stroke();
          }
 
-         let timeElapsed = Date.now() - phaseStartTime;
+         let now = Date.now();
+         let timeElapsed = now - phaseStartTime;
 
          if (currentPhase === 'wait') {
              let secondsRemaining = Math.ceil((5000 - timeElapsed) / 1000);
              if (secondsRemaining > 0 && secondsRemaining <= 5) {
                  if (secondsRemaining !== lastCountdownNum) {
                      lastCountdownNum = secondsRemaining;
-                     document.getElementById('countdown-overlay').innerText = secondsRemaining;
-                     document.getElementById('countdown-overlay').style.display = 'block';
-                     document.getElementById('countdown-overlay').classList.remove('pop-anim');
-                     void document.getElementById('countdown-overlay').offsetWidth; 
-                     document.getElementById('countdown-overlay').classList.add('pop-anim');
+                     countdownOverlay.innerText = secondsRemaining;
+                     countdownOverlay.style.display = 'block';
+                     countdownOverlay.classList.remove('pop-anim');
+                     void countdownOverlay.offsetWidth; 
+                     countdownOverlay.classList.add('pop-anim');
                  }
              } else {
-                 document.getElementById('countdown-overlay').style.display = 'none';
+                 countdownOverlay.style.display = 'none';
              }
 
-             document.getElementById('crash-status').style.visibility = 'hidden';
-             document.getElementById('crash-multiplier').style.visibility = 'hidden';
+             statusEl.style.visibility = 'hidden';
+             multiplierEl.style.visibility = 'hidden';
              currentMult = 1.00;
-             document.getElementById('rocket-animation').style.visibility = 'hidden';
-             document.getElementById('bet-amount').disabled = false;
-             document.getElementById('bet-btn').style.display = 'inline-block';
-             if (!isPlaying) document.getElementById('bet-btn').disabled = false;
+             rocketAnim.style.visibility = 'hidden';
+             betInput.disabled = false;
+             betBtn.style.display = 'inline-block';
+             if (!isPlaying) betBtn.disabled = false;
 
          } else if (currentPhase === 'flight') {
-             document.getElementById('crash-status').style.visibility = 'visible';
-             document.getElementById('crash-multiplier').style.visibility = 'visible';
-             document.getElementById('countdown-overlay').style.display = 'none';
+             statusEl.style.visibility = 'visible';
+             multiplierEl.style.visibility = 'visible';
+             countdownOverlay.style.display = 'none';
              
              currentMult = Math.pow(1.001, timeElapsed / 20);
              if (currentMult > targetCrashMult) currentMult = targetCrashMult;
 
-             document.getElementById('crash-status').innerText = "В полете...";
-             document.getElementById('crash-multiplier').innerText = currentMult.toFixed(2) + "x";
-             document.getElementById('crash-multiplier').style.color = "#fff";
-             document.getElementById('rocket-animation').style.visibility = 'visible';
-             document.getElementById('bet-amount').disabled = true;
-             document.getElementById('bet-btn').style.display = 'inline-block';
-             if (isPlaying) document.getElementById('bet-btn').disabled = false; else document.getElementById('bet-btn').disabled = true;
+             statusEl.innerText = "В полете...";
+             multiplierEl.innerText = currentMult.toFixed(2) + "x";
+             multiplierEl.style.color = "#fff";
+             rocketAnim.style.visibility = 'visible';
+             betInput.disabled = true;
+             betBtn.style.display = 'inline-block';
+             if (isPlaying) betBtn.disabled = false; else betBtn.disabled = true;
 
          } else if (currentPhase === 'crash') {
              currentMult = targetCrashMult; 
              
-             document.getElementById('crash-multiplier').innerText = currentMult.toFixed(2) + "x";
-             document.getElementById('crash-status').innerText = "Взрыв!";
-             document.getElementById('crash-multiplier').style.color = "red";
-             document.getElementById('rocket-animation').style.visibility = 'hidden';
-             document.getElementById('countdown-overlay').style.display = 'none';
-             document.getElementById('bet-amount').disabled = true; 
-             document.getElementById('bet-btn').disabled = true;
+             multiplierEl.innerText = currentMult.toFixed(2) + "x";
+             statusEl.innerText = "Взрыв!";
+             multiplierEl.style.color = "red";
+             rocketAnim.style.visibility = 'hidden';
+             countdownOverlay.style.display = 'none';
+             betInput.disabled = true; 
+             betBtn.disabled = true;
              
              if (!explosionVibrated) { 
                  if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('heavy'); 
@@ -741,14 +748,13 @@
                  else if (currentMult <= 1.50) { item.style.borderColor = 'yellow'; item.style.backgroundColor = 'rgba(255, 255, 0, 0.2)'; }
                  else { item.style.borderColor = 'var(--green-color)'; item.style.backgroundColor = 'rgba(40, 167, 69, 0.2)'; }
                  
-                 const historyContainer = document.getElementById('crash-history');
                  historyContainer.insertBefore(item, historyContainer.firstChild);
                  if (historyContainer.children.length > 10) historyContainer.removeChild(historyContainer.lastChild);
                  
                  if (isPlaying) { 
                      isPlaying = false; 
-                     document.getElementById('bet-btn').innerText = "Поставить"; 
-                     document.getElementById('bet-btn').classList.remove('cashout'); 
+                     betBtn.innerText = "Поставить"; 
+                     betBtn.classList.remove('cashout'); 
                  }
              }
          }
@@ -790,4 +796,4 @@
      loop();
  </script>
 </body>
- </html>
+  </html>
