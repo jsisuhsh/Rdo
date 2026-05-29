@@ -54,7 +54,7 @@
      .inventory-cell { 
          /* Вычисляем ширину так, чтобы с учетом gap в 10px ровно 3 ячейки занимали 100% ширины контейнера (300px) */
          flex: 0 0 calc((100% - 20px) / 3); 
-         height: 83px; 
+         height: 90px; 
          background: rgba(255, 255, 255, 0.03); 
          border: 1px dashed rgba(157, 78, 221, 0.3); 
          border-radius: 12px; 
@@ -66,7 +66,19 @@
          font-weight: 600; 
          scroll-snap-align: start; 
          box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+         position: relative;
+         overflow: hidden;
      }
+
+     /* Доп. стили для NFT в инвентаре */
+     .inventory-item-box { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+     .nft-label { position: absolute; top: 4px; left: 4px; font-size: 8px; font-weight: 800; background: var(--accent-color); color: white; padding: 2px 4px; border-radius: 4px; text-transform: uppercase; }
+     .nft-img { width: 35px; height: 35px; object-fit: contain; margin-bottom: 2px; margin-top: 8px; }
+     .nft-val { font-size: 10px; color: var(--ton-blue); font-weight: bold; margin-bottom: 4px; }
+     .nft-actions { display: flex; gap: 4px; }
+     .nft-btn { font-size: 8px; font-weight: bold; padding: 3px 5px; border: none; border-radius: 4px; cursor: pointer; color: white; }
+     .nft-btn-withdraw { background: var(--ton-blue); }
+     .nft-btn-sell { background: var(--green-color); }
 
      nav { height: 80px; background: var(--container-bg); border-top: 1px solid rgba(60, 53, 74, 0.5); display: flex; justify-content: space-around; align-items: center; padding-bottom: 5px; backdrop-filter: blur(10px); position: relative; z-index: 10; }
      .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-muted); cursor: pointer; padding: 5px; width: 33%; font-size: 13px; }
@@ -274,38 +286,8 @@
              
              <div class="inventory-section">
                  <div class="inventory-title">Инвентарь</div>
-                 <div class="inventory-carousel">
-                     <div class="inventory-cell">1</div>
-                     <div class="inventory-cell">2</div>
-                     <div class="inventory-cell">3</div>
-                     <div class="inventory-cell">4</div>
-                     <div class="inventory-cell">5</div>
-                     <div class="inventory-cell">6</div>
-                     <div class="inventory-cell">7</div>
-                     <div class="inventory-cell">8</div>
-                     <div class="inventory-cell">9</div>
-                     <div class="inventory-cell">10</div>
-                     <div class="inventory-cell">11</div>
-                     <div class="inventory-cell">12</div>
-                     <div class="inventory-cell">13</div>
-                     <div class="inventory-cell">14</div>
-                     <div class="inventory-cell">15</div>
-                     <div class="inventory-cell">16</div>
-                     <div class="inventory-cell">17</div>
-                     <div class="inventory-cell">18</div>
-                     <div class="inventory-cell">19</div>
-                     <div class="inventory-cell">20</div>
-                     <div class="inventory-cell">21</div>
-                     <div class="inventory-cell">22</div>
-                     <div class="inventory-cell">23</div>
-                     <div class="inventory-cell">24</div>
-                     <div class="inventory-cell">25</div>
-                     <div class="inventory-cell">26</div>
-                     <div class="inventory-cell">27</div>
-                     <div class="inventory-cell">28</div>
-                     <div class="inventory-cell">29</div>
-                     <div class="inventory-cell">30</div>
-                 </div>
+                 <div class="inventory-carousel" id="inventory-carousel-box">
+                     </div>
              </div>
          </div>
      </div>
@@ -367,7 +349,10 @@
              <div class="drop-item"><img src="https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png"><span>0.15 TON</span></div>
              <div class="drop-item"><img src="https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png"><span>0.5 TON</span></div>
              <div class="drop-item"><img src="https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png"><span>1 TON</span></div>
-             <div class="drop-item"><img src="https://i.postimg.cc/65V0wwJ8/ezgif-com-effects-(3).gif"><span>2 TON</span></div>
+             <div class="drop-item" style="position: relative;">
+                 <span style="position: absolute; top: 2px; left: 4px; font-size: 8px; font-weight: bold; background: var(--accent-color); padding: 2px 4px; border-radius: 4px; color: white; text-transform: uppercase;">NFT</span>
+                 <img src="https://i.postimg.cc/65V0wwJ8/ezgif-com-effects-(3).gif"><span>2 TON</span>
+             </div>
          </div>
      </div>
  </div>
@@ -387,6 +372,53 @@
 
  <script src="https://telegram.org/js/telegram-web-app.js"></script>
  <script>
+     // === ИНВЕНТАРЬ И NFT ЛОГИКА ===
+     let userInventory = JSON.parse(localStorage.getItem('user_inventory')) || [];
+
+     function renderInventory() {
+         const carousel = document.getElementById('inventory-carousel-box');
+         carousel.innerHTML = '';
+         
+         for(let i = 0; i < 30; i++) {
+             let cell = document.createElement('div');
+             cell.className = 'inventory-cell';
+             
+             if(i < userInventory.length) {
+                 let item = userInventory[i];
+                 cell.innerHTML = `
+                     <div class="inventory-item-box">
+                         <div class="nft-label">NFT</div>
+                         <img src="${item.img}" class="nft-img">
+                         <div class="nft-val">${item.val} TON</div>
+                         <div class="nft-actions">
+                             <button class="nft-btn nft-btn-withdraw" onclick="withdrawNft(${i})">Вывести</button>
+                             <button class="nft-btn nft-btn-sell" onclick="sellNft(${i})">Продать</button>
+                         </div>
+                     </div>
+                 `;
+             } else {
+                 cell.innerText = i + 1;
+             }
+             carousel.appendChild(cell);
+         }
+     }
+
+     function sellNft(index) {
+         let item = userInventory[index];
+         balance += item.val;
+         localStorage.setItem('user_balance', balance.toFixed(2));
+         document.getElementById('balance-display').innerText = balance.toFixed(2);
+         
+         userInventory.splice(index, 1);
+         localStorage.setItem('user_inventory', JSON.stringify(userInventory));
+         renderInventory();
+         showToast(`NFT успешно продан за ${item.val} TON!`);
+     }
+
+     function withdrawNft(index) {
+         showToast("Функция вывода в разработке!");
+     }
+
      // === ЛОГИКА ОПРЕДЕЛЕНИЯ КЛИКОВ ПО КНОПКАМ ПОДПИСОК (DAILY) ===
      let clickedChat = false;
      let clickedChannel = false;
@@ -410,7 +442,6 @@
          }
      }
 
-     // Проверка возвращения игрока обратно в приложение
      window.addEventListener('focus', () => {
          checkAndUnlockOpenButton();
      });
@@ -432,6 +463,8 @@
          const loadingScreen = document.getElementById('loading-screen');
          const loadingBarFill = document.getElementById('loading-bar-fill');
          const loadingText = document.getElementById('loading-text');
+
+         renderInventory(); // Отрисовываем инвентарь при загрузке
 
          let progress = 0;
          const duration = 10000; 
@@ -809,14 +842,16 @@
 
      // === ЛОГИКА КЕЙСА PROMO ===
      let isSpinningPromoCase = false;
+     
+     // ВАЖНО: Добавлено поле isNft: true для конкретного подарка
      const promoCaseRewards = [
-         { val: 0.01, chance: 0.40, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png' },
-         { val: 0.05, chance: 0.20, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png' },
-         { val: 0.1,  chance: 0.20, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png' },
-         { val: 0.15, chance: 0.10, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png' },
-         { val: 0.5,  chance: 0.07, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png' },
-         { val: 1,    chance: 0.029, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png' },
-         { val: 2,    chance: 0.001, img: 'https://i.postimg.cc/65V0wwJ8/ezgif-com-effects-(3).gif' }
+         { val: 0.01, chance: 0.40, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
+         { val: 0.05, chance: 0.20, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
+         { val: 0.1,  chance: 0.20, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
+         { val: 0.15, chance: 0.10, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
+         { val: 0.5,  chance: 0.07, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
+         { val: 1,    chance: 0.029, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
+         { val: 2,    chance: 0.001, img: 'https://i.postimg.cc/65V0wwJ8/ezgif-com-effects-(3).gif', isNft: true }
      ];
 
      function openPromoCaseModal() {
@@ -858,7 +893,10 @@
      function createPromoRouletteItemNode(item) {
          let div = document.createElement('div');
          div.className = 'roulette-item';
-         div.innerHTML = `<img src="${item.img}"><span>${item.val} TON</span>`;
+         // Если предмет имеет флаг isNft, добавляем метку в его HTML
+         let nftTag = item.isNft ? `<span style="position: absolute; top: 2px; left: 4px; font-size: 8px; font-weight: bold; background: var(--accent-color); padding: 2px 4px; border-radius: 4px; color: white; text-transform: uppercase;">NFT</span>` : '';
+         div.style.position = "relative";
+         div.innerHTML = `${nftTag}<img src="${item.img}"><span>${item.val} TON</span>`;
          return div;
      }
 
@@ -907,11 +945,20 @@
          track.style.transform = `translateX(${targetX}px)`;
          
          setTimeout(() => {
-             balance += winningItem.val;
-             localStorage.setItem('user_balance', balance.toFixed(2));
-             document.getElementById('balance-display').innerText = balance.toFixed(2);
+             // ПРОВЕРКА НА NFT. Если это NFT, то предмет идет в инвентарь
+             if(winningItem.isNft) {
+                 userInventory.push(winningItem);
+                 localStorage.setItem('user_inventory', JSON.stringify(userInventory));
+                 renderInventory(); // обновляем визуал инвентаря
+                 showToast(`🎉 Вы получили NFT предмет! Проверьте профиль.`);
+             } else {
+                 // Иначе просто зачисляем баланс
+                 balance += winningItem.val;
+                 localStorage.setItem('user_balance', balance.toFixed(2));
+                 document.getElementById('balance-display').innerText = balance.toFixed(2);
+                 showToast(`🎉 Вы выиграли ${winningItem.val} TON!`);
+             }
              
-             showToast(`🎉 Вы выиграли ${winningItem.val} TON!`);
              if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
              
              isSpinningPromoCase = false;
