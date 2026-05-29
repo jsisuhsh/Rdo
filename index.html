@@ -106,8 +106,8 @@
      #promo-overlay.visible { bottom: 0; }
      #promo-overlay h3 { margin-bottom: 20px; text-align: center; }
 
-     /* === НОВЫЕ СТИЛИ ДЛЯ КЕЙСОВ И РУЛЕТКИ === */
-     .cases-grid { display: flex; gap: 15px; margin-top: 20px; flex-wrap: wrap; }
+     /* --- ИСПРАВЛЕННЫЕ СТИЛИ КЕЙСОВ --- */
+     .cases-grid { display: flex; justify-content: space-between; margin-top: 20px; flex-wrap: wrap; }
      .case-card { 
          background: linear-gradient(to bottom, #000000 0%, #4a1c78 100%); 
          border: 1px solid rgba(157, 78, 221, 0.4); 
@@ -140,25 +140,11 @@
      .roulette-item img { width: 40px; height: 40px; object-fit: contain; margin-bottom: 4px; }
      .roulette-item span { font-size: 12px; font-weight: 700; color: #ffffff; }
      
-     .possible-drops-grid { 
-         display: grid; 
-         grid-template-columns: repeat(2, 1fr); 
-         gap: 8px; 
-         max-height: 180px; 
-         overflow-y: auto; 
-         margin-top: 5px; 
-         padding-right: 5px;
-     }
-     
-     .possible-drops-grid::-webkit-scrollbar { width: 4px; }
-     .possible-drops-grid::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 4px; }
-     .possible-drops-grid::-webkit-scrollbar-thumb { background: var(--accent-color); border-radius: 4px; }
-     
+     .possible-drops-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; max-height: 180px; overflow-y: auto; margin-top: 5px; padding-right: 5px; }
      .drop-item { background: rgba(255, 255, 255, 0.03); border-radius: 8px; padding: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid rgba(255, 255, 255, 0.05); }
      .drop-item img { width: 60px; height: 60px; object-fit: contain; margin-bottom: 5px; }
      .drop-item span { font-size: 11px; font-weight: 600; color: #ffffff; text-align: center; }
 
-     /* СТИЛИ ДЛЯ КНОПОК ПОДПИСКИ ЧАТА И КАНАЛА */
      .case-subs-container { display: flex; gap: 10px; margin: 15px 0 20px 0; width: 100%; }
      .btn-chat { background-color: #0088cc; color: white; }
      .btn-channel { background-color: #9d4edd; color: white; }
@@ -841,7 +827,7 @@
          
          const totalItems = 35;
          const winnerIndex = 26; 
-         let winningItem = getWeightedPromoReward();
+         const winningItem = getWeightedPromoReward(); // ФИКСИРУЕМ ПРИЗ ПЕРЕД АНИМАЦИЕЙ
          
          for (let i = 0; i < totalItems; i++) {
              let item = (i === winnerIndex) ? winningItem : promoCaseRewards[Math.floor(Math.random() * promoCaseRewards.length)];
@@ -850,7 +836,7 @@
          
          track.offsetHeight; 
          
-         const viewportWidth = document.querySelector('.roulette-viewport').clientWidth;
+         const viewportWidth = document.querySelector('#promo-case-modal .roulette-viewport').clientWidth;
          const viewportCenter = viewportWidth / 2;
          const itemCenter = (winnerIndex * 100) + 50; 
          const randomOffset = Math.floor(Math.random() * 60) - 30; 
