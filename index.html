@@ -283,7 +283,7 @@
              <button id="bet-btn" class="bet-btn" onclick="processBetAction()">Поставить</button>
          </div>
          
-         <button class="btn btn-outline" style="width: 100%; max-width: 350px; margin: 10px auto 0 auto; display: block;" onclick="openNftBetModal()">Ставка NFT</button>
+         <button id="nft-bet-btn" class="btn btn-outline" style="width: 100%; max-width: 350px; margin: 10px auto 0 auto; display: block;" onclick="openNftBetModal()">Ставка NFT</button>
 
          <div class="bets-list" id="bets-list-container">
              <div class="bet-row current-user">
@@ -547,8 +547,12 @@
      let currentBetNftImg = "";
 
      function openNftBetModal() {
+         if (currentPhase !== 'wait') {
+             showToast("Ставки принимаются только до начала раунда (5 сек)!");
+             return;
+         }
          if (isPlaying) {
-             showToast("Дождитесь окончания раунда!");
+             showToast("Вы уже сделали ставку!");
              return;
          }
          const modal = document.getElementById('nft-bet-modal');
@@ -580,6 +584,11 @@
      }
 
      function selectNftForBet(index) {
+         if (currentPhase !== 'wait') {
+             showToast("Раунд уже начался, ставка отменена!");
+             closeNftBetModal();
+             return;
+         }
          if (isPlaying) return;
          
          let item = userInventory[index];
@@ -1510,6 +1519,7 @@
      const rocketAnim = document.getElementById('rocket-animation');
      const historyContainer = document.getElementById('crash-history');
      const countdownOverlay = document.getElementById('countdown-overlay');
+     const nftBetBtn = document.getElementById('nft-bet-btn');
 
      function loop() {
          crashCanvas.width = gridCanvas.width = crashCanvas.parentElement.clientWidth;
@@ -1553,6 +1563,7 @@
              betInput.disabled = false;
              betBtn.style.display = 'inline-block';
              if (!isPlaying) betBtn.disabled = false;
+             if (nftBetBtn) { nftBetBtn.disabled = false; nftBetBtn.style.opacity = '1'; }
 
          } else if (currentPhase === 'flight') {
              statusEl.style.visibility = 'visible';
@@ -1569,6 +1580,7 @@
              betInput.disabled = true;
              betBtn.style.display = 'inline-block';
              if (isPlaying) betBtn.disabled = false; else betBtn.disabled = true;
+             if (nftBetBtn) { nftBetBtn.disabled = true; nftBetBtn.style.opacity = '0.6'; }
 
          } else if (currentPhase === 'crash') {
              currentMult = targetCrashMult; 
@@ -1580,6 +1592,7 @@
              countdownOverlay.style.display = 'none';
              betInput.disabled = true; 
              betBtn.disabled = true;
+             if (nftBetBtn) { nftBetBtn.disabled = true; nftBetBtn.style.opacity = '0.6'; }
              
              if (!explosionVibrated) { 
                  if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('heavy'); 
@@ -1601,52 +1614,4 @@
                  if (isPlaying) { 
                      isPlaying = false; 
                      betBtn.innerText = "Поставить"; 
-                     betBtn.classList.remove('cashout'); 
-                 }
-             }
-         }
-
-         let betHtml = currentBet > 0 ? currentBet.toFixed(2) + " TON" : "0.00 TON";
-         if (currentBet > 0 && currentBetIsNft) {
-             betHtml = `<div style="display:flex; align-items:center; gap:5px; justify-content:center;"><img src="${currentBetNftImg}" style="width:16px; height:16px; border-radius:4px; object-fit:contain;">${currentBet.toFixed(2)} TON</div>`;
-         }
-
-         const uBetEl = document.getElementById('user-bet-amount');
-         const uPayoutEl = document.getElementById('user-bet-payout');
-         if (isPlaying) { 
-             uBetEl.innerHTML = betHtml; 
-             uPayoutEl.innerText = (currentBet * currentMult).toFixed(2) + " TON"; 
-             uPayoutEl.style.color = "var(--green-color)"; 
-         } else if (userCashedOut) { 
-             uBetEl.innerHTML = betHtml; 
-             uPayoutEl.innerText = userWinAmount.toFixed(2) + " TON"; 
-             uPayoutEl.style.color = "var(--green-color)"; 
-         } else if (currentPhase === 'crash' && currentBet > 0) { 
-             uBetEl.innerHTML = betHtml; 
-             uPayoutEl.innerText = "0.00 TON"; 
-             uPayoutEl.style.color = "#ff4d4d"; 
-         } else { 
-             uBetEl.innerHTML = betHtml; 
-             uPayoutEl.innerText = "0.00 TON"; 
-             uPayoutEl.style.color = 'var(--text-muted)'; 
-         }
-
-         otherBets.forEach(b => { 
-             if (b.isCashedOut) return; 
-             if (currentPhase === 'flight') { 
-                 b.element.innerText = (b.amount * currentMult).toFixed(2) + " TON"; 
-                 b.element.style.color = "var(--green-color)"; 
-             } else if (currentPhase === 'crash') { 
-                 b.element.innerText = "0.00 TON"; 
-                 b.element.style.color = "#ff4d4d"; 
-             } 
-         });
-         
-         requestAnimationFrame(loop);
-     }
-     
-     loop();
- </script>
-</body>
-</html>
-
+                     betBtn.classList.remove('
