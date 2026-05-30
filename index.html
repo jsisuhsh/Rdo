@@ -52,7 +52,6 @@
      .inventory-carousel::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); border-radius: 10px; }
      .inventory-carousel::-webkit-scrollbar-thumb { background: var(--accent-color); border-radius: 10px; }
      .inventory-cell { 
-         /* Вычисляем ширину так, чтобы с учетом gap в 10px ровно 3 ячейки занимали 100% ширины контейнера (300px) */
          flex: 0 0 calc((100% - 20px) / 3); 
          height: 90px; 
          background: rgba(255, 255, 255, 0.03); 
@@ -72,7 +71,7 @@
 
      /* Доп. стили для NFT в инвентаре */
      .inventory-item-box { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
-     .nft-label { position: absolute; top: 4px; left: 4px; font-size: 8px; font-weight: 800; background: var(--accent-color); color: white; padding: 2px 4px; border-radius: 4px; text-transform: uppercase; }
+     .nft-label { position: absolute; top: 4px; left: 4px; font-size: 8px; font-weight: 800; background: var(--accent-color); color: white; padding: 2px 4px; border-radius: 4px; text-transform: uppercase; z-index: 2; }
      .nft-img { width: 35px; height: 35px; object-fit: contain; margin-bottom: 2px; margin-top: 8px; }
      .nft-val { font-size: 10px; color: var(--ton-blue); font-weight: bold; margin-bottom: 4px; }
      .nft-actions { display: flex; gap: 4px; }
@@ -235,6 +234,11 @@
              <div class="case-card" onclick="openHomelessCaseModal()">
                  <img src="https://i.postimg.cc/FzG97mR3/lv-0-20260529222543.png" alt="Homeless Case" class="case-img">
                  <div class="case-name">HOMELESS</div>
+             </div>
+
+             <div class="case-card" onclick="openWitchCaseModal()">
+                 <img src="https://i.postimg.cc/442wRj7y/lv-0-20260530075313.png" alt="Witch Case" class="case-img">
+                 <div class="case-name">WITCH</div>
              </div>
          </div>
      </div>
@@ -404,6 +408,41 @@
              <div class="drop-item" style="position: relative;">
                  <span style="position: absolute; top: 2px; left: 4px; font-size: 8px; font-weight: bold; background: var(--accent-color); padding: 2px 4px; border-radius: 4px; color: white; text-transform: uppercase;">NFT</span>
                  <img src="https://i.postimg.cc/4yvYPr3y/ezgif-com-effects-(6).gif"><span>3.9 TON</span>
+             </div>
+         </div>
+     </div>
+ </div>
+
+ <div id="witch-case-modal" class="case-modal-overlay">
+     <div class="case-modal-content">
+         <div id="close-witch-case-btn" class="close-case-modal" onclick="closeWitchCaseModal()">✕</div>
+         <h3 style="text-align: center; font-size: 18px;">Witch Кейс</h3>
+         
+         <div class="roulette-viewport">
+             <div class="roulette-marker"></div>
+             <div id="witch-roulette-track" class="roulette-track"></div>
+         </div>
+         
+         <button id="spin-witch-case-btn" class="btn btn-fill" style="width: 100%; margin: 15px 0 20px 0; display: flex; justify-content: center; align-items: center; gap: 5px;" onclick="spinWitchCase()">
+             Открыть за 1.99 <img src="https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png" style="width: 16px; height: 16px;">
+         </button>
+         
+         <h4 style="color: var(--text-muted); font-size: 13px; margin-bottom: 8px; text-align: center;">Что может выпасть:</h4>
+         <div class="possible-drops-grid">
+             <div class="drop-item"><img src="https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png"><span>0.2 TON</span></div>
+             <div class="drop-item"><img src="https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png"><span>0.5 TON</span></div>
+             <div class="drop-item"><img src="https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png"><span>1 TON</span></div>
+             <div class="drop-item"><img src="https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png"><span>1.5 TON</span></div>
+             <div class="drop-item"><img src="https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png"><span>2 TON</span></div>
+             <div class="drop-item"><img src="https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png"><span>3 TON</span></div>
+             
+             <div class="drop-item" style="position: relative;">
+                 <span style="position: absolute; top: 2px; left: 4px; font-size: 8px; font-weight: bold; background: var(--accent-color); padding: 2px 4px; border-radius: 4px; color: white; text-transform: uppercase;">NFT</span>
+                 <img src="https://i.postimg.cc/YCWd38St/ezgif-com-effects-(8).gif"><span>3.5 TON</span>
+             </div>
+             <div class="drop-item" style="position: relative;">
+                 <span style="position: absolute; top: 2px; left: 4px; font-size: 8px; font-weight: bold; background: var(--accent-color); padding: 2px 4px; border-radius: 4px; color: white; text-transform: uppercase;">NFT</span>
+                 <img src="https://i.postimg.cc/3JWSy352/ezgif-com-effects-(7).gif"><span>2.8 TON</span>
              </div>
          </div>
      </div>
@@ -805,7 +844,7 @@
          if (isSpinningCase) return;
          document.getElementById('case-modal').classList.add('visible');
          buildInitialTrack();
-         checkAndUnlockOpenButton(); // Проверка кнопок при открытии модалки
+         checkAndUnlockOpenButton(); 
      }
 
      function closeCaseModal() {
@@ -996,7 +1035,7 @@
              if(winningItem.isNft) {
                  userInventory.push(winningItem);
                  localStorage.setItem('user_inventory', JSON.stringify(userInventory));
-                 renderInventory();
+                 renderInventory(); 
                  showToast(`🎉 Вы получили NFT предмет! Проверьте профиль.`);
              } else {
                  balance += winningItem.val;
@@ -1013,7 +1052,7 @@
          }, 5200);
      }
 
-     // === ЛОГИКА НОВОГО КЕЙСА "HOMELESS" ===
+     // === ЛОГИКА КЕЙСА "HOMELESS" ===
      let isSpinningHomelessCase = false;
      
      const homelessCaseRewards = [
@@ -1082,7 +1121,6 @@
              return;
          }
          
-         // Списание средств за открытие кейса
          balance -= 1;
          localStorage.setItem('user_balance', balance.toFixed(2));
          document.getElementById('balance-display').innerText = balance.toFixed(2);
@@ -1136,6 +1174,129 @@
              isSpinningHomelessCase = false;
              document.getElementById('spin-homeless-case-btn').disabled = false;
              document.getElementById('close-homeless-case-btn').classList.remove('disabled');
+         }, 5200);
+     }
+
+     // === ЛОГИКА НОВОГО КЕЙСА "WITCH" ===
+     let isSpinningWitchCase = false;
+     
+     const witchCaseRewards = [
+         { val: 0.2, chance: 0.01, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
+         { val: 0.5, chance: 0.15, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
+         { val: 1.0, chance: 0.20, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
+         { val: 1.5, chance: 0.40, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
+         { val: 2.0, chance: 0.15, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
+         { val: 3.0, chance: 0.07, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
+         { val: 3.5, chance: 0.005, img: 'https://i.postimg.cc/YCWd38St/ezgif-com-effects-(8).gif', isNft: true },
+         { val: 2.8, chance: 0.015, img: 'https://i.postimg.cc/3JWSy352/ezgif-com-effects-(7).gif', isNft: true }
+     ];
+
+     function openWitchCaseModal() {
+         if (isSpinningWitchCase) return;
+         document.getElementById('witch-case-modal').classList.add('visible');
+         buildWitchInitialTrack();
+     }
+
+     function closeWitchCaseModal() {
+         if (isSpinningWitchCase) return;
+         document.getElementById('witch-case-modal').classList.remove('visible');
+     }
+
+     document.getElementById('witch-case-modal').addEventListener('click', function(e) {
+         if (e.target === this) closeWitchCaseModal();
+     });
+
+     function getWeightedWitchReward() {
+         let r = Math.random();
+         let cumulative = 0;
+         for (let item of witchCaseRewards) {
+             cumulative += item.chance;
+             if (r <= cumulative) return item;
+         }
+         return witchCaseRewards[0];
+     }
+
+     function createWitchRouletteItemNode(item) {
+         let div = document.createElement('div');
+         div.className = 'roulette-item';
+         let nftTag = item.isNft ? `<span style="position: absolute; top: 2px; left: 4px; font-size: 8px; font-weight: bold; background: var(--accent-color); padding: 2px 4px; border-radius: 4px; color: white; text-transform: uppercase;">NFT</span>` : '';
+         div.style.position = "relative";
+         div.innerHTML = `${nftTag}<img src="${item.img}"><span>${item.val} TON</span>`;
+         return div;
+     }
+
+     function buildWitchInitialTrack() {
+         const track = document.getElementById('witch-roulette-track');
+         track.style.transition = 'none';
+         track.style.transform = 'translateX(0px)';
+         track.innerHTML = '';
+         for (let i = 0; i < 6; i++) {
+             let item = witchCaseRewards[Math.floor(Math.random() * witchCaseRewards.length)];
+             track.appendChild(createWitchRouletteItemNode(item));
+         }
+     }
+
+     function spinWitchCase() {
+         if (isSpinningWitchCase) return;
+
+         if (balance < 1.99) {
+             showToast("Недостаточно средств (нужно 1.99 TON)!");
+             return;
+         }
+         
+         balance -= 1.99;
+         localStorage.setItem('user_balance', balance.toFixed(2));
+         document.getElementById('balance-display').innerText = balance.toFixed(2);
+
+         isSpinningWitchCase = true;
+         
+         document.getElementById('spin-witch-case-btn').disabled = true;
+         document.getElementById('close-witch-case-btn').classList.add('disabled');
+         
+         const track = document.getElementById('witch-roulette-track');
+         track.style.transition = 'none';
+         track.style.transform = 'translateX(0px)';
+         track.innerHTML = '';
+         
+         const totalItems = 35;
+         const winnerIndex = 26; 
+         const winningItem = getWeightedWitchReward(); 
+         
+         for (let i = 0; i < totalItems; i++) {
+             let item = (i === winnerIndex) ? winningItem : witchCaseRewards[Math.floor(Math.random() * witchCaseRewards.length)];
+             track.appendChild(createWitchRouletteItemNode(item));
+         }
+         
+         track.offsetHeight; 
+         
+         const viewportWidth = document.querySelector('#witch-case-modal .roulette-viewport').clientWidth;
+         const viewportCenter = viewportWidth / 2;
+         const itemCenter = (winnerIndex * 100) + 50; 
+         const randomOffset = Math.floor(Math.random() * 60) - 30; 
+         
+         const targetX = viewportCenter - itemCenter + randomOffset;
+         
+         track.style.transition = 'transform 5s cubic-bezier(0.1, 0.8, 0.1, 1)';
+         track.style.transform = `translateX(${targetX}px)`;
+         
+         setTimeout(() => {
+             if(winningItem.isNft) {
+                 userInventory.push(winningItem);
+                 localStorage.setItem('user_inventory', JSON.stringify(userInventory));
+                 renderInventory();
+                 showToast(`🎉 Вы получили NFT за ${winningItem.val} TON!`);
+             } else {
+                 balance += winningItem.val;
+                 localStorage.setItem('user_balance', balance.toFixed(2));
+                 document.getElementById('balance-display').innerText = balance.toFixed(2);
+                 showToast(`🎉 Вы выиграли ${winningItem.val} TON!`);
+             }
+             
+             if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+             
+             isSpinningWitchCase = false;
+             document.getElementById('spin-witch-case-btn').disabled = false;
+             document.getElementById('close-witch-case-btn').classList.remove('disabled');
          }, 5200);
      }
 
@@ -1282,4 +1443,5 @@
      loop();
  </script>
 </body>
- </html>
+</html>
+
