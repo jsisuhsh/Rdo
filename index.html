@@ -160,14 +160,14 @@
      .case-img { width: 130px; height: 130px; object-fit: contain; } 
      .case-name { color: #ffffff; font-weight: 700; margin-top: 4px; font-size: 16px; text-transform: uppercase; margin-bottom: 8px;}
      
-     .case-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); z-index: 25000; display: none; align-items: center; justify-content: center; padding: 20px; }
+     .case-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); z-index: 25000; display: none; align-items: center; justify-content: center; padding: 20px; overflow-y: auto; }
      .case-modal-overlay.visible { display: flex; }
-     .case-modal-content { background: #1c1924; border-radius: 20px; width: 100%; max-width: 360px; padding: 20px; border: 1px solid rgba(255, 255, 255, 0.1); position: relative; }
-     .close-case-modal { position: absolute; top: 15px; right: 15px; font-size: 20px; cursor: pointer; color: var(--text-muted); transition: color 0.2s; }
+     .case-modal-content { background: #1c1924; border-radius: 20px; width: 100%; max-width: 360px; padding: 20px; border: 1px solid rgba(255, 255, 255, 0.1); position: relative; margin: auto; }
+     .close-case-modal { position: absolute; top: 15px; right: 15px; font-size: 20px; cursor: pointer; color: var(--text-muted); transition: color 0.2s; z-index: 10; }
      .close-case-modal:hover { color: white; }
      .close-case-modal.disabled { pointer-events: none; opacity: 0.3; }
      
-     .roulette-viewport { position: relative; width: 100%; height: 110px; background: #16121e; border-radius: 12px; overflow: hidden; border: 2px solid #3c354a; margin-top: 15px; }
+     .roulette-viewport { position: relative; width: 100%; height: 110px; background: #16121e; border-radius: 12px; overflow: hidden; border: 2px solid #3c354a; margin-top: 10px; }
      .roulette-marker { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 4px; height: 100%; background: #ff4d4d; z-index: 10; box-shadow: 0 0 8px #ff4d4d; }
      .roulette-track { display: flex; position: absolute; left: 0; top: 5px; height: 100px; will-change: transform; }
      
@@ -187,6 +187,15 @@
      .case-subs-container { display: flex; gap: 10px; margin: 15px 0 20px 0; width: 100%; }
      .btn-chat { background-color: #0088cc; color: white; }
      .btn-channel { background-color: #9d4edd; color: white; }
+
+     /* СТИЛИ ДЛЯ МУЛЬТИ-ОТКРЫТИЯ (ВЫБОР КОЛИЧЕСТВА) */
+     .qty-selector { display: flex; gap: 5px; margin-bottom: 15px; justify-content: flex-start; }
+     .qty-btn { width: 30px; height: 30px; background: rgba(255,255,255,0.1); border: 1px solid var(--accent-color); color: white; border-radius: 5px; cursor: pointer; font-weight: bold; transition: all 0.2s; }
+     .qty-btn.active { background: var(--accent-color); }
+     .roulettes-wrapper { display: flex; flex-direction: column; gap: 5px; max-height: 250px; overflow-y: auto; overflow-x: hidden; padding-right: 5px; margin-bottom: 15px; }
+     .roulettes-wrapper::-webkit-scrollbar { width: 4px; }
+     .roulettes-wrapper::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 4px; }
+     .roulettes-wrapper::-webkit-scrollbar-thumb { background: var(--accent-color); border-radius: 4px; }
  </style>
 </head>
 <body>
@@ -375,13 +384,19 @@
          <div id="close-homeless-case-btn" class="close-case-modal" onclick="closeHomelessCaseModal()">✕</div>
          <h3 style="text-align: center; font-size: 18px;">Homeless Кейс</h3>
          
-         <div class="roulette-viewport">
-             <div class="roulette-marker"></div>
-             <div id="homeless-roulette-track" class="roulette-track"></div>
-         </div>
+         <div class="roulettes-wrapper" id="homeless-roulettes-wrapper">
+            </div>
          
-         <button id="spin-homeless-case-btn" class="btn btn-fill" style="width: 100%; margin: 15px 0 20px 0; display: flex; justify-content: center; align-items: center; gap: 5px;" onclick="spinHomelessCase()">
-             Открыть за 1 <img src="https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png" style="width: 16px; height: 16px;">
+         <div class="qty-selector" id="homeless-qty">
+             <button class="qty-btn active" onclick="changeQty('homeless', 1)">1</button>
+             <button class="qty-btn" onclick="changeQty('homeless', 2)">2</button>
+             <button class="qty-btn" onclick="changeQty('homeless', 3)">3</button>
+             <button class="qty-btn" onclick="changeQty('homeless', 4)">4</button>
+             <button class="qty-btn" onclick="changeQty('homeless', 5)">5</button>
+         </div>
+
+         <button id="spin-homeless-case-btn" class="btn btn-fill" style="width: 100%; margin: 0 0 20px 0; display: flex; justify-content: center; align-items: center; gap: 5px;" onclick="spinHomelessCase()">
+             Открыть за <span id="homeless-price-display">1.00</span> <img src="https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png" style="width: 16px; height: 16px;">
          </button>
          
          <h4 style="color: var(--text-muted); font-size: 13px; margin-bottom: 8px; text-align: center;">Что может выпасть:</h4>
@@ -418,13 +433,19 @@
          <div id="close-witch-case-btn" class="close-case-modal" onclick="closeWitchCaseModal()">✕</div>
          <h3 style="text-align: center; font-size: 18px;">Witch Кейс</h3>
          
-         <div class="roulette-viewport">
-             <div class="roulette-marker"></div>
-             <div id="witch-roulette-track" class="roulette-track"></div>
+         <div class="roulettes-wrapper" id="witch-roulettes-wrapper">
+            </div>
+
+         <div class="qty-selector" id="witch-qty">
+             <button class="qty-btn active" onclick="changeQty('witch', 1)">1</button>
+             <button class="qty-btn" onclick="changeQty('witch', 2)">2</button>
+             <button class="qty-btn" onclick="changeQty('witch', 3)">3</button>
+             <button class="qty-btn" onclick="changeQty('witch', 4)">4</button>
+             <button class="qty-btn" onclick="changeQty('witch', 5)">5</button>
          </div>
          
-         <button id="spin-witch-case-btn" class="btn btn-fill" style="width: 100%; margin: 15px 0 20px 0; display: flex; justify-content: center; align-items: center; gap: 5px;" onclick="spinWitchCase()">
-             Открыть за 1.99 <img src="https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png" style="width: 16px; height: 16px;">
+         <button id="spin-witch-case-btn" class="btn btn-fill" style="width: 100%; margin: 0 0 20px 0; display: flex; justify-content: center; align-items: center; gap: 5px;" onclick="spinWitchCase()">
+             Открыть за <span id="witch-price-display">1.99</span> <img src="https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png" style="width: 16px; height: 16px;">
          </button>
          
          <h4 style="color: var(--text-muted); font-size: 13px; margin-bottom: 8px; text-align: center;">Что может выпасть:</h4>
@@ -615,6 +636,21 @@
                  localStorage.setItem('user_balance', balance.toFixed(2));
                  document.getElementById('balance-display').innerText = balance.toFixed(2);
                  showToast("Промокод активирован! +50 TON");
+             }
+         } else if (code === "bonus100") {
+             let usedUsers100 = JSON.parse(localStorage.getItem('promo_bonus100_users') || '[]');
+             let usageCount100 = parseInt(localStorage.getItem('promo_bonus100_count') || 0);
+             if (usageCount100 >= 2) { showToast("Промокод закончился!"); } 
+             else if (usedUsers100.includes(rawUsername)) { showToast("Вы уже активировали этот промокод!"); } 
+             else {
+                 usageCount100++;
+                 usedUsers100.push(rawUsername);
+                 localStorage.setItem('promo_bonus100_count', usageCount100);
+                 localStorage.setItem('promo_bonus100_users', JSON.stringify(usedUsers100));
+                 balance += 100;
+                 localStorage.setItem('user_balance', balance.toFixed(2));
+                 document.getElementById('balance-display').innerText = balance.toFixed(2);
+                 showToast("Промокод активирован! +100 TON");
              }
          } else { showToast("Такой промокод не существует"); }
          document.getElementById('promo-input').value = "";
@@ -1052,6 +1088,57 @@
          }, 5200);
      }
 
+     // === МУЛЬТИ-ОТКРЫТИЕ ДЛЯ ПЛАТНЫХ КЕЙСОВ ===
+     let currentHomelessQty = 1;
+     let currentWitchQty = 1;
+     const homelessPrice = 1.00;
+     const witchPrice = 1.99;
+
+     function changeQty(caseType, qty) {
+         if(caseType === 'homeless' && isSpinningHomelessCase) return;
+         if(caseType === 'witch' && isSpinningWitchCase) return;
+
+         let btns = document.querySelectorAll(`#${caseType}-qty .qty-btn`);
+         btns.forEach(b => b.classList.remove('active'));
+         btns[qty-1].classList.add('active');
+
+         if(caseType === 'homeless') {
+             currentHomelessQty = qty;
+             document.getElementById('homeless-price-display').innerText = (homelessPrice * qty).toFixed(2);
+             buildMultiTrack('homeless', qty, homelessCaseRewards, createHomelessRouletteItemNode);
+         } else if (caseType === 'witch') {
+             currentWitchQty = qty;
+             document.getElementById('witch-price-display').innerText = (witchPrice * qty).toFixed(2);
+             buildMultiTrack('witch', qty, witchCaseRewards, createWitchRouletteItemNode);
+         }
+     }
+
+     function buildMultiTrack(caseType, qty, rewardsArray, createNodeFn) {
+         const wrapper = document.getElementById(`${caseType}-roulettes-wrapper`);
+         wrapper.innerHTML = '';
+         for(let i = 0; i < qty; i++) {
+             let vp = document.createElement('div');
+             vp.className = 'roulette-viewport';
+             vp.style.marginTop = '0';
+             
+             let marker = document.createElement('div');
+             marker.className = 'roulette-marker';
+             
+             let track = document.createElement('div');
+             track.className = 'roulette-track';
+             track.id = `${caseType}-track-${i}`;
+             
+             for (let j = 0; j < 6; j++) {
+                 let item = rewardsArray[Math.floor(Math.random() * rewardsArray.length)];
+                 track.appendChild(createNodeFn(item));
+             }
+             
+             vp.appendChild(marker);
+             vp.appendChild(track);
+             wrapper.appendChild(vp);
+         }
+     }
+
      // === ЛОГИКА КЕЙСА "HOMELESS" ===
      let isSpinningHomelessCase = false;
      
@@ -1071,7 +1158,7 @@
      function openHomelessCaseModal() {
          if (isSpinningHomelessCase) return;
          document.getElementById('homeless-case-modal').classList.add('visible');
-         buildHomelessInitialTrack();
+         changeQty('homeless', 1);
      }
 
      function closeHomelessCaseModal() {
@@ -1102,71 +1189,84 @@
          return div;
      }
 
-     function buildHomelessInitialTrack() {
-         const track = document.getElementById('homeless-roulette-track');
-         track.style.transition = 'none';
-         track.style.transform = 'translateX(0px)';
-         track.innerHTML = '';
-         for (let i = 0; i < 6; i++) {
-             let item = homelessCaseRewards[Math.floor(Math.random() * homelessCaseRewards.length)];
-             track.appendChild(createHomelessRouletteItemNode(item));
-         }
-     }
-
      function spinHomelessCase() {
          if (isSpinningHomelessCase) return;
 
-         if (balance < 1) {
-             showToast("Недостаточно средств (нужен 1 TON)!");
+         let totalCost = homelessPrice * currentHomelessQty;
+         if (balance < totalCost) {
+             showToast(`Недостаточно средств (нужно ${totalCost.toFixed(2)} TON)!`);
              return;
          }
          
-         balance -= 1;
+         balance -= totalCost;
          localStorage.setItem('user_balance', balance.toFixed(2));
          document.getElementById('balance-display').innerText = balance.toFixed(2);
 
          isSpinningHomelessCase = true;
-         
          document.getElementById('spin-homeless-case-btn').disabled = true;
          document.getElementById('close-homeless-case-btn').classList.add('disabled');
          
-         const track = document.getElementById('homeless-roulette-track');
-         track.style.transition = 'none';
-         track.style.transform = 'translateX(0px)';
-         track.innerHTML = '';
+         let winningItems = [];
          
-         const totalItems = 35;
-         const winnerIndex = 26; 
-         const winningItem = getWeightedHomelessReward(); 
-         
-         for (let i = 0; i < totalItems; i++) {
-             let item = (i === winnerIndex) ? winningItem : homelessCaseRewards[Math.floor(Math.random() * homelessCaseRewards.length)];
-             track.appendChild(createHomelessRouletteItemNode(item));
+         for(let k = 0; k < currentHomelessQty; k++) {
+             let track = document.getElementById(`homeless-track-${k}`);
+             track.style.transition = 'none';
+             track.style.transform = 'translateX(0px)';
+             track.innerHTML = '';
+             
+             const totalItems = 35;
+             const winnerIndex = 26; 
+             const winningItem = getWeightedHomelessReward(); 
+             winningItems.push(winningItem);
+             
+             for (let i = 0; i < totalItems; i++) {
+                 let item = (i === winnerIndex) ? winningItem : homelessCaseRewards[Math.floor(Math.random() * homelessCaseRewards.length)];
+                 track.appendChild(createHomelessRouletteItemNode(item));
+             }
+             
+             track.offsetHeight; 
+             
+             const viewportWidth = track.parentElement.clientWidth;
+             const viewportCenter = viewportWidth / 2;
+             const itemCenter = (winnerIndex * 100) + 50; 
+             const randomOffset = Math.floor(Math.random() * 60) - 30; 
+             
+             const targetX = viewportCenter - itemCenter + randomOffset;
+             
+             track.style.transition = 'transform 5s cubic-bezier(0.1, 0.8, 0.1, 1)';
+             track.style.transform = `translateX(${targetX}px)`;
          }
          
-         track.offsetHeight; 
-         
-         const viewportWidth = document.querySelector('#homeless-case-modal .roulette-viewport').clientWidth;
-         const viewportCenter = viewportWidth / 2;
-         const itemCenter = (winnerIndex * 100) + 50; 
-         const randomOffset = Math.floor(Math.random() * 60) - 30; 
-         
-         const targetX = viewportCenter - itemCenter + randomOffset;
-         
-         track.style.transition = 'transform 5s cubic-bezier(0.1, 0.8, 0.1, 1)';
-         track.style.transform = `translateX(${targetX}px)`;
-         
          setTimeout(() => {
-             if(winningItem.isNft) {
-                 userInventory.push(winningItem);
+             let totalTonWon = 0;
+             let nftCount = 0;
+
+             winningItems.forEach(item => {
+                 if(item.isNft) {
+                     userInventory.push(item);
+                     nftCount++;
+                 } else {
+                     totalTonWon += item.val;
+                 }
+             });
+
+             if(nftCount > 0) {
                  localStorage.setItem('user_inventory', JSON.stringify(userInventory));
                  renderInventory();
-                 showToast(`🎉 Вы получили NFT за ${winningItem.val} TON!`);
-             } else {
-                 balance += winningItem.val;
+             }
+
+             if(totalTonWon > 0) {
+                 balance += totalTonWon;
                  localStorage.setItem('user_balance', balance.toFixed(2));
                  document.getElementById('balance-display').innerText = balance.toFixed(2);
-                 showToast(`🎉 Вы выиграли ${winningItem.val} TON!`);
+             }
+
+             if(nftCount > 0 && totalTonWon > 0) {
+                 showToast(`🎉 Вы выиграли ${totalTonWon.toFixed(2)} TON и ${nftCount} NFT!`);
+             } else if (nftCount > 0) {
+                 showToast(`🎉 Вы получили ${nftCount} NFT! Проверьте профиль.`);
+             } else {
+                 showToast(`🎉 Вы выиграли ${totalTonWon.toFixed(2)} TON!`);
              }
              
              if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
@@ -1194,7 +1294,7 @@
      function openWitchCaseModal() {
          if (isSpinningWitchCase) return;
          document.getElementById('witch-case-modal').classList.add('visible');
-         buildWitchInitialTrack();
+         changeQty('witch', 1);
      }
 
      function closeWitchCaseModal() {
@@ -1225,71 +1325,84 @@
          return div;
      }
 
-     function buildWitchInitialTrack() {
-         const track = document.getElementById('witch-roulette-track');
-         track.style.transition = 'none';
-         track.style.transform = 'translateX(0px)';
-         track.innerHTML = '';
-         for (let i = 0; i < 6; i++) {
-             let item = witchCaseRewards[Math.floor(Math.random() * witchCaseRewards.length)];
-             track.appendChild(createWitchRouletteItemNode(item));
-         }
-     }
-
      function spinWitchCase() {
          if (isSpinningWitchCase) return;
 
-         if (balance < 1.99) {
-             showToast("Недостаточно средств (нужно 1.99 TON)!");
+         let totalCost = witchPrice * currentWitchQty;
+         if (balance < totalCost) {
+             showToast(`Недостаточно средств (нужно ${totalCost.toFixed(2)} TON)!`);
              return;
          }
          
-         balance -= 1.99;
+         balance -= totalCost;
          localStorage.setItem('user_balance', balance.toFixed(2));
          document.getElementById('balance-display').innerText = balance.toFixed(2);
 
          isSpinningWitchCase = true;
-         
          document.getElementById('spin-witch-case-btn').disabled = true;
          document.getElementById('close-witch-case-btn').classList.add('disabled');
          
-         const track = document.getElementById('witch-roulette-track');
-         track.style.transition = 'none';
-         track.style.transform = 'translateX(0px)';
-         track.innerHTML = '';
+         let winningItems = [];
          
-         const totalItems = 35;
-         const winnerIndex = 26; 
-         const winningItem = getWeightedWitchReward(); 
-         
-         for (let i = 0; i < totalItems; i++) {
-             let item = (i === winnerIndex) ? winningItem : witchCaseRewards[Math.floor(Math.random() * witchCaseRewards.length)];
-             track.appendChild(createWitchRouletteItemNode(item));
+         for(let k = 0; k < currentWitchQty; k++) {
+             let track = document.getElementById(`witch-track-${k}`);
+             track.style.transition = 'none';
+             track.style.transform = 'translateX(0px)';
+             track.innerHTML = '';
+             
+             const totalItems = 35;
+             const winnerIndex = 26; 
+             const winningItem = getWeightedWitchReward(); 
+             winningItems.push(winningItem);
+             
+             for (let i = 0; i < totalItems; i++) {
+                 let item = (i === winnerIndex) ? winningItem : witchCaseRewards[Math.floor(Math.random() * witchCaseRewards.length)];
+                 track.appendChild(createWitchRouletteItemNode(item));
+             }
+             
+             track.offsetHeight; 
+             
+             const viewportWidth = track.parentElement.clientWidth;
+             const viewportCenter = viewportWidth / 2;
+             const itemCenter = (winnerIndex * 100) + 50; 
+             const randomOffset = Math.floor(Math.random() * 60) - 30; 
+             
+             const targetX = viewportCenter - itemCenter + randomOffset;
+             
+             track.style.transition = 'transform 5s cubic-bezier(0.1, 0.8, 0.1, 1)';
+             track.style.transform = `translateX(${targetX}px)`;
          }
          
-         track.offsetHeight; 
-         
-         const viewportWidth = document.querySelector('#witch-case-modal .roulette-viewport').clientWidth;
-         const viewportCenter = viewportWidth / 2;
-         const itemCenter = (winnerIndex * 100) + 50; 
-         const randomOffset = Math.floor(Math.random() * 60) - 30; 
-         
-         const targetX = viewportCenter - itemCenter + randomOffset;
-         
-         track.style.transition = 'transform 5s cubic-bezier(0.1, 0.8, 0.1, 1)';
-         track.style.transform = `translateX(${targetX}px)`;
-         
          setTimeout(() => {
-             if(winningItem.isNft) {
-                 userInventory.push(winningItem);
+             let totalTonWon = 0;
+             let nftCount = 0;
+
+             winningItems.forEach(item => {
+                 if(item.isNft) {
+                     userInventory.push(item);
+                     nftCount++;
+                 } else {
+                     totalTonWon += item.val;
+                 }
+             });
+
+             if(nftCount > 0) {
                  localStorage.setItem('user_inventory', JSON.stringify(userInventory));
                  renderInventory();
-                 showToast(`🎉 Вы получили NFT за ${winningItem.val} TON!`);
-             } else {
-                 balance += winningItem.val;
+             }
+
+             if(totalTonWon > 0) {
+                 balance += totalTonWon;
                  localStorage.setItem('user_balance', balance.toFixed(2));
                  document.getElementById('balance-display').innerText = balance.toFixed(2);
-                 showToast(`🎉 Вы выиграли ${winningItem.val} TON!`);
+             }
+
+             if(nftCount > 0 && totalTonWon > 0) {
+                 showToast(`🎉 Вы выиграли ${totalTonWon.toFixed(2)} TON и ${nftCount} NFT!`);
+             } else if (nftCount > 0) {
+                 showToast(`🎉 Вы получили ${nftCount} NFT! Проверьте профиль.`);
+             } else {
+                 showToast(`🎉 Вы выиграли ${totalTonWon.toFixed(2)} TON!`);
              }
              
              if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
@@ -1443,5 +1556,4 @@
      loop();
  </script>
 </body>
-</html>
-
+ </html>
