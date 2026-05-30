@@ -52,6 +52,7 @@
      .inventory-carousel::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); border-radius: 10px; }
      .inventory-carousel::-webkit-scrollbar-thumb { background: var(--accent-color); border-radius: 10px; }
      .inventory-cell { 
+         /* Вычисляем ширину так, чтобы с учетом gap в 10px ровно 3 ячейки занимали 100% ширины контейнера (300px) */
          flex: 0 0 calc((100% - 20px) / 3); 
          height: 90px; 
          background: rgba(255, 255, 255, 0.03); 
@@ -71,7 +72,7 @@
 
      /* Доп. стили для NFT в инвентаре */
      .inventory-item-box { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
-     .nft-label { position: absolute; top: 4px; left: 4px; font-size: 8px; font-weight: 800; background: var(--accent-color); color: white; padding: 2px 4px; border-radius: 4px; text-transform: uppercase; z-index: 2; }
+     .nft-label { position: absolute; top: 4px; left: 4px; font-size: 8px; font-weight: 800; background: var(--accent-color); color: white; padding: 2px 4px; border-radius: 4px; text-transform: uppercase; }
      .nft-img { width: 35px; height: 35px; object-fit: contain; margin-bottom: 2px; margin-top: 8px; }
      .nft-val { font-size: 10px; color: var(--ton-blue); font-weight: bold; margin-bottom: 4px; }
      .nft-actions { display: flex; gap: 4px; }
@@ -176,6 +177,10 @@
      .roulette-item span { font-size: 12px; font-weight: 700; color: #ffffff; }
      
      .possible-drops-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; max-height: 180px; overflow-y: auto; margin-top: 5px; padding-right: 5px; }
+     .possible-drops-grid::-webkit-scrollbar { width: 4px; }
+     .possible-drops-grid::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 4px; }
+     .possible-drops-grid::-webkit-scrollbar-thumb { background: var(--accent-color); border-radius: 4px; }
+
      .drop-item { background: rgba(255, 255, 255, 0.03); border-radius: 8px; padding: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid rgba(255, 255, 255, 0.05); }
      .drop-item img { width: 60px; height: 60px; object-fit: contain; margin-bottom: 5px; }
      .drop-item span { font-size: 11px; font-weight: 600; color: #ffffff; text-align: center; }
@@ -226,9 +231,10 @@
                  <img src="https://i.postimg.cc/Gp0CvcNt/lv-0-20260529112824.png" alt="Promo Case" class="case-img">
                  <div class="case-name">PROMO</div>
              </div>
-             <div class="case-card" onclick="openPaidCaseModal()">
-                 <img src="https://i.postimg.cc/B6HxHP51/content-(16).png" alt="Paid Case" class="case-img">
-                 <div class="case-name">PREMIUM</div>
+             
+             <div class="case-card" onclick="openHomelessCaseModal()">
+                 <img src="https://i.postimg.cc/FzG97mR3/lv-0-20260529222543.png" alt="Homeless Case" class="case-img">
+                 <div class="case-name">HOMELESS</div>
              </div>
          </div>
      </div>
@@ -353,43 +359,55 @@
              <div class="drop-item"><img src="https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png"><span>0.5 TON</span></div>
              <div class="drop-item"><img src="https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png"><span>1 TON</span></div>
              <div class="drop-item" style="position: relative;">
-                 <span class="nft-label">NFT</span>
+                 <span style="position: absolute; top: 2px; left: 4px; font-size: 8px; font-weight: bold; background: var(--accent-color); padding: 2px 4px; border-radius: 4px; color: white; text-transform: uppercase;">NFT</span>
                  <img src="https://i.postimg.cc/65V0wwJ8/ezgif-com-effects-(3).gif"><span>2 TON</span>
              </div>
          </div>
      </div>
  </div>
 
- <div id="paid-case-modal" class="case-modal-overlay">
-    <div class="case-modal-content">
-        <div id="close-paid-case-btn" class="close-case-modal" onclick="closePaidCaseModal()">✕</div>
-        <h3 style="text-align: center; font-size: 18px;">Премиум Кейс</h3>
-        
-        <div class="roulette-viewport">
-            <div class="roulette-marker"></div>
-            <div id="paid-roulette-track" class="roulette-track"></div>
-        </div>
-
-        <button id="spin-paid-case-btn" class="btn btn-fill" style="width: 100%; margin: 15px 0 20px 0; display: flex; justify-content: center; align-items: center; gap: 5px;" onclick="spinPaidCase()">
-            Открыть за 1 <img src="https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png" style="width: 16px; height: 16px;">
-        </button>
-        
-        <h4 style="color: var(--text-muted); font-size: 13px; margin-bottom: 8px; text-align: center;">Что может выпасть:</h4>
-        <div class="possible-drops-grid">
-            <div class="drop-item"><img src="https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png"><span>0.1 TON</span></div>
-            <div class="drop-item"><img src="https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png"><span>0.2 TON</span></div>
-            <div class="drop-item"><img src="https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png"><span>0.5 TON</span></div>
-            <div class="drop-item"><img src="https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png"><span>1 TON</span></div>
-            <div class="drop-item"><img src="https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png"><span>1.5 TON</span></div>
-            <div class="drop-item"><img src="https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png"><span>2 TON</span></div>
-            
-            <div class="drop-item" style="position: relative;"><span class="nft-label">NFT</span><img src="https://i.postimg.cc/65V0wwJ8/ezgif-com-effects-(3).gif"><span>2 TON</span></div>
-            <div class="drop-item" style="position: relative;"><span class="nft-label">NFT</span><img src="https://i.postimg.cc/c41bxFhZ/ezgif-com-effects-(4).gif"><span>2 TON</span></div>
-            <div class="drop-item" style="position: relative;"><span class="nft-label">NFT</span><img src="https://i.postimg.cc/7YCWcmN2/ezgif-com-video-to-gif-converter-(1).gif"><span>2.5 TON</span></div>
-            <div class="drop-item" style="position: relative;"><span class="nft-label">NFT</span><img src="https://i.postimg.cc/wMrbMm9D/ezgif-com-video-to-gif-converter.gif"><span>3.9 TON</span></div>
-        </div>
-    </div>
-</div>
+ <div id="homeless-case-modal" class="case-modal-overlay">
+     <div class="case-modal-content">
+         <div id="close-homeless-case-btn" class="close-case-modal" onclick="closeHomelessCaseModal()">✕</div>
+         <h3 style="text-align: center; font-size: 18px;">Homeless Кейс</h3>
+         
+         <div class="roulette-viewport">
+             <div class="roulette-marker"></div>
+             <div id="homeless-roulette-track" class="roulette-track"></div>
+         </div>
+         
+         <button id="spin-homeless-case-btn" class="btn btn-fill" style="width: 100%; margin: 15px 0 20px 0; display: flex; justify-content: center; align-items: center; gap: 5px;" onclick="spinHomelessCase()">
+             Открыть за 1 <img src="https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png" style="width: 16px; height: 16px;">
+         </button>
+         
+         <h4 style="color: var(--text-muted); font-size: 13px; margin-bottom: 8px; text-align: center;">Что может выпасть:</h4>
+         <div class="possible-drops-grid">
+             <div class="drop-item"><img src="https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png"><span>0.1 TON</span></div>
+             <div class="drop-item"><img src="https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png"><span>0.2 TON</span></div>
+             <div class="drop-item"><img src="https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png"><span>0.5 TON</span></div>
+             <div class="drop-item"><img src="https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png"><span>1 TON</span></div>
+             <div class="drop-item"><img src="https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png"><span>1.5 TON</span></div>
+             <div class="drop-item"><img src="https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png"><span>2 TON</span></div>
+             
+             <div class="drop-item" style="position: relative;">
+                 <span style="position: absolute; top: 2px; left: 4px; font-size: 8px; font-weight: bold; background: var(--accent-color); padding: 2px 4px; border-radius: 4px; color: white; text-transform: uppercase;">NFT</span>
+                 <img src="https://i.postimg.cc/65V0wwJ8/ezgif-com-effects-(3).gif"><span>2 TON</span>
+             </div>
+             <div class="drop-item" style="position: relative;">
+                 <span style="position: absolute; top: 2px; left: 4px; font-size: 8px; font-weight: bold; background: var(--accent-color); padding: 2px 4px; border-radius: 4px; color: white; text-transform: uppercase;">NFT</span>
+                 <img src="https://i.postimg.cc/c41bxFhZ/ezgif-com-effects-(4).gif"><span>2 TON</span>
+             </div>
+             <div class="drop-item" style="position: relative;">
+                 <span style="position: absolute; top: 2px; left: 4px; font-size: 8px; font-weight: bold; background: var(--accent-color); padding: 2px 4px; border-radius: 4px; color: white; text-transform: uppercase;">NFT</span>
+                 <img src="https://i.postimg.cc/L6RRLqKc/ezgif-com-effects-(5).gif"><span>2.5 TON</span>
+             </div>
+             <div class="drop-item" style="position: relative;">
+                 <span style="position: absolute; top: 2px; left: 4px; font-size: 8px; font-weight: bold; background: var(--accent-color); padding: 2px 4px; border-radius: 4px; color: white; text-transform: uppercase;">NFT</span>
+                 <img src="https://i.postimg.cc/4yvYPr3y/ezgif-com-effects-(6).gif"><span>3.9 TON</span>
+             </div>
+         </div>
+     </div>
+ </div>
 
  <div id="promo-overlay">
      <div style="text-align: right; cursor: pointer; margin-bottom: 10px;" onclick="hidePromo()">✕</div>
@@ -924,7 +942,7 @@
      function createPromoRouletteItemNode(item) {
          let div = document.createElement('div');
          div.className = 'roulette-item';
-         let nftTag = item.isNft ? `<span class="nft-label">NFT</span>` : '';
+         let nftTag = item.isNft ? `<span style="position: absolute; top: 2px; left: 4px; font-size: 8px; font-weight: bold; background: var(--accent-color); padding: 2px 4px; border-radius: 4px; color: white; text-transform: uppercase;">NFT</span>` : '';
          div.style.position = "relative";
          div.innerHTML = `${nftTag}<img src="${item.img}"><span>${item.val} TON</span>`;
          return div;
@@ -955,7 +973,7 @@
          
          const totalItems = 35;
          const winnerIndex = 26; 
-         const winningItem = getWeightedPromoReward();
+         const winningItem = getWeightedPromoReward(); 
          
          for (let i = 0; i < totalItems; i++) {
              let item = (i === winnerIndex) ? winningItem : promoCaseRewards[Math.floor(Math.random() * promoCaseRewards.length)];
@@ -995,100 +1013,102 @@
          }, 5200);
      }
 
-     // === ЛОГИКА НОВОГО ПЛАТНОГО КЕЙСА ===
-     let isSpinningPaidCase = false;
+     // === ЛОГИКА НОВОГО КЕЙСА "HOMELESS" ===
+     let isSpinningHomelessCase = false;
      
-     const paidCaseRewards = [
+     const homelessCaseRewards = [
          { val: 0.1, chance: 0.05, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
          { val: 0.2, chance: 0.10, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
          { val: 0.5, chance: 0.32, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
-         { val: 1,   chance: 0.30, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
+         { val: 1.0, chance: 0.30, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
          { val: 1.5, chance: 0.15, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
-         { val: 2,   chance: 0.05, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
-         { val: 2,   chance: 0.01, img: 'https://i.postimg.cc/65V0wwJ8/ezgif-com-effects-(3).gif', isNft: true },
-         { val: 2,   chance: 0.01, img: 'https://i.postimg.cc/c41bxFhZ/ezgif-com-effects-(4).gif', isNft: true },
-         { val: 2.5, chance: 0.008, img: 'https://i.postimg.cc/7YCWcmN2/ezgif-com-video-to-gif-converter-(1).gif', isNft: true },
-         { val: 3.9, chance: 0.002, img: 'https://i.postimg.cc/wMrbMm9D/ezgif-com-video-to-gif-converter.gif', isNft: true }
+         { val: 2.0, chance: 0.05, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
+         { val: 2.0, chance: 0.01, img: 'https://i.postimg.cc/65V0wwJ8/ezgif-com-effects-(3).gif', isNft: true },
+         { val: 2.0, chance: 0.01, img: 'https://i.postimg.cc/c41bxFhZ/ezgif-com-effects-(4).gif', isNft: true },
+         { val: 2.5, chance: 0.008, img: 'https://i.postimg.cc/L6RRLqKc/ezgif-com-effects-(5).gif', isNft: true },
+         { val: 3.9, chance: 0.002, img: 'https://i.postimg.cc/4yvYPr3y/ezgif-com-effects-(6).gif', isNft: true }
      ];
 
-     function openPaidCaseModal() {
-         if (isSpinningPaidCase) return;
-         document.getElementById('paid-case-modal').classList.add('visible');
-         buildPaidInitialTrack();
+     function openHomelessCaseModal() {
+         if (isSpinningHomelessCase) return;
+         document.getElementById('homeless-case-modal').classList.add('visible');
+         buildHomelessInitialTrack();
      }
 
-     function closePaidCaseModal() {
-         if (isSpinningPaidCase) return;
-         document.getElementById('paid-case-modal').classList.remove('visible');
+     function closeHomelessCaseModal() {
+         if (isSpinningHomelessCase) return;
+         document.getElementById('homeless-case-modal').classList.remove('visible');
      }
 
-     document.getElementById('paid-case-modal').addEventListener('click', function(e) {
-         if (e.target === this) closePaidCaseModal();
+     document.getElementById('homeless-case-modal').addEventListener('click', function(e) {
+         if (e.target === this) closeHomelessCaseModal();
      });
 
-     function getWeightedPaidReward() {
+     function getWeightedHomelessReward() {
          let r = Math.random();
          let cumulative = 0;
-         for (let item of paidCaseRewards) {
+         for (let item of homelessCaseRewards) {
              cumulative += item.chance;
              if (r <= cumulative) return item;
          }
-         return paidCaseRewards[0];
+         return homelessCaseRewards[0];
      }
 
-     function createPaidRouletteItemNode(item) {
+     function createHomelessRouletteItemNode(item) {
          let div = document.createElement('div');
          div.className = 'roulette-item';
-         let nftTag = item.isNft ? `<span class="nft-label">NFT</span>` : '';
+         let nftTag = item.isNft ? `<span style="position: absolute; top: 2px; left: 4px; font-size: 8px; font-weight: bold; background: var(--accent-color); padding: 2px 4px; border-radius: 4px; color: white; text-transform: uppercase;">NFT</span>` : '';
          div.style.position = "relative";
          div.innerHTML = `${nftTag}<img src="${item.img}"><span>${item.val} TON</span>`;
          return div;
      }
 
-     function buildPaidInitialTrack() {
-         const track = document.getElementById('paid-roulette-track');
+     function buildHomelessInitialTrack() {
+         const track = document.getElementById('homeless-roulette-track');
          track.style.transition = 'none';
          track.style.transform = 'translateX(0px)';
          track.innerHTML = '';
          for (let i = 0; i < 6; i++) {
-             let item = paidCaseRewards[Math.floor(Math.random() * paidCaseRewards.length)];
-             track.appendChild(createPaidRouletteItemNode(item));
+             let item = homelessCaseRewards[Math.floor(Math.random() * homelessCaseRewards.length)];
+             track.appendChild(createHomelessRouletteItemNode(item));
          }
      }
 
-     function spinPaidCase() {
-         if (isSpinningPaidCase) return;
-         
+     function spinHomelessCase() {
+         if (isSpinningHomelessCase) return;
+
          if (balance < 1) {
-             showToast("Недостаточно средств! (Нужен 1 TON)");
+             showToast("Недостаточно средств (нужен 1 TON)!");
              return;
          }
-
+         
+         // Списание средств за открытие кейса
          balance -= 1;
          localStorage.setItem('user_balance', balance.toFixed(2));
          document.getElementById('balance-display').innerText = balance.toFixed(2);
 
-         isSpinningPaidCase = true;
-         document.getElementById('spin-paid-case-btn').disabled = true;
-         document.getElementById('close-paid-case-btn').classList.add('disabled');
+         isSpinningHomelessCase = true;
          
-         const track = document.getElementById('paid-roulette-track');
+         document.getElementById('spin-homeless-case-btn').disabled = true;
+         document.getElementById('close-homeless-case-btn').classList.add('disabled');
+         
+         const track = document.getElementById('homeless-roulette-track');
          track.style.transition = 'none';
          track.style.transform = 'translateX(0px)';
          track.innerHTML = '';
          
          const totalItems = 35;
          const winnerIndex = 26; 
-         const winningItem = getWeightedPaidReward(); 
+         const winningItem = getWeightedHomelessReward(); 
          
          for (let i = 0; i < totalItems; i++) {
-             let item = (i === winnerIndex) ? winningItem : paidCaseRewards[Math.floor(Math.random() * paidCaseRewards.length)];
-             track.appendChild(createPaidRouletteItemNode(item));
+             let item = (i === winnerIndex) ? winningItem : homelessCaseRewards[Math.floor(Math.random() * homelessCaseRewards.length)];
+             track.appendChild(createHomelessRouletteItemNode(item));
          }
          
          track.offsetHeight; 
          
-         const viewportWidth = document.querySelector('#paid-case-modal .roulette-viewport').clientWidth;
+         const viewportWidth = document.querySelector('#homeless-case-modal .roulette-viewport').clientWidth;
          const viewportCenter = viewportWidth / 2;
          const itemCenter = (winnerIndex * 100) + 50; 
          const randomOffset = Math.floor(Math.random() * 60) - 30; 
@@ -1113,9 +1133,9 @@
              
              if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
              
-             isSpinningPaidCase = false;
-             document.getElementById('spin-paid-case-btn').disabled = false;
-             document.getElementById('close-paid-case-btn').classList.remove('disabled');
+             isSpinningHomelessCase = false;
+             document.getElementById('spin-homeless-case-btn').disabled = false;
+             document.getElementById('close-homeless-case-btn').classList.remove('disabled');
          }, 5200);
      }
 
