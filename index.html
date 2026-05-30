@@ -203,7 +203,13 @@
  <div class="bg-characters"></div>
 
  <div id="loading-screen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #2a2a2a; z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease;">
-     <img src="https://i.postimg.cc/PxbfNvqk/animation-gif-ezgif-com-effects.gif" alt="Loading" style="width: 150px; margin-bottom: 20px;">
+     
+     <div style="position: relative; width: 150px; height: 150px; margin-bottom: 20px;">
+         <div id="loading-title" style="position: absolute; top: -35px; left: 50%; transform: translateX(-50%); font-size: 28px; font-weight: 800; color: var(--accent-color); opacity: 0; white-space: nowrap; text-shadow: 0 0 10px rgba(157, 78, 221, 0.8);">RedoGift</div>
+         <img id="loading-rocket" src="https://i.postimg.cc/PxbfNvqk/animation-gif-ezgif-com-effects.gif" alt="Loading Rocket" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; opacity: 1;">
+         <img id="loading-char" src="https://i.postimg.cc/HkVN4cW3/lv-0-20260530183726.png" alt="Loading Character" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; opacity: 0;">
+     </div>
+
      <div style="width: 80%; max-width: 300px; height: 15px; background: rgba(0,0,0,0.5); border-radius: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1);">
          <div id="loading-bar-fill" style="height: 100%; width: 0%; background: hsl(0, 100%, 50%); transition: width 0.1s linear, background-color 0.1s linear;"></div>
      </div>
@@ -659,6 +665,9 @@
          const loadingScreen = document.getElementById('loading-screen');
          const loadingBarFill = document.getElementById('loading-bar-fill');
          const loadingText = document.getElementById('loading-text');
+         const loadingRocket = document.getElementById('loading-rocket');
+         const loadingChar = document.getElementById('loading-char');
+         const loadingTitle = document.getElementById('loading-title');
 
          renderInventory(); 
 
@@ -669,6 +678,18 @@
 
          const loadingInterval = setInterval(() => {
              progress += step;
+             
+             // --- НОВАЯ ЛОГИКА ПЛАВНОГО ИСЧЕЗНОВЕНИЯ/ПОЯВЛЕНИЯ ---
+             if (progress >= 60 && progress <= 80) {
+                 let fadeProgress = (progress - 60) / 20; // от 0 до 1
+                 if (loadingRocket) loadingRocket.style.opacity = 1 - fadeProgress;
+                 if (loadingChar) loadingChar.style.opacity = fadeProgress;
+                 if (loadingTitle) loadingTitle.style.opacity = fadeProgress;
+             } else if (progress > 80) {
+                 if (loadingRocket) loadingRocket.style.opacity = 0;
+                 if (loadingChar) loadingChar.style.opacity = 1;
+                 if (loadingTitle) loadingTitle.style.opacity = 1;
+             }
              
              if (progress >= 100) {
                  progress = 100;
@@ -1661,4 +1682,4 @@
      loop();
  </script>
 </body>
-          </html>
+                  </html>
