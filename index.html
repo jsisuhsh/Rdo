@@ -45,7 +45,7 @@
      .btn-blue { background-color: var(--ton-blue); color: white; }
 
      /* СТИЛИ ИНВЕНТАРЯ ДЛЯ ПРОФИЛЯ */
-     .inventory-section { width: 300px; margin-top: 25px; display: flex; flex-direction: column; align-items: flex-start; }
+     .inventory-section { width: 300px; margin-top: 25px; display: flex; flex-direction: column; align-items: flex-start; position: relative; }
      .inventory-title { font-size: 16px; font-weight: bold; color: var(--text-color); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
      .inventory-carousel { width: 100%; overflow-x: auto; overflow-y: hidden; display: flex; gap: 10px; padding-bottom: 10px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
      .inventory-carousel::-webkit-scrollbar { height: 4px; }
@@ -78,6 +78,25 @@
      .nft-btn { font-size: 8px; font-weight: bold; padding: 3px 5px; border: none; border-radius: 4px; cursor: pointer; color: white; }
      .nft-btn-withdraw { background: var(--ton-blue); }
      .nft-btn-sell { background: var(--green-color); }
+
+     /* АДМИН ПАНЕЛЬ - КНОПКА */
+     #admin-trigger { position: absolute; bottom: 0px; left: 0px; font-size: 10px; color: rgba(255,255,255,0.3); cursor: pointer; padding: 10px; font-weight: bold; z-index: 100; }
+     /* АДМИН ПАНЕЛЬ - МОДАЛКИ */
+     .admin-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.95); z-index: 30000; display: none; align-items: center; justify-content: center; padding: 20px; overflow-y: auto; }
+     .admin-modal-overlay.visible { display: flex; }
+     .admin-modal-content { background: #1c1924; border-radius: 20px; width: 100%; max-width: 400px; padding: 25px; border: 1px solid var(--accent-color); position: relative; margin: auto; }
+     .admin-close { position: absolute; top: 15px; right: 15px; font-size: 20px; cursor: pointer; color: var(--text-muted); }
+     .admin-input { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 10px; border-radius: 10px; color: white; margin-bottom: 15px; }
+     .admin-btn { width: 100%; background: var(--accent-color); border: none; padding: 10px; border-radius: 10px; color: white; font-weight: bold; cursor: pointer; margin-bottom: 10px; }
+     .admin-balance-controls { display: flex; gap: 10px; margin-bottom: 15px; }
+     .admin-balance-controls button { flex: 1; border: none; padding: 10px; font-weight: bold; cursor: pointer; border-radius: 10px; color: white; }
+     .btn-minus { background: #dc3545; }
+     .btn-plus { background: #28a745; }
+     .admin-nft-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; max-height: 150px; overflow-y: auto; margin-bottom: 15px; padding-right: 5px; }
+     .admin-nft-item { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 5px; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
+     .admin-nft-item img { width: 40px; height: 40px; object-fit: contain; margin-bottom: 5px; }
+     .admin-nft-item span { font-size: 10px; color: var(--ton-blue); font-weight: bold; }
+     .admin-history { max-height: 100px; overflow-y: auto; font-size: 12px; color: var(--text-muted); border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px; margin-top: 10px; }
 
      nav { height: 80px; background: var(--container-bg); border-top: 1px solid rgba(60, 53, 74, 0.5); display: flex; justify-content: space-around; align-items: center; padding-bottom: 5px; backdrop-filter: blur(10px); position: relative; z-index: 10; }
      .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-muted); cursor: pointer; padding: 5px; width: 33%; font-size: 13px; }
@@ -319,6 +338,8 @@
                  <div class="inventory-carousel" id="inventory-carousel-box">
                      </div>
              </div>
+             
+             <div id="admin-trigger" onclick="openAdminAuth()">!</div>
          </div>
      </div>
  </main>
@@ -493,6 +514,49 @@
      <button class="btn btn-fill" style="width: 100%;" onclick="activatePromoCode()">Активировать</button>
  </div>
 
+ <div id="admin-auth-modal" class="admin-modal-overlay">
+     <div class="admin-modal-content">
+         <div class="admin-close" onclick="closeAdminAuth()">✕</div>
+         <h3 style="text-align:center; margin-bottom:15px;">Доступ</h3>
+         <input type="password" id="admin-password-input" class="admin-input" placeholder="Введите пароль">
+         <button class="admin-btn" onclick="checkAdminPassword()">Войти</button>
+     </div>
+ </div>
+
+ <div id="admin-main-modal" class="admin-modal-overlay">
+     <div class="admin-modal-content">
+         <div class="admin-close" onclick="closeAdminMain()">✕</div>
+         <h3 style="text-align:center; margin-bottom:15px;">Admin Panel</h3>
+         
+         <div id="admin-search-section">
+             <input type="text" id="admin-user-input" class="admin-input" placeholder="@username игрока">
+             <button class="admin-btn" onclick="searchUser()">Найти игрока</button>
+         </div>
+
+         <div id="admin-control-section" style="display:none;">
+             <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:10px; margin-bottom:15px;">
+                 <p style="margin-bottom:5px;"><strong>Игрок:</strong> <span id="admin-display-user" style="color:var(--accent-color);"></span></p>
+                 <p style="margin-bottom:5px;"><strong>Баланс:</strong> <span id="admin-display-balance" style="color:var(--ton-blue);"></span> TON</p>
+                 <p style="margin-bottom:5px; font-size:12px;"><strong>Инвентарь:</strong> <span id="admin-display-inventory" style="color:var(--text-muted);"></span></p>
+             </div>
+
+             <input type="number" id="admin-amount-input" class="admin-input" placeholder="Сумма TON">
+             <div class="admin-balance-controls">
+                 <button class="btn-minus" onclick="adminChangeBalance(-1)">Списать (-)</button>
+                 <button class="btn-plus" onclick="adminChangeBalance(1)">Пополнить (+)</button>
+             </div>
+
+             <h4 style="font-size:14px; margin-bottom:10px;">Добавить NFT игроку:</h4>
+             <div class="admin-nft-list" id="admin-nft-list-container">
+                 </div>
+
+             <div class="admin-history" id="admin-history-log">
+                 <div style="text-align:center; margin-bottom:5px;">-- История операций --</div>
+             </div>
+         </div>
+     </div>
+ </div>
+
  <nav>
      <div class="nav-item active" data-target="tab-cases"><span class="nav-icon"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg></span>Кейсы</div>
      <div class="nav-item" data-target="tab-crash"><span class="nav-icon"><span class="nav-counter"></span></span>Краш</div>
@@ -501,6 +565,131 @@
 
  <script src="https://telegram.org/js/telegram-web-app.js"></script>
  <script>
+     // === АДМИН ПАНЕЛЬ ЛОГИКА ===
+     const ADMIN_PASS = "redogift12admin5gdue8";
+     let adminHistory = JSON.parse(localStorage.getItem('admin_history')) || [];
+     
+     // Все доступные NFT в игре для админ панели
+     const allAvailableNfts = [
+         { val: 2.0, img: 'https://i.postimg.cc/65V0wwJ8/ezgif-com-effects-(3).gif', isNft: true },
+         { val: 2.0, img: 'https://i.postimg.cc/c41bxFhZ/ezgif-com-effects-(4).gif', isNft: true },
+         { val: 2.5, img: 'https://i.postimg.cc/L6RRLqKc/ezgif-com-effects-(5).gif', isNft: true },
+         { val: 3.9, img: 'https://i.postimg.cc/4yvYPr3y/ezgif-com-effects-(6).gif', isNft: true },
+         { val: 3.5, img: 'https://i.postimg.cc/YCWd38St/ezgif-com-effects-(8).gif', isNft: true },
+         { val: 2.8, img: 'https://i.postimg.cc/3JWSy352/ezgif-com-effects-(7).gif', isNft: true }
+     ];
+
+     function openAdminAuth() { document.getElementById('admin-auth-modal').classList.add('visible'); }
+     function closeAdminAuth() { document.getElementById('admin-auth-modal').classList.remove('visible'); }
+     function closeAdminMain() { 
+         document.getElementById('admin-main-modal').classList.remove('visible'); 
+         document.getElementById('admin-control-section').style.display = 'none';
+         document.getElementById('admin-search-section').style.display = 'block';
+         document.getElementById('admin-user-input').value = '';
+     }
+
+     function checkAdminPassword() {
+         const pass = document.getElementById('admin-password-input').value;
+         if (pass === ADMIN_PASS) {
+             closeAdminAuth();
+             document.getElementById('admin-password-input').value = '';
+             document.getElementById('admin-main-modal').classList.add('visible');
+             renderAdminNftList();
+             renderAdminHistory();
+         } else {
+             showToast("Неверный пароль!");
+         }
+     }
+
+     function searchUser() {
+         const userInput = document.getElementById('admin-user-input').value.trim();
+         // Эмуляция проверки (т.к. нет БД): Игрок найден, если совпадает с текущим ником или это Гость
+         let formattedRaw = rawUsername.startsWith('@') ? rawUsername : '@' + rawUsername;
+         let formattedInput = userInput.startsWith('@') ? userInput : '@' + userInput;
+
+         if (formattedInput.toLowerCase() === formattedRaw.toLowerCase() || formattedInput.toLowerCase() === '@гость') {
+             document.getElementById('admin-search-section').style.display = 'none';
+             document.getElementById('admin-control-section').style.display = 'block';
+             
+             document.getElementById('admin-display-user').innerText = formattedInput;
+             updateAdminPanelStats();
+         } else {
+             showToast("Игрок не найден!");
+         }
+     }
+
+     function updateAdminPanelStats() {
+         document.getElementById('admin-display-balance').innerText = balance.toFixed(2);
+         let invStr = userInventory.length > 0 ? userInventory.length + " шт." : "Пусто";
+         document.getElementById('admin-display-inventory').innerText = invStr;
+     }
+
+     function adminChangeBalance(multiplier) {
+         let amountInput = document.getElementById('admin-amount-input').value.trim();
+         if (!amountInput) return;
+         let amount = parseFloat(amountInput);
+         if (isNaN(amount) || amount <= 0) { showToast("Неверная сумма!"); return; }
+
+         let realChange = amount * multiplier;
+         
+         if (multiplier === -1 && balance < amount) {
+             showToast("У игрока недостаточно средств для списания!");
+             return;
+         }
+
+         balance += realChange;
+         localStorage.setItem('user_balance', balance.toFixed(2));
+         document.getElementById('balance-display').innerText = balance.toFixed(2);
+         updateAdminPanelStats();
+
+         let actionText = multiplier === 1 ? `Пополнение: +${amount} TON` : `Списание: -${amount} TON`;
+         logAdminAction(actionText);
+         document.getElementById('admin-amount-input').value = '';
+         showToast("Баланс игрока обновлен!");
+     }
+
+     function renderAdminNftList() {
+         const container = document.getElementById('admin-nft-list-container');
+         container.innerHTML = '';
+         allAvailableNfts.forEach((nft, index) => {
+             let div = document.createElement('div');
+             div.className = 'admin-nft-item';
+             div.onclick = () => adminGiveNft(index);
+             div.innerHTML = `<img src="${nft.img}"><span>${nft.val} TON</span>`;
+             container.appendChild(div);
+         });
+     }
+
+     function adminGiveNft(index) {
+         let nft = allAvailableNfts[index];
+         userInventory.push(nft);
+         localStorage.setItem('user_inventory', JSON.stringify(userInventory));
+         renderInventory();
+         updateAdminPanelStats();
+         logAdminAction(`Выдан NFT (Цена: ${nft.val} TON)`);
+         showToast("NFT добавлен в инвентарь игрока!");
+     }
+
+     function logAdminAction(text) {
+         let date = new Date().toLocaleTimeString();
+         adminHistory.unshift(`[${date}] ${text}`);
+         if (adminHistory.length > 20) adminHistory.pop();
+         localStorage.setItem('admin_history', JSON.stringify(adminHistory));
+         renderAdminHistory();
+     }
+
+     function renderAdminHistory() {
+         const log = document.getElementById('admin-history-log');
+         log.innerHTML = '<div style="text-align:center; margin-bottom:5px;">-- История операций --</div>';
+         adminHistory.forEach(entry => {
+             let p = document.createElement('div');
+             p.style.marginBottom = "3px";
+             p.innerText = entry;
+             log.appendChild(p);
+         });
+     }
+
+
      // === ИНВЕНТАРЬ И NFT ЛОГИКА ===
      let userInventory = JSON.parse(localStorage.getItem('user_inventory')) || [];
 
@@ -679,7 +868,6 @@
          const loadingInterval = setInterval(() => {
              progress += step;
              
-             // --- НОВАЯ ЛОГИКА ПЛАВНОГО ИСЧЕЗНОВЕНИЯ/ПОЯВЛЕНИЯ ---
              if (progress >= 60 && progress <= 80) {
                  let fadeProgress = (progress - 60) / 20; // от 0 до 1
                  if (loadingRocket) loadingRocket.style.opacity = 1 - fadeProgress;
@@ -871,7 +1059,7 @@
              if (amount > balance) return;
              
              currentBet = amount; 
-             currentBetIsNft = false; // Сбрасываем флаг NFT при обычной ставке
+             currentBetIsNft = false; 
              currentBetNftImg = "";
              
              balance -= amount;
@@ -1682,4 +1870,4 @@
      loop();
  </script>
 </body>
-                  </html>
+  </html>
