@@ -282,6 +282,8 @@
              <input type="number" id="bet-amount" class="bet-input" placeholder="0.00 TON">
              <button id="bet-btn" class="bet-btn" onclick="processBetAction()">Поставить</button>
          </div>
+         
+         <button class="btn btn-outline" style="width: 100%; max-width: 350px; margin: 10px auto 0 auto; display: block;" onclick="openNftBetModal()">Ставка NFT</button>
 
          <div class="bets-list" id="bets-list-container">
              <div class="bet-row current-user">
@@ -469,6 +471,15 @@
      </div>
  </div>
 
+ <div id="nft-bet-modal" class="case-modal-overlay">
+     <div class="case-modal-content">
+         <div class="close-case-modal" onclick="closeNftBetModal()">✕</div>
+         <h3 style="text-align: center; font-size: 18px;">Выберите NFT для ставки</h3>
+         <div class="possible-drops-grid" id="nft-bet-grid" style="margin-top:15px; max-height: 300px; overflow-y: auto;">
+         </div>
+     </div>
+ </div>
+
  <div id="promo-overlay">
      <div style="text-align: right; cursor: pointer; margin-bottom: 10px;" onclick="hidePromo()">✕</div>
      <h3>Введите промокод</h3>
@@ -531,6 +542,70 @@
          showToast("Функция вывода в разработке!");
      }
 
+     // === ЛОГИКА СТАВКИ NFT В КРАШЕ ===
+     let currentBetIsNft = false;
+     let currentBetNftImg = "";
+
+     function openNftBetModal() {
+         if (isPlaying) {
+             showToast("Дождитесь окончания раунда!");
+             return;
+         }
+         const modal = document.getElementById('nft-bet-modal');
+         const grid = document.getElementById('nft-bet-grid');
+         grid.innerHTML = '';
+         
+         if (userInventory.length === 0) {
+             grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 20px;">Инвентарь пуст</div>';
+         } else {
+             userInventory.forEach((item, index) => {
+                 let div = document.createElement('div');
+                 div.className = 'drop-item';
+                 div.style.cursor = 'pointer';
+                 div.style.position = 'relative';
+                 div.onclick = () => selectNftForBet(index);
+                 div.innerHTML = `
+                     <span style="position: absolute; top: 2px; left: 4px; font-size: 8px; font-weight: bold; background: var(--accent-color); padding: 2px 4px; border-radius: 4px; color: white; text-transform: uppercase;">NFT</span>
+                     <img src="${item.img}" style="width:60px; height:60px; object-fit:contain; margin-bottom:5px;">
+                     <span style="font-size:11px; font-weight:600; color:#fff;">${item.val} TON</span>
+                 `;
+                 grid.appendChild(div);
+             });
+         }
+         modal.classList.add('visible');
+     }
+
+     function closeNftBetModal() {
+         document.getElementById('nft-bet-modal').classList.remove('visible');
+     }
+
+     function selectNftForBet(index) {
+         if (isPlaying) return;
+         
+         let item = userInventory[index];
+         currentBet = item.val;
+         currentBetIsNft = true;
+         currentBetNftImg = item.img;
+         
+         // Удаляем NFT из инвентаря при ставке
+         userInventory.splice(index, 1);
+         localStorage.setItem('user_inventory', JSON.stringify(userInventory));
+         renderInventory(); 
+         
+         closeNftBetModal();
+         
+         // Отправляем ставку на сервер с инфой что это NFT
+         socket.emit('bet', { username: rawUsername, amount: currentBet, avatarLetter: userLetter, isNft: true, nftImg: currentBetNftImg });
+         
+         isPlaying = true; 
+         userCashedOut = false; 
+         userWinAmount = 0; 
+         betBtn.innerText = "Забрать"; 
+         betBtn.classList.add('cashout'); 
+         showToast("NFT ставка принята!");
+     }
+
+
      // === ЛОГИКА ОПРЕДЕЛЕНИЯ КЛИКОВ ПО КНОПКАМ ПОДПИСОК (DAILY) ===
      let clickedChat = false;
      let clickedChannel = false;
@@ -576,7 +651,7 @@
          const loadingBarFill = document.getElementById('loading-bar-fill');
          const loadingText = document.getElementById('loading-text');
 
-         renderInventory(); // Отрисовываем инвентарь при загрузке
+         renderInventory(); 
 
          let progress = 0;
          const duration = 10000; 
@@ -745,7 +820,11 @@
              explosionVibrated = false;
              userCashedOut = false; 
              userWinAmount = 0; 
-             if (!isPlaying) currentBet = 0;
+             if (!isPlaying) {
+                 currentBet = 0;
+                 currentBetIsNft = false;
+                 currentBetNftImg = "";
+             }
              
              const list = document.getElementById('bets-list-container');
              while (list.children.length > 1) { list.removeChild(list.lastChild); }
@@ -762,6 +841,9 @@
              if (amount > balance) return;
              
              currentBet = amount; 
+             currentBetIsNft = false; // Сбрасываем флаг NFT при обычной ставке
+             currentBetNftImg = "";
+             
              balance -= amount;
              localStorage.setItem('user_balance', balance.toFixed(2));
              document.getElementById('balance-display').innerText = balance.toFixed(2);
@@ -798,6 +880,11 @@
          let avatarLetter = data.avatarLetter || data.avatar || username.charAt(0).toUpperCase() || "?";
          if (username === rawUsername && rawUsername !== "Гость") return;
          
+         let displayAmount = amount.toFixed(2) + " TON";
+         if (data.isNft && data.nftImg) {
+             displayAmount = `<div style="display:flex; align-items:center; gap:5px;"><img src="${data.nftImg}" style="width:14px; height:14px; border-radius:4px; object-fit:contain;">${displayAmount}</div>`;
+         }
+
          const list = document.getElementById('bets-list-container');
          const row = document.createElement('div');
          row.className = 'bet-row';
@@ -806,7 +893,7 @@
                  <div class="bet-avatar">${avatarLetter || '?'}</div>
                  <div class="bet-info">
                      <div class="bet-username">@${username}</div>
-                     <div class="bet-amount-val">${amount.toFixed(2)} TON</div>
+                     <div class="bet-amount-val">${displayAmount}</div>
                  </div>
              </div>
              <div class="bet-live-payout">0.00 TON</div>
@@ -1519,22 +1606,27 @@
              }
          }
 
+         let betHtml = currentBet > 0 ? currentBet.toFixed(2) + " TON" : "0.00 TON";
+         if (currentBet > 0 && currentBetIsNft) {
+             betHtml = `<div style="display:flex; align-items:center; gap:5px; justify-content:center;"><img src="${currentBetNftImg}" style="width:16px; height:16px; border-radius:4px; object-fit:contain;">${currentBet.toFixed(2)} TON</div>`;
+         }
+
          const uBetEl = document.getElementById('user-bet-amount');
          const uPayoutEl = document.getElementById('user-bet-payout');
          if (isPlaying) { 
-             uBetEl.innerText = currentBet.toFixed(2) + " TON"; 
+             uBetEl.innerHTML = betHtml; 
              uPayoutEl.innerText = (currentBet * currentMult).toFixed(2) + " TON"; 
              uPayoutEl.style.color = "var(--green-color)"; 
          } else if (userCashedOut) { 
-             uBetEl.innerText = currentBet.toFixed(2) + " TON"; 
+             uBetEl.innerHTML = betHtml; 
              uPayoutEl.innerText = userWinAmount.toFixed(2) + " TON"; 
              uPayoutEl.style.color = "var(--green-color)"; 
          } else if (currentPhase === 'crash' && currentBet > 0) { 
-             uBetEl.innerText = currentBet.toFixed(2) + " TON"; 
+             uBetEl.innerHTML = betHtml; 
              uPayoutEl.innerText = "0.00 TON"; 
              uPayoutEl.style.color = "#ff4d4d"; 
          } else { 
-             uBetEl.innerText = currentBet > 0 ? currentBet.toFixed(2) + " TON" : "0.00 TON"; 
+             uBetEl.innerHTML = betHtml; 
              uPayoutEl.innerText = "0.00 TON"; 
              uPayoutEl.style.color = 'var(--text-muted)'; 
          }
@@ -1556,4 +1648,5 @@
      loop();
  </script>
 </body>
- </html>
+</html>
+
