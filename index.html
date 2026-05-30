@@ -1614,4 +1614,51 @@
                  if (isPlaying) { 
                      isPlaying = false; 
                      betBtn.innerText = "Поставить"; 
-                     betBtn.classList.remove('
+                     betBtn.classList.remove('cashout'); 
+                 }
+             }
+         }
+
+         let betHtml = currentBet > 0 ? currentBet.toFixed(2) + " TON" : "0.00 TON";
+         if (currentBet > 0 && currentBetIsNft) {
+             betHtml = `<div style="display:flex; align-items:center; gap:5px; justify-content:center;"><img src="${currentBetNftImg}" style="width:16px; height:16px; border-radius:4px; object-fit:contain;">${currentBet.toFixed(2)} TON</div>`;
+         }
+
+         const uBetEl = document.getElementById('user-bet-amount');
+         const uPayoutEl = document.getElementById('user-bet-payout');
+         if (isPlaying) { 
+             uBetEl.innerHTML = betHtml; 
+             uPayoutEl.innerText = (currentBet * currentMult).toFixed(2) + " TON"; 
+             uPayoutEl.style.color = "var(--green-color)"; 
+         } else if (userCashedOut) { 
+             uBetEl.innerHTML = betHtml; 
+             uPayoutEl.innerText = userWinAmount.toFixed(2) + " TON"; 
+             uPayoutEl.style.color = "var(--green-color)"; 
+         } else if (currentPhase === 'crash' && currentBet > 0) { 
+             uBetEl.innerHTML = betHtml; 
+             uPayoutEl.innerText = "0.00 TON"; 
+             uPayoutEl.style.color = "#ff4d4d"; 
+         } else { 
+             uBetEl.innerHTML = betHtml; 
+             uPayoutEl.innerText = "0.00 TON"; 
+             uPayoutEl.style.color = 'var(--text-muted)'; 
+         }
+
+         otherBets.forEach(b => { 
+             if (b.isCashedOut) return; 
+             if (currentPhase === 'flight') { 
+                 b.element.innerText = (b.amount * currentMult).toFixed(2) + " TON"; 
+                 b.element.style.color = "var(--green-color)"; 
+             } else if (currentPhase === 'crash') { 
+                 b.element.innerText = "0.00 TON"; 
+                 b.element.style.color = "#ff4d4d"; 
+             } 
+         });
+         
+         requestAnimationFrame(loop);
+     }
+     
+     loop();
+ </script>
+</body>
+          </html>
