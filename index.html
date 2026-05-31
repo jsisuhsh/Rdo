@@ -1706,4 +1706,422 @@
          { val: 0.2, chance: 0.01, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
          { val: 0.5, chance: 0.15, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
          { val: 1.0, chance: 0.20, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
-         { val: 1.5, chance: 0.4
+         { val: 1.5, chance: 0.40, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
+         { val: 2.0, chance: 0.15, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
+         { val: 3.0, chance: 0.07, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
+         { val: 3.5, chance: 0.005, img: 'https://i.postimg.cc/YCWd38St/ezgif-com-effects-(8).gif', isNft: true },
+         { val: 2.8, chance: 0.015, img: 'https://i.postimg.cc/3JWSy352/ezgif-com-effects-(7).gif', isNft: true }
+     ];
+
+     function openWitchCaseModal() {
+         if (isSpinningWitchCase) return;
+         document.getElementById('witch-case-modal').classList.add('visible');
+         changeQty('witch', 1);
+     }
+
+     function closeWitchCaseModal() {
+         if (isSpinningWitchCase) return;
+         document.getElementById('witch-case-modal').classList.remove('visible');
+     }
+
+     document.getElementById('witch-case-modal').addEventListener('click', function(e) {
+         if (e.target === this) closeWitchCaseModal();
+     });
+
+     function getWeightedWitchReward() {
+         let r = Math.random();
+         let cumulative = 0;
+         for (let item of witchCaseRewards) {
+             cumulative += item.chance;
+             if (r <= cumulative) return item;
+         }
+         return witchCaseRewards[0];
+     }
+
+     function createWitchRouletteItemNode(item) {
+         let div = document.createElement('div');
+         div.className = 'roulette-item';
+         let nftTag = item.isNft ? `<span style="position: absolute; top: 2px; left: 4px; font-size: 8px; font-weight: bold; background: var(--accent-color); padding: 2px 4px; border-radius: 4px; color: white; text-transform: uppercase;">NFT</span>` : '';
+         div.style.position = "relative";
+         div.innerHTML = `${nftTag}<img src="${item.img}"><span>${item.val} TON</span>`;
+         return div;
+     }
+
+     function spinWitchCase() {
+         if (isSpinningWitchCase) return;
+
+         let totalCost = witchPrice * currentWitchQty;
+         if (balance < totalCost) {
+             showToast(`Недостаточно средств (нужно ${totalCost.toFixed(2)} TON)!`);
+             return;
+         }
+         
+         balance -= totalCost;
+         localStorage.setItem('user_balance', balance.toFixed(2));
+         document.getElementById('balance-display').innerText = balance.toFixed(2);
+
+         isSpinningWitchCase = true;
+         document.getElementById('spin-witch-case-btn').disabled = true;
+         document.getElementById('close-witch-case-btn').classList.add('disabled');
+         
+         let winningItems = [];
+         
+         for(let k = 0; k < currentWitchQty; k++) {
+             let track = document.getElementById(`witch-track-${k}`);
+             track.style.transition = 'none';
+             track.style.transform = 'translateX(0px)';
+             track.innerHTML = '';
+             
+             const totalItems = 35;
+             const winnerIndex = 26; 
+             const winningItem = getWeightedWitchReward(); 
+             winningItems.push(winningItem);
+             
+             for (let i = 0; i < totalItems; i++) {
+                 let item = (i === winnerIndex) ? winningItem : witchCaseRewards[Math.floor(Math.random() * witchCaseRewards.length)];
+                 track.appendChild(createWitchRouletteItemNode(item));
+             }
+             
+             track.offsetHeight; 
+             
+             const viewportWidth = track.parentElement.clientWidth;
+             const viewportCenter = viewportWidth / 2;
+             const itemCenter = (winnerIndex * 100) + 50; 
+             const randomOffset = Math.floor(Math.random() * 60) - 30; 
+             
+             const targetX = viewportCenter - itemCenter + randomOffset;
+             
+             track.style.transition = 'transform 5s cubic-bezier(0.1, 0.8, 0.1, 1)';
+             track.style.transform = `translateX(${targetX}px)`;
+         }
+         
+         setTimeout(() => {
+             let totalTonWon = 0;
+             let nftCount = 0;
+
+             winningItems.forEach(item => {
+                 if(item.isNft) {
+                     userInventory.push(item);
+                     nftCount++;
+                 } else {
+                     totalTonWon += item.val;
+                 }
+             });
+
+             if(nftCount > 0) {
+                 localStorage.setItem('user_inventory', JSON.stringify(userInventory));
+                 renderInventory();
+             }
+
+             if(totalTonWon > 0) {
+                 balance += totalTonWon;
+                 localStorage.setItem('user_balance', balance.toFixed(2));
+                 document.getElementById('balance-display').innerText = balance.toFixed(2);
+             }
+
+             if(nftCount > 0 && totalTonWon > 0) {
+                 showToast(`🎉 Вы выиграли ${totalTonWon.toFixed(2)} TON и ${nftCount} NFT!`);
+             } else if (nftCount > 0) {
+                 showToast(`🎉 Вы получили ${nftCount} NFT! Проверьте профиль.`);
+             } else {
+                 showToast(`🎉 Вы выиграли ${totalTonWon.toFixed(2)} TON!`);
+             }
+             
+             if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+             
+             isSpinningWitchCase = false;
+             document.getElementById('spin-witch-case-btn').disabled = false;
+             document.getElementById('close-witch-case-btn').classList.remove('disabled');
+         }, 5200);
+     }
+
+     // === ЛОГИКА НОВОГО КЕЙСА "FLOWER" ===
+     let isSpinningFlowerCase = false;
+     
+     const flowerCaseRewards = [
+         { val: 0.5, chance: 0.05, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
+         { val: 1.0, chance: 0.15, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
+         { val: 2.0, chance: 0.40, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
+         { val: 4.0, chance: 0.30, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
+         { val: 5.0, chance: 0.06, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
+         { val: 4.1, chance: 0.025, img: 'https://i.postimg.cc/0Qzt5SzZ/ezgif-com-effects-(10).gif', isNft: true },
+         { val: 5.2, chance: 0.01, img: 'https://i.postimg.cc/rwR7jvVB/ezgif-com-effects-(9).gif', isNft: true },
+         { val: 6.7, chance: 0.005, img: 'https://i.postimg.cc/jSG2k0zS/ezgif-com-effects-(11).gif', isNft: true }
+     ];
+
+     function openFlowerCaseModal() {
+         if (isSpinningFlowerCase) return;
+         document.getElementById('flower-case-modal').classList.add('visible');
+         changeQty('flower', 1);
+     }
+
+     function closeFlowerCaseModal() {
+         if (isSpinningFlowerCase) return;
+         document.getElementById('flower-case-modal').classList.remove('visible');
+     }
+
+     document.getElementById('flower-case-modal').addEventListener('click', function(e) {
+         if (e.target === this) closeFlowerCaseModal();
+     });
+
+     function getWeightedFlowerReward() {
+         let r = Math.random();
+         let cumulative = 0;
+         for (let item of flowerCaseRewards) {
+             cumulative += item.chance;
+             if (r <= cumulative) return item;
+         }
+         return flowerCaseRewards[0];
+     }
+
+     function createFlowerRouletteItemNode(item) {
+         let div = document.createElement('div');
+         div.className = 'roulette-item';
+         let nftTag = item.isNft ? `<span style="position: absolute; top: 2px; left: 4px; font-size: 8px; font-weight: bold; background: var(--accent-color); padding: 2px 4px; border-radius: 4px; color: white; text-transform: uppercase;">NFT</span>` : '';
+         div.style.position = "relative";
+         div.innerHTML = `${nftTag}<img src="${item.img}"><span>${item.val} TON</span>`;
+         return div;
+     }
+
+     function spinFlowerCase() {
+         if (isSpinningFlowerCase) return;
+
+         let totalCost = flowerPrice * currentFlowerQty;
+         if (balance < totalCost) {
+             showToast(`Недостаточно средств (нужно ${totalCost.toFixed(2)} TON)!`);
+             return;
+         }
+         
+         balance -= totalCost;
+         localStorage.setItem('user_balance', balance.toFixed(2));
+         document.getElementById('balance-display').innerText = balance.toFixed(2);
+
+         isSpinningFlowerCase = true;
+         document.getElementById('spin-flower-case-btn').disabled = true;
+         document.getElementById('close-flower-case-btn').classList.add('disabled');
+         
+         let winningItems = [];
+         
+         for(let k = 0; k < currentFlowerQty; k++) {
+             let track = document.getElementById(`flower-track-${k}`);
+             track.style.transition = 'none';
+             track.style.transform = 'translateX(0px)';
+             track.innerHTML = '';
+             
+             const totalItems = 35;
+             const winnerIndex = 26; 
+             const winningItem = getWeightedFlowerReward(); 
+             winningItems.push(winningItem);
+             
+             for (let i = 0; i < totalItems; i++) {
+                 let item = (i === winnerIndex) ? winningItem : flowerCaseRewards[Math.floor(Math.random() * flowerCaseRewards.length)];
+                 track.appendChild(createFlowerRouletteItemNode(item));
+             }
+             
+             track.offsetHeight; 
+             
+             const viewportWidth = track.parentElement.clientWidth;
+             const viewportCenter = viewportWidth / 2;
+             const itemCenter = (winnerIndex * 100) + 50; 
+             const randomOffset = Math.floor(Math.random() * 60) - 30; 
+             
+             const targetX = viewportCenter - itemCenter + randomOffset;
+             
+             track.style.transition = 'transform 5s cubic-bezier(0.1, 0.8, 0.1, 1)';
+             track.style.transform = `translateX(${targetX}px)`;
+         }
+         
+         setTimeout(() => {
+             let totalTonWon = 0;
+             let nftCount = 0;
+
+             winningItems.forEach(item => {
+                 if(item.isNft) {
+                     userInventory.push(item);
+                     nftCount++;
+                 } else {
+                     totalTonWon += item.val;
+                 }
+             });
+
+             if(nftCount > 0) {
+                 localStorage.setItem('user_inventory', JSON.stringify(userInventory));
+                 renderInventory();
+             }
+
+             if(totalTonWon > 0) {
+                 balance += totalTonWon;
+                 localStorage.setItem('user_balance', balance.toFixed(2));
+                 document.getElementById('balance-display').innerText = balance.toFixed(2);
+             }
+
+             if(nftCount > 0 && totalTonWon > 0) {
+                 showToast(`🎉 Вы выиграли ${totalTonWon.toFixed(2)} TON и ${nftCount} NFT!`);
+             } else if (nftCount > 0) {
+                 showToast(`🎉 Вы получили ${nftCount} NFT! Проверьте профиль.`);
+             } else {
+                 showToast(`🎉 Вы выиграли ${totalTonWon.toFixed(2)} TON!`);
+             }
+             
+             if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+             
+             isSpinningFlowerCase = false;
+             document.getElementById('spin-flower-case-btn').disabled = false;
+             document.getElementById('close-flower-case-btn').classList.remove('disabled');
+         }, 5200);
+     }
+
+
+     // === ИГРОВОЙ ЦИКЛ (ОТРИСОВКА) ===
+     const crashCanvas = document.getElementById('crash-canvas');
+     const gridCanvas = document.getElementById('grid-canvas');
+     const ctx = crashCanvas.getContext('2d');
+     const gCtx = gridCanvas.getContext('2d');
+     const multiplierEl = document.getElementById('crash-multiplier');
+     const statusEl = document.getElementById('crash-status');
+     const rocketAnim = document.getElementById('rocket-animation');
+     const historyContainer = document.getElementById('crash-history');
+     const countdownOverlay = document.getElementById('countdown-overlay');
+     const nftBetBtn = document.getElementById('nft-bet-btn');
+
+     function loop() {
+         crashCanvas.width = gridCanvas.width = crashCanvas.parentElement.clientWidth;
+         crashCanvas.height = gridCanvas.height = crashCanvas.parentElement.clientHeight;
+         ctx.clearRect(0, 0, crashCanvas.width, crashCanvas.height);
+         gCtx.clearRect(0, 0, gridCanvas.width, gridCanvas.height);
+
+         let pulseOffset = Math.sin(Date.now() / 300) * (currentMult * 5); 
+         gCtx.strokeStyle = 'rgba(157, 78, 221, 0.3)';
+         gCtx.lineWidth = 1;
+         let spacing = 40;
+         for (let i = -spacing + pulseOffset; i < gridCanvas.width; i += spacing) {
+             gCtx.beginPath(); gCtx.moveTo(i, 0); gCtx.lineTo(i, gridCanvas.height); gCtx.stroke();
+         }
+         for (let i = 0; i < gridCanvas.height; i += spacing) {
+             gCtx.beginPath(); gCtx.moveTo(0, i); gCtx.lineTo(gridCanvas.width, i); gCtx.stroke();
+         }
+
+         let now = Date.now();
+         let timeElapsed = now - phaseStartTime;
+
+         if (currentPhase === 'wait') {
+             let secondsRemaining = Math.ceil((5000 - timeElapsed) / 1000);
+             if (secondsRemaining > 0 && secondsRemaining <= 5) {
+                 if (secondsRemaining !== lastCountdownNum) {
+                     lastCountdownNum = secondsRemaining;
+                     countdownOverlay.innerText = secondsRemaining;
+                     countdownOverlay.style.display = 'block';
+                     countdownOverlay.classList.remove('pop-anim');
+                     void countdownOverlay.offsetWidth; 
+                     countdownOverlay.classList.add('pop-anim');
+                 }
+             } else {
+                 countdownOverlay.style.display = 'none';
+             }
+
+             statusEl.style.visibility = 'hidden';
+             multiplierEl.style.visibility = 'hidden';
+             currentMult = 1.00;
+             rocketAnim.style.visibility = 'hidden';
+             betInput.disabled = false;
+             betBtn.style.display = 'inline-block';
+             if (!isPlaying) betBtn.disabled = false;
+             if (nftBetBtn) { nftBetBtn.disabled = false; nftBetBtn.style.opacity = '1'; }
+
+         } else if (currentPhase === 'flight') {
+             statusEl.style.visibility = 'visible';
+             multiplierEl.style.visibility = 'visible';
+             countdownOverlay.style.display = 'none';
+             
+             currentMult = Math.pow(1.001, timeElapsed / 20);
+             if (currentMult > targetCrashMult) currentMult = targetCrashMult;
+
+             statusEl.innerText = "В полете...";
+             multiplierEl.innerText = currentMult.toFixed(2) + "x";
+             multiplierEl.style.color = "#fff";
+             rocketAnim.style.visibility = 'visible';
+             betInput.disabled = true;
+             betBtn.style.display = 'inline-block';
+             if (isPlaying) betBtn.disabled = false; else betBtn.disabled = true;
+             if (nftBetBtn) { nftBetBtn.disabled = true; nftBetBtn.style.opacity = '0.6'; }
+
+         } else if (currentPhase === 'crash') {
+             currentMult = targetCrashMult; 
+             
+             multiplierEl.innerText = currentMult.toFixed(2) + "x";
+             statusEl.innerText = "Взрыв!";
+             multiplierEl.style.color = "red";
+             rocketAnim.style.visibility = 'hidden';
+             countdownOverlay.style.display = 'none';
+             betInput.disabled = true; 
+             betBtn.disabled = true;
+             if (nftBetBtn) { nftBetBtn.disabled = true; nftBetBtn.style.opacity = '0.6'; }
+             
+             if (!explosionVibrated) { 
+                 if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('heavy'); 
+                 explosionSound.play(); 
+                 explosionVibrated = true; 
+                 localStorage.setItem('lastMult', currentMult.toFixed(2));
+                 
+                 let item = document.createElement('div');
+                 item.className = 'history-item';
+                 item.innerText = currentMult.toFixed(2) + "x";
+                 
+                 if (currentMult <= 1.20) { item.style.borderColor = 'red'; item.style.backgroundColor = 'rgba(255, 0, 0, 0.2)'; }
+                 else if (currentMult <= 1.50) { item.style.borderColor = 'yellow'; item.style.backgroundColor = 'rgba(255, 255, 0, 0.2)'; }
+                 else { item.style.borderColor = 'var(--green-color)'; item.style.backgroundColor = 'rgba(40, 167, 69, 0.2)'; }
+                 
+                 historyContainer.insertBefore(item, historyContainer.firstChild);
+                 if (historyContainer.children.length > 10) historyContainer.removeChild(historyContainer.lastChild);
+                 
+                 if (isPlaying) { 
+                     isPlaying = false; 
+                     betBtn.innerText = "Поставить"; 
+                     betBtn.classList.remove('cashout'); 
+                 }
+             }
+         }
+
+         let betHtml = currentBet > 0 ? currentBet.toFixed(2) + " TON" : "0.00 TON";
+         if (currentBet > 0 && currentBetIsNft) {
+             betHtml = `<div style="display:flex; align-items:center; gap:5px; justify-content:center;"><img src="${currentBetNftImg}" style="width:16px; height:16px; border-radius:4px; object-fit:contain;">${currentBet.toFixed(2)} TON</div>`;
+         }
+
+         const uBetEl = document.getElementById('user-bet-amount');
+         const uPayoutEl = document.getElementById('user-bet-payout');
+         if (isPlaying) { 
+             uBetEl.innerHTML = betHtml; 
+             uPayoutEl.innerText = (currentBet * currentMult).toFixed(2) + " TON"; 
+             uPayoutEl.style.color = "var(--green-color)"; 
+         } else if (userCashedOut) { 
+             uBetEl.innerHTML = betHtml; 
+             uPayoutEl.innerText = userWinAmount.toFixed(2) + " TON"; 
+             uPayoutEl.style.color = "var(--green-color)"; 
+         } else if (currentPhase === 'crash' && currentBet > 0) { 
+             uBetEl.innerHTML = betHtml; 
+             uPayoutEl.innerText = "0.00 TON"; 
+             uPayoutEl.style.color = "#ff4d4d"; 
+         } else { 
+             uBetEl.innerHTML = betHtml; 
+             uPayoutEl.innerText = "0.00 TON"; 
+             uPayoutEl.style.color = 'var(--text-muted)'; 
+         }
+
+         otherBets.forEach(b => { 
+             if (b.isCashedOut) return; 
+             if (currentPhase === 'flight') { 
+                 b.element.innerText = (b.amount * currentMult).toFixed(2) + " TON"; 
+                 b.element.style.color = "var(--green-color)"; 
+             } else if (currentPhase === 'crash') { 
+                 b.element.innerText = "0.00 TON"; 
+                 b.element.style.color = "#ff4d4d"; 
+             } 
+         });
+         
+         requestAnimationFrame(loop);
+     }
+     
+     loop();
+ </script>
+</body>
+ </html>
