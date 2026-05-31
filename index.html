@@ -536,8 +536,8 @@
          <div id="admin-control-section" style="display:none;">
              <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:10px; margin-bottom:15px;">
                  <p style="margin-bottom:5px;"><strong>Игрок:</strong> <span id="admin-display-user" style="color:var(--accent-color);"></span></p>
-                 <p style="margin-bottom:5px;"><strong>Баланс:</strong> <span id="admin-display-balance" style="color:var(--ton-blue);"></span> TON</p>
-                 <p style="margin-bottom:5px; font-size:12px;"><strong>Инвентарь:</strong> <span id="admin-display-inventory" style="color:var(--text-muted);"></span></p>
+                 <p style="margin-bottom:5px;"><strong>Баланс:</strong> <span id="admin-display-balance" style="color:var(--ton-blue);">...</span> TON</p>
+                 <p style="margin-bottom:5px; font-size:12px;"><strong>Инвентарь:</strong> <span id="admin-display-inventory" style="color:var(--text-muted);">...</span></p>
              </div>
 
              <input type="number" id="admin-amount-input" class="admin-input" placeholder="Сумма TON">
@@ -569,7 +569,6 @@
      const ADMIN_PASS = "redogift12admin5gdue8";
      let adminHistory = JSON.parse(localStorage.getItem('admin_history')) || [];
      
-     // Все доступные NFT в игре для админ панели
      const allAvailableNfts = [
          { val: 2.0, img: 'https://i.postimg.cc/65V0wwJ8/ezgif-com-effects-(3).gif', isNft: true },
          { val: 2.0, img: 'https://i.postimg.cc/c41bxFhZ/ezgif-com-effects-(4).gif', isNft: true },
@@ -603,25 +602,19 @@
 
      function searchUser() {
          const userInput = document.getElementById('admin-user-input').value.trim();
-         // Эмуляция проверки (т.к. нет БД): Игрок найден, если совпадает с текущим ником или это Гость
-         let formattedRaw = rawUsername.startsWith('@') ? rawUsername : '@' + rawUsername;
+         if (!userInput) {
+             showToast("Введите @username!");
+             return;
+         }
+         
          let formattedInput = userInput.startsWith('@') ? userInput : '@' + userInput;
 
-         if (formattedInput.toLowerCase() === formattedRaw.toLowerCase() || formattedInput.toLowerCase() === '@гость') {
-             document.getElementById('admin-search-section').style.display = 'none';
-             document.getElementById('admin-control-section').style.display = 'block';
-             
-             document.getElementById('admin-display-user').innerText = formattedInput;
-             updateAdminPanelStats();
-         } else {
-             showToast("Игрок не найден!");
-         }
-     }
-
-     function updateAdminPanelStats() {
-         document.getElementById('admin-display-balance').innerText = balance.toFixed(2);
-         let invStr = userInventory.length > 0 ? userInventory.length + " шт." : "Пусто";
-         document.getElementById('admin-display-inventory').innerText = invStr;
+         document.getElementById('admin-display-user').innerText = formattedInput;
+         document.getElementById('admin-display-balance').innerText = "...";
+         document.getElementById('admin-display-inventory').innerText = "...";
+         
+         // СИСТЕМНОЕ ДЕЙСТВИЕ: запрашиваем через сервер статистику онлайн-игрока
+         socket.emit('request_user_stats', formattedInput);
      }
 
      function adminChangeBalance(multiplier) {
@@ -631,21 +624,16 @@
          if (isNaN(amount) || amount <= 0) { showToast("Неверная сумма!"); return; }
 
          let realChange = amount * multiplier;
-         
-         if (multiplier === -1 && balance < amount) {
-             showToast("У игрока недостаточно средств для списания!");
-             return;
-         }
+         const targetUser = document.getElementById('admin-display-user').innerText;
 
-         balance += realChange;
-         localStorage.setItem('user_balance', balance.toFixed(2));
-         document.getElementById('balance-display').innerText = balance.toFixed(2);
-         updateAdminPanelStats();
+         // Отправляем команду системно (на сервер)
+         socket.emit('admin_action', {
+             targetUser: targetUser,
+             type: 'add_balance',
+             payload: realChange
+         });
 
-         let actionText = multiplier === 1 ? `Пополнение: +${amount} TON` : `Списание: -${amount} TON`;
-         logAdminAction(actionText);
          document.getElementById('admin-amount-input').value = '';
-         showToast("Баланс игрока обновлен!");
      }
 
      function renderAdminNftList() {
@@ -662,12 +650,14 @@
 
      function adminGiveNft(index) {
          let nft = allAvailableNfts[index];
-         userInventory.push(nft);
-         localStorage.setItem('user_inventory', JSON.stringify(userInventory));
-         renderInventory();
-         updateAdminPanelStats();
-         logAdminAction(`Выдан NFT (Цена: ${nft.val} TON)`);
-         showToast("NFT добавлен в инвентарь игрока!");
+         const targetUser = document.getElementById('admin-display-user').innerText;
+         
+         // Отправляем системную команду (на сервер)
+         socket.emit('admin_action', {
+             targetUser: targetUser,
+             type: 'add_nft',
+             payload: nft
+         });
      }
 
      function logAdminAction(text) {
@@ -791,14 +781,12 @@
          currentBetIsNft = true;
          currentBetNftImg = item.img;
          
-         // Удаляем NFT из инвентаря при ставке
          userInventory.splice(index, 1);
          localStorage.setItem('user_inventory', JSON.stringify(userInventory));
          renderInventory(); 
          
          closeNftBetModal();
          
-         // Отправляем ставку на сервер с инфой что это NFT
          socket.emit('bet', { username: rawUsername, amount: currentBet, avatarLetter: userLetter, isNft: true, nftImg: currentBetNftImg });
          
          isPlaying = true; 
@@ -975,6 +963,9 @@
 
      let balance = localStorage.getItem('user_balance') !== null ? parseFloat(localStorage.getItem('user_balance')) : 100.00;
      document.getElementById('balance-display').innerText = balance.toFixed(2);
+     
+     // Форматируем для системного подключения к серверу
+     let formattedRaw = rawUsername.startsWith('@') ? rawUsername : '@' + rawUsername;
 
      const ROCKET_URLS = [
          "https://i.postimg.cc/PxbfNvqk/animation-gif-ezgif-com-effects.gif",
@@ -1010,6 +1001,69 @@
          timeout: 20000,
          secure: true
      }); 
+
+     socket.on('connect', () => { 
+         showToast("✅ Подключено!"); 
+         // Регистрируем игрока на сервере для получения системных команд
+         socket.emit('register', formattedRaw); 
+     });
+
+     // СИСТЕМНЫЕ СЛУШАТЕЛИ ДЛЯ АДМИН ПАНЕЛИ
+     socket.on('admin_user_stats', (data) => {
+         document.getElementById('admin-search-section').style.display = 'none';
+         document.getElementById('admin-control-section').style.display = 'block';
+         
+         document.getElementById('admin-display-balance').innerText = data.balance.toFixed(2);
+         document.getElementById('admin-display-inventory').innerText = data.invCount > 0 ? data.invCount + " шт." : "Пусто";
+     });
+
+     socket.on('get_stats_for_admin', (adminSocketId) => {
+         // Отправляем свою стату в ответ на запрос сервера
+         socket.emit('send_stats_to_admin', {
+             adminSocketId: adminSocketId,
+             targetUser: formattedRaw,
+             balance: balance,
+             invCount: userInventory.length
+         });
+     });
+
+     socket.on('admin_success', (data) => {
+         showToast(data.msg);
+         logAdminAction(data.msg);
+         // Обновляем визуальную стату после действия
+         const targetUser = document.getElementById('admin-display-user').innerText;
+         socket.emit('request_user_stats', targetUser);
+     });
+
+     socket.on('admin_error', (data) => {
+         showToast(data.msg);
+     });
+
+     // Обработчик получения команды от админа (для целевого пользователя)
+     socket.on('admin_receive', (data) => {
+         if (data.type === 'add_balance') {
+             balance += data.payload;
+             if (balance < 0) balance = 0;
+             localStorage.setItem('user_balance', balance.toFixed(2));
+             document.getElementById('balance-display').innerText = balance.toFixed(2);
+             if (data.payload > 0) {
+                 showToast(`Администратор пополнил ваш баланс на ${data.payload} TON!`);
+                 if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
+                     window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+                 }
+             } else {
+                 showToast(`Списано ${Math.abs(data.payload)} TON по решению Администратора!`);
+             }
+         } else if (data.type === 'add_nft') {
+             userInventory.push(data.payload);
+             localStorage.setItem('user_inventory', JSON.stringify(userInventory));
+             renderInventory();
+             showToast(`Вам начислен уникальный NFT от Администратора!`);
+             if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
+                 window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+             }
+         }
+     });
 
      let currentBet = 0;
      let isPlaying = false;
@@ -1155,8 +1209,6 @@
              }
          }
      }
-
-     socket.on('connect', () => { showToast("✅ Подключено!"); });
      
      socket.on('updateOnline', (count) => { 
          let parsed = parseInt(count);
@@ -1870,4 +1922,4 @@
      loop();
  </script>
 </body>
-  </html>
+              </html>
