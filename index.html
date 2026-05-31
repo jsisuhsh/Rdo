@@ -274,6 +274,11 @@
                  <img src="https://i.postimg.cc/442wRj7y/lv-0-20260530075313.png" alt="Witch Case" class="case-img">
                  <div class="case-name">WITCH</div>
              </div>
+
+             <div class="case-card" onclick="openFlowerCaseModal()">
+                 <img src="https://i.postimg.cc/8PBytNMP/lv-0-20260531141757.png" alt="Flower Case" class="case-img">
+                 <div class="case-name">FLOWER</div>
+             </div>
          </div>
      </div>
      
@@ -413,8 +418,7 @@
          <div id="close-homeless-case-btn" class="close-case-modal" onclick="closeHomelessCaseModal()">✕</div>
          <h3 style="text-align: center; font-size: 18px;">Homeless Кейс</h3>
          
-         <div class="roulettes-wrapper" id="homeless-roulettes-wrapper">
-            </div>
+         <div class="roulettes-wrapper" id="homeless-roulettes-wrapper"></div>
          
          <div class="qty-selector" id="homeless-qty">
              <button class="qty-btn active" onclick="changeQty('homeless', 1)">1</button>
@@ -462,8 +466,7 @@
          <div id="close-witch-case-btn" class="close-case-modal" onclick="closeWitchCaseModal()">✕</div>
          <h3 style="text-align: center; font-size: 18px;">Witch Кейс</h3>
          
-         <div class="roulettes-wrapper" id="witch-roulettes-wrapper">
-            </div>
+         <div class="roulettes-wrapper" id="witch-roulettes-wrapper"></div>
 
          <div class="qty-selector" id="witch-qty">
              <button class="qty-btn active" onclick="changeQty('witch', 1)">1</button>
@@ -497,6 +500,49 @@
          </div>
      </div>
  </div>
+
+ <div id="flower-case-modal" class="case-modal-overlay">
+    <div class="case-modal-content">
+        <div id="close-flower-case-btn" class="close-case-modal" onclick="closeFlowerCaseModal()">✕</div>
+        <h3 style="text-align: center; font-size: 18px;">Flower Кейс</h3>
+        
+        <div class="roulettes-wrapper" id="flower-roulettes-wrapper"></div>
+
+        <div class="qty-selector" id="flower-qty">
+            <button class="qty-btn active" onclick="changeQty('flower', 1)">1</button>
+            <button class="qty-btn" onclick="changeQty('flower', 2)">2</button>
+            <button class="qty-btn" onclick="changeQty('flower', 3)">3</button>
+            <button class="qty-btn" onclick="changeQty('flower', 4)">4</button>
+            <button class="qty-btn" onclick="changeQty('flower', 5)">5</button>
+        </div>
+        
+        <button id="spin-flower-case-btn" class="btn btn-fill" style="width: 100%; margin: 0 0 20px 0; display: flex; justify-content: center; align-items: center; gap: 5px;" onclick="spinFlowerCase()">
+            Открыть за <span id="flower-price-display">3.50</span> <img src="https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png" style="width: 16px; height: 16px;">
+        </button>
+        
+        <h4 style="color: var(--text-muted); font-size: 13px; margin-bottom: 8px; text-align: center;">Что может выпасть:</h4>
+        <div class="possible-drops-grid">
+            <div class="drop-item"><img src="https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png"><span>0.5 TON</span></div>
+            <div class="drop-item"><img src="https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png"><span>1 TON</span></div>
+            <div class="drop-item"><img src="https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png"><span>2 TON</span></div>
+            <div class="drop-item"><img src="https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png"><span>4 TON</span></div>
+            <div class="drop-item"><img src="https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png"><span>5 TON</span></div>
+            
+            <div class="drop-item" style="position: relative;">
+                <span style="position: absolute; top: 2px; left: 4px; font-size: 8px; font-weight: bold; background: var(--accent-color); padding: 2px 4px; border-radius: 4px; color: white; text-transform: uppercase;">NFT</span>
+                <img src="https://i.postimg.cc/0Qzt5SzZ/ezgif-com-effects-(10).gif"><span>4.1 TON</span>
+            </div>
+            <div class="drop-item" style="position: relative;">
+                <span style="position: absolute; top: 2px; left: 4px; font-size: 8px; font-weight: bold; background: var(--accent-color); padding: 2px 4px; border-radius: 4px; color: white; text-transform: uppercase;">NFT</span>
+                <img src="https://i.postimg.cc/rwR7jvVB/ezgif-com-effects-(9).gif"><span>5.2 TON</span>
+            </div>
+            <div class="drop-item" style="position: relative;">
+                <span style="position: absolute; top: 2px; left: 4px; font-size: 8px; font-weight: bold; background: var(--accent-color); padding: 2px 4px; border-radius: 4px; color: white; text-transform: uppercase;">NFT</span>
+                <img src="https://i.postimg.cc/jSG2k0zS/ezgif-com-effects-(11).gif"><span>6.7 TON</span>
+            </div>
+        </div>
+    </div>
+</div>
 
  <div id="nft-bet-modal" class="case-modal-overlay">
      <div class="case-modal-content">
@@ -575,7 +621,10 @@
          { val: 2.5, img: 'https://i.postimg.cc/L6RRLqKc/ezgif-com-effects-(5).gif', isNft: true },
          { val: 3.9, img: 'https://i.postimg.cc/4yvYPr3y/ezgif-com-effects-(6).gif', isNft: true },
          { val: 3.5, img: 'https://i.postimg.cc/YCWd38St/ezgif-com-effects-(8).gif', isNft: true },
-         { val: 2.8, img: 'https://i.postimg.cc/3JWSy352/ezgif-com-effects-(7).gif', isNft: true }
+         { val: 2.8, img: 'https://i.postimg.cc/3JWSy352/ezgif-com-effects-(7).gif', isNft: true },
+         { val: 4.1, img: 'https://i.postimg.cc/0Qzt5SzZ/ezgif-com-effects-(10).gif', isNft: true },
+         { val: 5.2, img: 'https://i.postimg.cc/rwR7jvVB/ezgif-com-effects-(9).gif', isNft: true },
+         { val: 6.7, img: 'https://i.postimg.cc/jSG2k0zS/ezgif-com-effects-(11).gif', isNft: true }
      ];
 
      function openAdminAuth() { document.getElementById('admin-auth-modal').classList.add('visible'); }
@@ -615,6 +664,12 @@
          
          // СИСТЕМНОЕ ДЕЙСТВИЕ: запрашиваем через сервер статистику онлайн-игрока
          socket.emit('request_user_stats', formattedInput);
+     }
+
+     function updateAdminPanelStats() {
+         document.getElementById('admin-display-balance').innerText = balance.toFixed(2);
+         let invStr = userInventory.length > 0 ? userInventory.length + " шт." : "Пусто";
+         document.getElementById('admin-display-inventory').innerText = invStr;
      }
 
      function adminChangeBalance(multiplier) {
@@ -781,12 +836,14 @@
          currentBetIsNft = true;
          currentBetNftImg = item.img;
          
+         // Удаляем NFT из инвентаря при ставке
          userInventory.splice(index, 1);
          localStorage.setItem('user_inventory', JSON.stringify(userInventory));
          renderInventory(); 
          
          closeNftBetModal();
          
+         // Отправляем ставку на сервер с инфой что это NFT
          socket.emit('bet', { username: rawUsername, amount: currentBet, avatarLetter: userLetter, isNft: true, nftImg: currentBetNftImg });
          
          isPlaying = true; 
@@ -1448,12 +1505,16 @@
      // === МУЛЬТИ-ОТКРЫТИЕ ДЛЯ ПЛАТНЫХ КЕЙСОВ ===
      let currentHomelessQty = 1;
      let currentWitchQty = 1;
+     let currentFlowerQty = 1;
+     
      const homelessPrice = 1.00;
      const witchPrice = 1.99;
+     const flowerPrice = 3.50;
 
      function changeQty(caseType, qty) {
          if(caseType === 'homeless' && isSpinningHomelessCase) return;
          if(caseType === 'witch' && isSpinningWitchCase) return;
+         if(caseType === 'flower' && isSpinningFlowerCase) return;
 
          let btns = document.querySelectorAll(`#${caseType}-qty .qty-btn`);
          btns.forEach(b => b.classList.remove('active'));
@@ -1467,6 +1528,10 @@
              currentWitchQty = qty;
              document.getElementById('witch-price-display').innerText = (witchPrice * qty).toFixed(2);
              buildMultiTrack('witch', qty, witchCaseRewards, createWitchRouletteItemNode);
+         } else if (caseType === 'flower') {
+             currentFlowerQty = qty;
+             document.getElementById('flower-price-display').innerText = (flowerPrice * qty).toFixed(2);
+             buildMultiTrack('flower', qty, flowerCaseRewards, createFlowerRouletteItemNode);
          }
      }
 
@@ -1634,292 +1699,11 @@
          }, 5200);
      }
 
-     // === ЛОГИКА НОВОГО КЕЙСА "WITCH" ===
+     // === ЛОГИКА КЕЙСА "WITCH" ===
      let isSpinningWitchCase = false;
      
      const witchCaseRewards = [
          { val: 0.2, chance: 0.01, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
          { val: 0.5, chance: 0.15, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
          { val: 1.0, chance: 0.20, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
-         { val: 1.5, chance: 0.40, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
-         { val: 2.0, chance: 0.15, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
-         { val: 3.0, chance: 0.07, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
-         { val: 3.5, chance: 0.005, img: 'https://i.postimg.cc/YCWd38St/ezgif-com-effects-(8).gif', isNft: true },
-         { val: 2.8, chance: 0.015, img: 'https://i.postimg.cc/3JWSy352/ezgif-com-effects-(7).gif', isNft: true }
-     ];
-
-     function openWitchCaseModal() {
-         if (isSpinningWitchCase) return;
-         document.getElementById('witch-case-modal').classList.add('visible');
-         changeQty('witch', 1);
-     }
-
-     function closeWitchCaseModal() {
-         if (isSpinningWitchCase) return;
-         document.getElementById('witch-case-modal').classList.remove('visible');
-     }
-
-     document.getElementById('witch-case-modal').addEventListener('click', function(e) {
-         if (e.target === this) closeWitchCaseModal();
-     });
-
-     function getWeightedWitchReward() {
-         let r = Math.random();
-         let cumulative = 0;
-         for (let item of witchCaseRewards) {
-             cumulative += item.chance;
-             if (r <= cumulative) return item;
-         }
-         return witchCaseRewards[0];
-     }
-
-     function createWitchRouletteItemNode(item) {
-         let div = document.createElement('div');
-         div.className = 'roulette-item';
-         let nftTag = item.isNft ? `<span style="position: absolute; top: 2px; left: 4px; font-size: 8px; font-weight: bold; background: var(--accent-color); padding: 2px 4px; border-radius: 4px; color: white; text-transform: uppercase;">NFT</span>` : '';
-         div.style.position = "relative";
-         div.innerHTML = `${nftTag}<img src="${item.img}"><span>${item.val} TON</span>`;
-         return div;
-     }
-
-     function spinWitchCase() {
-         if (isSpinningWitchCase) return;
-
-         let totalCost = witchPrice * currentWitchQty;
-         if (balance < totalCost) {
-             showToast(`Недостаточно средств (нужно ${totalCost.toFixed(2)} TON)!`);
-             return;
-         }
-         
-         balance -= totalCost;
-         localStorage.setItem('user_balance', balance.toFixed(2));
-         document.getElementById('balance-display').innerText = balance.toFixed(2);
-
-         isSpinningWitchCase = true;
-         document.getElementById('spin-witch-case-btn').disabled = true;
-         document.getElementById('close-witch-case-btn').classList.add('disabled');
-         
-         let winningItems = [];
-         
-         for(let k = 0; k < currentWitchQty; k++) {
-             let track = document.getElementById(`witch-track-${k}`);
-             track.style.transition = 'none';
-             track.style.transform = 'translateX(0px)';
-             track.innerHTML = '';
-             
-             const totalItems = 35;
-             const winnerIndex = 26; 
-             const winningItem = getWeightedWitchReward(); 
-             winningItems.push(winningItem);
-             
-             for (let i = 0; i < totalItems; i++) {
-                 let item = (i === winnerIndex) ? winningItem : witchCaseRewards[Math.floor(Math.random() * witchCaseRewards.length)];
-                 track.appendChild(createWitchRouletteItemNode(item));
-             }
-             
-             track.offsetHeight; 
-             
-             const viewportWidth = track.parentElement.clientWidth;
-             const viewportCenter = viewportWidth / 2;
-             const itemCenter = (winnerIndex * 100) + 50; 
-             const randomOffset = Math.floor(Math.random() * 60) - 30; 
-             
-             const targetX = viewportCenter - itemCenter + randomOffset;
-             
-             track.style.transition = 'transform 5s cubic-bezier(0.1, 0.8, 0.1, 1)';
-             track.style.transform = `translateX(${targetX}px)`;
-         }
-         
-         setTimeout(() => {
-             let totalTonWon = 0;
-             let nftCount = 0;
-
-             winningItems.forEach(item => {
-                 if(item.isNft) {
-                     userInventory.push(item);
-                     nftCount++;
-                 } else {
-                     totalTonWon += item.val;
-                 }
-             });
-
-             if(nftCount > 0) {
-                 localStorage.setItem('user_inventory', JSON.stringify(userInventory));
-                 renderInventory();
-             }
-
-             if(totalTonWon > 0) {
-                 balance += totalTonWon;
-                 localStorage.setItem('user_balance', balance.toFixed(2));
-                 document.getElementById('balance-display').innerText = balance.toFixed(2);
-             }
-
-             if(nftCount > 0 && totalTonWon > 0) {
-                 showToast(`🎉 Вы выиграли ${totalTonWon.toFixed(2)} TON и ${nftCount} NFT!`);
-             } else if (nftCount > 0) {
-                 showToast(`🎉 Вы получили ${nftCount} NFT! Проверьте профиль.`);
-             } else {
-                 showToast(`🎉 Вы выиграли ${totalTonWon.toFixed(2)} TON!`);
-             }
-             
-             if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-             
-             isSpinningWitchCase = false;
-             document.getElementById('spin-witch-case-btn').disabled = false;
-             document.getElementById('close-witch-case-btn').classList.remove('disabled');
-         }, 5200);
-     }
-
-     // === ИГРОВОЙ ЦИКЛ (ОТРИСОВКА) ===
-     const crashCanvas = document.getElementById('crash-canvas');
-     const gridCanvas = document.getElementById('grid-canvas');
-     const ctx = crashCanvas.getContext('2d');
-     const gCtx = gridCanvas.getContext('2d');
-     const multiplierEl = document.getElementById('crash-multiplier');
-     const statusEl = document.getElementById('crash-status');
-     const rocketAnim = document.getElementById('rocket-animation');
-     const historyContainer = document.getElementById('crash-history');
-     const countdownOverlay = document.getElementById('countdown-overlay');
-     const nftBetBtn = document.getElementById('nft-bet-btn');
-
-     function loop() {
-         crashCanvas.width = gridCanvas.width = crashCanvas.parentElement.clientWidth;
-         crashCanvas.height = gridCanvas.height = crashCanvas.parentElement.clientHeight;
-         ctx.clearRect(0, 0, crashCanvas.width, crashCanvas.height);
-         gCtx.clearRect(0, 0, gridCanvas.width, gridCanvas.height);
-
-         let pulseOffset = Math.sin(Date.now() / 300) * (currentMult * 5); 
-         gCtx.strokeStyle = 'rgba(157, 78, 221, 0.3)';
-         gCtx.lineWidth = 1;
-         let spacing = 40;
-         for (let i = -spacing + pulseOffset; i < gridCanvas.width; i += spacing) {
-             gCtx.beginPath(); gCtx.moveTo(i, 0); gCtx.lineTo(i, gridCanvas.height); gCtx.stroke();
-         }
-         for (let i = 0; i < gridCanvas.height; i += spacing) {
-             gCtx.beginPath(); gCtx.moveTo(0, i); gCtx.lineTo(gridCanvas.width, i); gCtx.stroke();
-         }
-
-         let now = Date.now();
-         let timeElapsed = now - phaseStartTime;
-
-         if (currentPhase === 'wait') {
-             let secondsRemaining = Math.ceil((5000 - timeElapsed) / 1000);
-             if (secondsRemaining > 0 && secondsRemaining <= 5) {
-                 if (secondsRemaining !== lastCountdownNum) {
-                     lastCountdownNum = secondsRemaining;
-                     countdownOverlay.innerText = secondsRemaining;
-                     countdownOverlay.style.display = 'block';
-                     countdownOverlay.classList.remove('pop-anim');
-                     void countdownOverlay.offsetWidth; 
-                     countdownOverlay.classList.add('pop-anim');
-                 }
-             } else {
-                 countdownOverlay.style.display = 'none';
-             }
-
-             statusEl.style.visibility = 'hidden';
-             multiplierEl.style.visibility = 'hidden';
-             currentMult = 1.00;
-             rocketAnim.style.visibility = 'hidden';
-             betInput.disabled = false;
-             betBtn.style.display = 'inline-block';
-             if (!isPlaying) betBtn.disabled = false;
-             if (nftBetBtn) { nftBetBtn.disabled = false; nftBetBtn.style.opacity = '1'; }
-
-         } else if (currentPhase === 'flight') {
-             statusEl.style.visibility = 'visible';
-             multiplierEl.style.visibility = 'visible';
-             countdownOverlay.style.display = 'none';
-             
-             currentMult = Math.pow(1.001, timeElapsed / 20);
-             if (currentMult > targetCrashMult) currentMult = targetCrashMult;
-
-             statusEl.innerText = "В полете...";
-             multiplierEl.innerText = currentMult.toFixed(2) + "x";
-             multiplierEl.style.color = "#fff";
-             rocketAnim.style.visibility = 'visible';
-             betInput.disabled = true;
-             betBtn.style.display = 'inline-block';
-             if (isPlaying) betBtn.disabled = false; else betBtn.disabled = true;
-             if (nftBetBtn) { nftBetBtn.disabled = true; nftBetBtn.style.opacity = '0.6'; }
-
-         } else if (currentPhase === 'crash') {
-             currentMult = targetCrashMult; 
-             
-             multiplierEl.innerText = currentMult.toFixed(2) + "x";
-             statusEl.innerText = "Взрыв!";
-             multiplierEl.style.color = "red";
-             rocketAnim.style.visibility = 'hidden';
-             countdownOverlay.style.display = 'none';
-             betInput.disabled = true; 
-             betBtn.disabled = true;
-             if (nftBetBtn) { nftBetBtn.disabled = true; nftBetBtn.style.opacity = '0.6'; }
-             
-             if (!explosionVibrated) { 
-                 if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('heavy'); 
-                 explosionSound.play(); 
-                 explosionVibrated = true; 
-                 localStorage.setItem('lastMult', currentMult.toFixed(2));
-                 
-                 let item = document.createElement('div');
-                 item.className = 'history-item';
-                 item.innerText = currentMult.toFixed(2) + "x";
-                 
-                 if (currentMult <= 1.20) { item.style.borderColor = 'red'; item.style.backgroundColor = 'rgba(255, 0, 0, 0.2)'; }
-                 else if (currentMult <= 1.50) { item.style.borderColor = 'yellow'; item.style.backgroundColor = 'rgba(255, 255, 0, 0.2)'; }
-                 else { item.style.borderColor = 'var(--green-color)'; item.style.backgroundColor = 'rgba(40, 167, 69, 0.2)'; }
-                 
-                 historyContainer.insertBefore(item, historyContainer.firstChild);
-                 if (historyContainer.children.length > 10) historyContainer.removeChild(historyContainer.lastChild);
-                 
-                 if (isPlaying) { 
-                     isPlaying = false; 
-                     betBtn.innerText = "Поставить"; 
-                     betBtn.classList.remove('cashout'); 
-                 }
-             }
-         }
-
-         let betHtml = currentBet > 0 ? currentBet.toFixed(2) + " TON" : "0.00 TON";
-         if (currentBet > 0 && currentBetIsNft) {
-             betHtml = `<div style="display:flex; align-items:center; gap:5px; justify-content:center;"><img src="${currentBetNftImg}" style="width:16px; height:16px; border-radius:4px; object-fit:contain;">${currentBet.toFixed(2)} TON</div>`;
-         }
-
-         const uBetEl = document.getElementById('user-bet-amount');
-         const uPayoutEl = document.getElementById('user-bet-payout');
-         if (isPlaying) { 
-             uBetEl.innerHTML = betHtml; 
-             uPayoutEl.innerText = (currentBet * currentMult).toFixed(2) + " TON"; 
-             uPayoutEl.style.color = "var(--green-color)"; 
-         } else if (userCashedOut) { 
-             uBetEl.innerHTML = betHtml; 
-             uPayoutEl.innerText = userWinAmount.toFixed(2) + " TON"; 
-             uPayoutEl.style.color = "var(--green-color)"; 
-         } else if (currentPhase === 'crash' && currentBet > 0) { 
-             uBetEl.innerHTML = betHtml; 
-             uPayoutEl.innerText = "0.00 TON"; 
-             uPayoutEl.style.color = "#ff4d4d"; 
-         } else { 
-             uBetEl.innerHTML = betHtml; 
-             uPayoutEl.innerText = "0.00 TON"; 
-             uPayoutEl.style.color = 'var(--text-muted)'; 
-         }
-
-         otherBets.forEach(b => { 
-             if (b.isCashedOut) return; 
-             if (currentPhase === 'flight') { 
-                 b.element.innerText = (b.amount * currentMult).toFixed(2) + " TON"; 
-                 b.element.style.color = "var(--green-color)"; 
-             } else if (currentPhase === 'crash') { 
-                 b.element.innerText = "0.00 TON"; 
-                 b.element.style.color = "#ff4d4d"; 
-             } 
-         });
-         
-         requestAnimationFrame(loop);
-     }
-     
-     loop();
- </script>
-</body>
-              </html>
+         { val: 1.5, chance: 0.4
