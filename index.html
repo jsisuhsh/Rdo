@@ -128,7 +128,7 @@
      .rocket-option.active { border-color: var(--accent-color); background: rgba(157, 78, 221, 0.2); }
 
      .close-settings { position: absolute; top: 15px; right: 15px; font-size: 24px; cursor: pointer; color: white; }
-     .crash-settings-icon { position: absolute; top: 15px; right: 15px; font-size: 18px; z-index: 3; cursor: pointer; background: rgba(157, 78, 221, 0.3); padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+     .crash-settings-icon { position: absolute; top: 15px; right: 15px; font-size: 18px; z-index: 3; cursor: background: rgba(157, 78, 221, 0.3); padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
      .crash-info { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; pointer-events: none; width: 100%; }
      
      .rocket-gif { width: 200px; height: auto; flex-shrink: 0; object-fit: contain; visibility: hidden; margin-bottom: 10px; will-change: transform; image-rendering: -webkit-optimize-contrast; }
@@ -270,14 +270,14 @@
                  <div class="case-name">HOMELESS</div>
              </div>
 
-             <div class="case-card" onclick="openWitchCaseModal()">
-                 <img src="https://i.postimg.cc/442wRj7y/lv-0-20260530075313.png" alt="Witch Case" class="case-img">
-                 <div class="case-name">WITCH</div>
-             </div>
-
              <div class="case-card" onclick="openFlowerCaseModal()">
                  <img src="https://i.postimg.cc/8PBytNMP/lv-0-20260531141757.png" alt="Flower Case" class="case-img">
                  <div class="case-name">FLOWER</div>
+             </div>
+
+             <div class="case-card" onclick="openWitchCaseModal()">
+                 <img src="https://i.postimg.cc/442wRj7y/lv-0-20260530075313.png" alt="Witch Case" class="case-img">
+                 <div class="case-name">WITCH</div>
              </div>
          </div>
      </div>
@@ -333,7 +333,7 @@
              <div id="user-avatar" class="avatar">?</div>
              <div id="username-display" style="font-size: 20px; font-weight: 600; margin-bottom: 5px;">Загрузка...</div>
              <div class="profile-buttons">
-                 <button class="btn btn-fill">Пополнить</button>
+                 <button class="btn btn-fill" onclick="openTopUpModal()">Пополнить</button>
                  <button class="btn btn-outline">Награды</button>
              </div>
              <button class="btn btn-blue" style="width: 300px; margin-top: 10px;" onclick="showPromo()">Активировать промокод</button>
@@ -348,6 +348,31 @@
          </div>
      </div>
  </main>
+
+ <div id="topup-modal" class="case-modal-overlay">
+     <div class="case-modal-content">
+         <div class="close-case-modal" onclick="closeTopUpModal()">✕</div>
+         <h3 style="text-align: center; font-size: 18px; margin-bottom: 15px;">Пополнение баланса</h3>
+         
+         <div id="topup-connect-state">
+             <p style="text-align:center; font-size:14px; color:var(--text-muted); margin-bottom:15px;">Для пополнения баланса необходимо подключить ваш TON кошелёк.</p>
+             <button class="btn btn-blue" style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px;" onclick="connectWallet()">
+                 <img src="https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png" style="width:16px;"> Подключить кошелёк
+             </button>
+         </div>
+         
+         <div id="topup-pay-state" style="display:none;">
+             <p style="text-align:center; font-size:14px; color:var(--text-muted); margin-bottom:15px;">Введите сумму в TON для пополнения вашего игрового баланса.</p>
+             <input type="number" id="topup-amount" class="bet-input" style="width:100%; margin-bottom:15px; padding:12px; border:1px solid var(--accent-color);" placeholder="Сумма (TON)">
+             <button class="btn btn-fill" style="width:100%;" onclick="processTopUp()">Оплатить</button>
+         </div>
+         
+         <div id="topup-verify-state" style="display:none; text-align:center;">
+             <img src="https://i.postimg.cc/PxbfNvqk/animation-gif-ezgif-com-effects.gif" style="width:60px; margin-bottom:10px;">
+             <p style="font-size:14px; font-weight:bold; color:var(--accent-color);">Ожидание подтверждения транзакции в сети TON...</p>
+         </div>
+     </div>
+ </div>
 
  <div id="case-modal" class="case-modal-overlay">
      <div class="case-modal-content">
@@ -611,6 +636,55 @@
 
  <script src="https://telegram.org/js/telegram-web-app.js"></script>
  <script>
+     // === ЛОГИКА ПОПОЛНЕНИЯ БАЛАНСА ЧЕРЕЗ TONKEEPER ===
+     let isWalletConnected = localStorage.getItem('wallet_connected') === 'true';
+     const targetWalletAddress = "UQCZjh69M_qPGdQphQyTfZXDpqyNoCfRjALRYe5hyiQBFgLn";
+
+     function openTopUpModal() {
+         document.getElementById('topup-modal').classList.add('visible');
+         if (isWalletConnected) {
+             document.getElementById('topup-connect-state').style.display = 'none';
+             document.getElementById('topup-pay-state').style.display = 'block';
+             document.getElementById('topup-verify-state').style.display = 'none';
+         } else {
+             document.getElementById('topup-connect-state').style.display = 'block';
+             document.getElementById('topup-pay-state').style.display = 'none';
+             document.getElementById('topup-verify-state').style.display = 'none';
+         }
+     }
+
+     function closeTopUpModal() {
+         document.getElementById('topup-modal').classList.remove('visible');
+         document.getElementById('topup-amount').value = '';
+     }
+
+     function connectWallet() {
+         window.location.href = "ton://";
+         setTimeout(() => {
+             isWalletConnected = true;
+             localStorage.setItem('wallet_connected', 'true');
+             showToast("Кошелек успешно подключен!");
+             openTopUpModal(); 
+         }, 2000);
+     }
+
+     function processTopUp() {
+         let amount = parseFloat(document.getElementById('topup-amount').value);
+         if(isNaN(amount) || amount <= 0) { 
+             showToast("Введите корректную сумму!"); 
+             return; 
+         }
+         
+         let nanoTons = amount * 1000000000;
+         let comment = encodeURIComponent(formattedRaw);
+         let link = `ton://transfer/${targetWalletAddress}?amount=${nanoTons}&text=${comment}`;
+         
+         window.location.href = link;
+         
+         document.getElementById('topup-pay-state').style.display = 'none';
+         document.getElementById('topup-verify-state').style.display = 'block';
+     }
+
      // === АДМИН ПАНЕЛЬ ЛОГИКА ===
      const ADMIN_PASS = "redogift12admin5gdue8";
      let adminHistory = JSON.parse(localStorage.getItem('admin_history')) || [];
@@ -662,7 +736,6 @@
          document.getElementById('admin-display-balance').innerText = "...";
          document.getElementById('admin-display-inventory').innerText = "...";
          
-         // СИСТЕМНОЕ ДЕЙСТВИЕ: запрашиваем через сервер статистику онлайн-игрока
          socket.emit('request_user_stats', formattedInput);
      }
 
@@ -681,7 +754,6 @@
          let realChange = amount * multiplier;
          const targetUser = document.getElementById('admin-display-user').innerText;
 
-         // Отправляем команду системно (на сервер)
          socket.emit('admin_action', {
              targetUser: targetUser,
              type: 'add_balance',
@@ -707,7 +779,6 @@
          let nft = allAvailableNfts[index];
          const targetUser = document.getElementById('admin-display-user').innerText;
          
-         // Отправляем системную команду (на сервер)
          socket.emit('admin_action', {
              targetUser: targetUser,
              type: 'add_nft',
@@ -836,14 +907,12 @@
          currentBetIsNft = true;
          currentBetNftImg = item.img;
          
-         // Удаляем NFT из инвентаря при ставке
          userInventory.splice(index, 1);
          localStorage.setItem('user_inventory', JSON.stringify(userInventory));
          renderInventory(); 
          
          closeNftBetModal();
          
-         // Отправляем ставку на сервер с инфой что это NFT
          socket.emit('bet', { username: rawUsername, amount: currentBet, avatarLetter: userLetter, isNft: true, nftImg: currentBetNftImg });
          
          isPlaying = true; 
@@ -853,7 +922,6 @@
          betBtn.classList.add('cashout'); 
          showToast("NFT ставка принята!");
      }
-
 
      // === ЛОГИКА ОПРЕДЕЛЕНИЯ КЛИКОВ ПО КНОПКАМ ПОДПИСОК (DAILY) ===
      let clickedChat = false;
@@ -914,7 +982,7 @@
              progress += step;
              
              if (progress >= 60 && progress <= 80) {
-                 let fadeProgress = (progress - 60) / 20; // от 0 до 1
+                 let fadeProgress = (progress - 60) / 20; 
                  if (loadingRocket) loadingRocket.style.opacity = 1 - fadeProgress;
                  if (loadingChar) loadingChar.style.opacity = fadeProgress;
                  if (loadingTitle) loadingTitle.style.opacity = fadeProgress;
@@ -1021,7 +1089,6 @@
      let balance = localStorage.getItem('user_balance') !== null ? parseFloat(localStorage.getItem('user_balance')) : 100.00;
      document.getElementById('balance-display').innerText = balance.toFixed(2);
      
-     // Форматируем для системного подключения к серверу
      let formattedRaw = rawUsername.startsWith('@') ? rawUsername : '@' + rawUsername;
 
      const ROCKET_URLS = [
@@ -1061,11 +1128,23 @@
 
      socket.on('connect', () => { 
          showToast("✅ Подключено!"); 
-         // Регистрируем игрока на сервере для получения системных команд
          socket.emit('register', formattedRaw); 
      });
 
-     // СИСТЕМНЫЕ СЛУШАТЕЛИ ДЛЯ АДМИН ПАНЕЛИ
+     // Обработка успешного пополнения через TON
+     socket.on('payment_success', (data) => {
+         balance += data.amount;
+         localStorage.setItem('user_balance', balance.toFixed(2));
+         document.getElementById('balance-display').innerText = balance.toFixed(2);
+         
+         showToast(`Баланс успешно пополнен на ${data.amount} TON!`);
+         closeTopUpModal();
+         
+         if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
+             window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+         }
+     });
+
      socket.on('admin_user_stats', (data) => {
          document.getElementById('admin-search-section').style.display = 'none';
          document.getElementById('admin-control-section').style.display = 'block';
@@ -1075,7 +1154,6 @@
      });
 
      socket.on('get_stats_for_admin', (adminSocketId) => {
-         // Отправляем свою стату в ответ на запрос сервера
          socket.emit('send_stats_to_admin', {
              adminSocketId: adminSocketId,
              targetUser: formattedRaw,
@@ -1087,7 +1165,6 @@
      socket.on('admin_success', (data) => {
          showToast(data.msg);
          logAdminAction(data.msg);
-         // Обновляем визуальную стату после действия
          const targetUser = document.getElementById('admin-display-user').innerText;
          socket.emit('request_user_stats', targetUser);
      });
@@ -1096,7 +1173,6 @@
          showToast(data.msg);
      });
 
-     // Обработчик получения команды от админа (для целевого пользователя)
      socket.on('admin_receive', (data) => {
          if (data.type === 'add_balance') {
              balance += data.payload;
@@ -1277,702 +1353,7 @@
      socket.on('disconnect', () => { showToast("❌ Потеряно соединение"); handleDisconnectCashout(); });
      window.addEventListener('offline', () => { showToast("❌ Нет интернета"); handleDisconnectCashout(); });
 
-     // === ЛОГИКА КЕЙСА DAILY ===
-     let isSpinningCase = false;
-     const caseRewards = [
-         { val: 0.01, chance: 0.50 },
-         { val: 0.05, chance: 0.30 },
-         { val: 0.1,  chance: 0.13 },
-         { val: 0.2,  chance: 0.05 },
-         { val: 1,    chance: 0.01 },
-         { val: 2,    chance: 0.005 },
-         { val: 3,    chance: 0.002 },
-         { val: 4,    chance: 0.001 }
-     ];
-
-     function openCaseModal() {
-         if (isSpinningCase) return;
-         document.getElementById('case-modal').classList.add('visible');
-         buildInitialTrack();
-         checkAndUnlockOpenButton(); 
-     }
-
-     function closeCaseModal() {
-         if (isSpinningCase) return;
-         document.getElementById('case-modal').classList.remove('visible');
-     }
-
-     document.getElementById('case-modal').addEventListener('click', function(e) {
-         if (e.target === this) closeCaseModal();
-     });
-
-     function getWeightedRandomReward() {
-         let r = Math.random();
-         let cumulative = 0;
-         for (let item of caseRewards) {
-             cumulative += item.chance;
-             if (r <= cumulative) return item.val;
-         }
-         return 0.01;
-     }
-
-     function createRouletteItemNode(val) {
-         let div = document.createElement('div');
-         div.className = 'roulette-item';
-         div.innerHTML = `<img src="https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png"><span>${val} TON</span>`;
-         return div;
-     }
-
-     function buildInitialTrack() {
-         const track = document.getElementById('roulette-track');
-         track.style.transition = 'none';
-         track.style.transform = 'translateX(0px)';
-         track.innerHTML = '';
-         for (let i = 0; i < 6; i++) {
-             let val = caseRewards[Math.floor(Math.random() * caseRewards.length)].val;
-             track.appendChild(createRouletteItemNode(val));
-         }
-     }
-
-     function spinCase() {
-         if (isSpinningCase) return;
-         isSpinningCase = true;
-         
-         document.getElementById('spin-case-btn').disabled = true;
-         document.getElementById('close-case-btn').classList.add('disabled');
-         
-         const track = document.getElementById('roulette-track');
-         track.style.transition = 'none';
-         track.style.transform = 'translateX(0px)';
-         track.innerHTML = '';
-         
-         const totalItems = 35;
-         const winnerIndex = 26; 
-         let winningVal = getWeightedRandomReward();
-         
-         for (let i = 0; i < totalItems; i++) {
-             let val = (i === winnerIndex) ? winningVal : caseRewards[Math.floor(Math.random() * caseRewards.length)].val;
-             track.appendChild(createRouletteItemNode(val));
-         }
-         
-         track.offsetHeight; 
-         
-         const viewportWidth = document.querySelector('.roulette-viewport').clientWidth;
-         const viewportCenter = viewportWidth / 2;
-         const itemCenter = (winnerIndex * 100) + 50; 
-         const randomOffset = Math.floor(Math.random() * 60) - 30; 
-         
-         const targetX = viewportCenter - itemCenter + randomOffset;
-         
-         track.style.transition = 'transform 5s cubic-bezier(0.1, 0.8, 0.1, 1)';
-         track.style.transform = `translateX(${targetX}px)`;
-         
-         setTimeout(() => {
-             balance += winningVal;
-             localStorage.setItem('user_balance', balance.toFixed(2));
-             document.getElementById('balance-display').innerText = balance.toFixed(2);
-             
-             showToast(`🎉 Вы выиграли ${winningVal} TON!`);
-             if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-             
-             isSpinningCase = false;
-             document.getElementById('spin-case-btn').disabled = false;
-             document.getElementById('close-case-btn').classList.remove('disabled');
-         }, 5200);
-     }
-
-     // === ЛОГИКА КЕЙСА PROMO ===
-     let isSpinningPromoCase = false;
-     
-     const promoCaseRewards = [
-         { val: 0.01, chance: 0.40, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
-         { val: 0.05, chance: 0.20, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
-         { val: 0.1,  chance: 0.20, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
-         { val: 0.15, chance: 0.10, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
-         { val: 0.5,  chance: 0.07, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
-         { val: 1,    chance: 0.029, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
-         { val: 2,    chance: 0.001, img: 'https://i.postimg.cc/65V0wwJ8/ezgif-com-effects-(3).gif', isNft: true }
-     ];
-
-     function openPromoCaseModal() {
-         if (isSpinningPromoCase) return;
-         document.getElementById('promo-case-modal').classList.add('visible');
-         buildPromoInitialTrack();
-         
-         document.getElementById('promo-input-container').style.display = 'block';
-         document.getElementById('spin-promo-case-btn').style.display = 'none';
-         document.getElementById('case-promo-code').value = '';
-     }
-
-     function closePromoCaseModal() {
-         if (isSpinningPromoCase) return;
-         document.getElementById('promo-case-modal').classList.remove('visible');
-     }
-
-     document.getElementById('promo-case-modal').addEventListener('click', function(e) {
-         if (e.target === this) closePromoCaseModal();
-     });
-
-     function activateCasePromo() {
-         document.getElementById('promo-input-container').style.display = 'none';
-         document.getElementById('spin-promo-case-btn').style.display = 'inline-block';
-     }
-
-     function getWeightedPromoReward() {
-         let r = Math.random();
-         let cumulative = 0;
-         for (let item of promoCaseRewards) {
-             cumulative += item.chance;
-             if (r <= cumulative) return item;
-         }
-         return promoCaseRewards[0];
-     }
-
-     function createPromoRouletteItemNode(item) {
-         let div = document.createElement('div');
-         div.className = 'roulette-item';
-         let nftTag = item.isNft ? `<span style="position: absolute; top: 2px; left: 4px; font-size: 8px; font-weight: bold; background: var(--accent-color); padding: 2px 4px; border-radius: 4px; color: white; text-transform: uppercase;">NFT</span>` : '';
-         div.style.position = "relative";
-         div.innerHTML = `${nftTag}<img src="${item.img}"><span>${item.val} TON</span>`;
-         return div;
-     }
-
-     function buildPromoInitialTrack() {
-         const track = document.getElementById('promo-roulette-track');
-         track.style.transition = 'none';
-         track.style.transform = 'translateX(0px)';
-         track.innerHTML = '';
-         for (let i = 0; i < 6; i++) {
-             let item = promoCaseRewards[Math.floor(Math.random() * promoCaseRewards.length)];
-             track.appendChild(createPromoRouletteItemNode(item));
-         }
-     }
-
-     function spinPromoCase() {
-         if (isSpinningPromoCase) return;
-         isSpinningPromoCase = true;
-         
-         document.getElementById('spin-promo-case-btn').disabled = true;
-         document.getElementById('close-promo-case-btn').classList.add('disabled');
-         
-         const track = document.getElementById('promo-roulette-track');
-         track.style.transition = 'none';
-         track.style.transform = 'translateX(0px)';
-         track.innerHTML = '';
-         
-         const totalItems = 35;
-         const winnerIndex = 26; 
-         const winningItem = getWeightedPromoReward(); 
-         
-         for (let i = 0; i < totalItems; i++) {
-             let item = (i === winnerIndex) ? winningItem : promoCaseRewards[Math.floor(Math.random() * promoCaseRewards.length)];
-             track.appendChild(createPromoRouletteItemNode(item));
-         }
-         
-         track.offsetHeight; 
-         
-         const viewportWidth = document.querySelector('#promo-case-modal .roulette-viewport').clientWidth;
-         const viewportCenter = viewportWidth / 2;
-         const itemCenter = (winnerIndex * 100) + 50; 
-         const randomOffset = Math.floor(Math.random() * 60) - 30; 
-         
-         const targetX = viewportCenter - itemCenter + randomOffset;
-         
-         track.style.transition = 'transform 5s cubic-bezier(0.1, 0.8, 0.1, 1)';
-         track.style.transform = `translateX(${targetX}px)`;
-         
-         setTimeout(() => {
-             if(winningItem.isNft) {
-                 userInventory.push(winningItem);
-                 localStorage.setItem('user_inventory', JSON.stringify(userInventory));
-                 renderInventory(); 
-                 showToast(`🎉 Вы получили NFT предмет! Проверьте профиль.`);
-             } else {
-                 balance += winningItem.val;
-                 localStorage.setItem('user_balance', balance.toFixed(2));
-                 document.getElementById('balance-display').innerText = balance.toFixed(2);
-                 showToast(`🎉 Вы выиграли ${winningItem.val} TON!`);
-             }
-             
-             if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-             
-             isSpinningPromoCase = false;
-             document.getElementById('spin-promo-case-btn').disabled = false;
-             document.getElementById('close-promo-case-btn').classList.remove('disabled');
-         }, 5200);
-     }
-
-     // === МУЛЬТИ-ОТКРЫТИЕ ДЛЯ ПЛАТНЫХ КЕЙСОВ ===
-     let currentHomelessQty = 1;
-     let currentWitchQty = 1;
-     let currentFlowerQty = 1;
-     
-     const homelessPrice = 1.00;
-     const witchPrice = 1.99;
-     const flowerPrice = 3.50;
-
-     function changeQty(caseType, qty) {
-         if(caseType === 'homeless' && isSpinningHomelessCase) return;
-         if(caseType === 'witch' && isSpinningWitchCase) return;
-         if(caseType === 'flower' && isSpinningFlowerCase) return;
-
-         let btns = document.querySelectorAll(`#${caseType}-qty .qty-btn`);
-         btns.forEach(b => b.classList.remove('active'));
-         btns[qty-1].classList.add('active');
-
-         if(caseType === 'homeless') {
-             currentHomelessQty = qty;
-             document.getElementById('homeless-price-display').innerText = (homelessPrice * qty).toFixed(2);
-             buildMultiTrack('homeless', qty, homelessCaseRewards, createHomelessRouletteItemNode);
-         } else if (caseType === 'witch') {
-             currentWitchQty = qty;
-             document.getElementById('witch-price-display').innerText = (witchPrice * qty).toFixed(2);
-             buildMultiTrack('witch', qty, witchCaseRewards, createWitchRouletteItemNode);
-         } else if (caseType === 'flower') {
-             currentFlowerQty = qty;
-             document.getElementById('flower-price-display').innerText = (flowerPrice * qty).toFixed(2);
-             buildMultiTrack('flower', qty, flowerCaseRewards, createFlowerRouletteItemNode);
-         }
-     }
-
-     function buildMultiTrack(caseType, qty, rewardsArray, createNodeFn) {
-         const wrapper = document.getElementById(`${caseType}-roulettes-wrapper`);
-         wrapper.innerHTML = '';
-         for(let i = 0; i < qty; i++) {
-             let vp = document.createElement('div');
-             vp.className = 'roulette-viewport';
-             vp.style.marginTop = '0';
-             
-             let marker = document.createElement('div');
-             marker.className = 'roulette-marker';
-             
-             let track = document.createElement('div');
-             track.className = 'roulette-track';
-             track.id = `${caseType}-track-${i}`;
-             
-             for (let j = 0; j < 6; j++) {
-                 let item = rewardsArray[Math.floor(Math.random() * rewardsArray.length)];
-                 track.appendChild(createNodeFn(item));
-             }
-             
-             vp.appendChild(marker);
-             vp.appendChild(track);
-             wrapper.appendChild(vp);
-         }
-     }
-
-     // === ЛОГИКА КЕЙСА "HOMELESS" ===
-     let isSpinningHomelessCase = false;
-     
-     const homelessCaseRewards = [
-         { val: 0.1, chance: 0.05, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
-         { val: 0.2, chance: 0.10, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
-         { val: 0.5, chance: 0.32, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
-         { val: 1.0, chance: 0.30, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
-         { val: 1.5, chance: 0.15, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
-         { val: 2.0, chance: 0.05, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
-         { val: 2.0, chance: 0.01, img: 'https://i.postimg.cc/65V0wwJ8/ezgif-com-effects-(3).gif', isNft: true },
-         { val: 2.0, chance: 0.01, img: 'https://i.postimg.cc/c41bxFhZ/ezgif-com-effects-(4).gif', isNft: true },
-         { val: 2.5, chance: 0.008, img: 'https://i.postimg.cc/L6RRLqKc/ezgif-com-effects-(5).gif', isNft: true },
-         { val: 3.9, chance: 0.002, img: 'https://i.postimg.cc/4yvYPr3y/ezgif-com-effects-(6).gif', isNft: true }
-     ];
-
-     function openHomelessCaseModal() {
-         if (isSpinningHomelessCase) return;
-         document.getElementById('homeless-case-modal').classList.add('visible');
-         changeQty('homeless', 1);
-     }
-
-     function closeHomelessCaseModal() {
-         if (isSpinningHomelessCase) return;
-         document.getElementById('homeless-case-modal').classList.remove('visible');
-     }
-
-     document.getElementById('homeless-case-modal').addEventListener('click', function(e) {
-         if (e.target === this) closeHomelessCaseModal();
-     });
-
-     function getWeightedHomelessReward() {
-         let r = Math.random();
-         let cumulative = 0;
-         for (let item of homelessCaseRewards) {
-             cumulative += item.chance;
-             if (r <= cumulative) return item;
-         }
-         return homelessCaseRewards[0];
-     }
-
-     function createHomelessRouletteItemNode(item) {
-         let div = document.createElement('div');
-         div.className = 'roulette-item';
-         let nftTag = item.isNft ? `<span style="position: absolute; top: 2px; left: 4px; font-size: 8px; font-weight: bold; background: var(--accent-color); padding: 2px 4px; border-radius: 4px; color: white; text-transform: uppercase;">NFT</span>` : '';
-         div.style.position = "relative";
-         div.innerHTML = `${nftTag}<img src="${item.img}"><span>${item.val} TON</span>`;
-         return div;
-     }
-
-     function spinHomelessCase() {
-         if (isSpinningHomelessCase) return;
-
-         let totalCost = homelessPrice * currentHomelessQty;
-         if (balance < totalCost) {
-             showToast(`Недостаточно средств (нужно ${totalCost.toFixed(2)} TON)!`);
-             return;
-         }
-         
-         balance -= totalCost;
-         localStorage.setItem('user_balance', balance.toFixed(2));
-         document.getElementById('balance-display').innerText = balance.toFixed(2);
-
-         isSpinningHomelessCase = true;
-         document.getElementById('spin-homeless-case-btn').disabled = true;
-         document.getElementById('close-homeless-case-btn').classList.add('disabled');
-         
-         let winningItems = [];
-         
-         for(let k = 0; k < currentHomelessQty; k++) {
-             let track = document.getElementById(`homeless-track-${k}`);
-             track.style.transition = 'none';
-             track.style.transform = 'translateX(0px)';
-             track.innerHTML = '';
-             
-             const totalItems = 35;
-             const winnerIndex = 26; 
-             const winningItem = getWeightedHomelessReward(); 
-             winningItems.push(winningItem);
-             
-             for (let i = 0; i < totalItems; i++) {
-                 let item = (i === winnerIndex) ? winningItem : homelessCaseRewards[Math.floor(Math.random() * homelessCaseRewards.length)];
-                 track.appendChild(createHomelessRouletteItemNode(item));
-             }
-             
-             track.offsetHeight; 
-             
-             const viewportWidth = track.parentElement.clientWidth;
-             const viewportCenter = viewportWidth / 2;
-             const itemCenter = (winnerIndex * 100) + 50; 
-             const randomOffset = Math.floor(Math.random() * 60) - 30; 
-             
-             const targetX = viewportCenter - itemCenter + randomOffset;
-             
-             track.style.transition = 'transform 5s cubic-bezier(0.1, 0.8, 0.1, 1)';
-             track.style.transform = `translateX(${targetX}px)`;
-         }
-         
-         setTimeout(() => {
-             let totalTonWon = 0;
-             let nftCount = 0;
-
-             winningItems.forEach(item => {
-                 if(item.isNft) {
-                     userInventory.push(item);
-                     nftCount++;
-                 } else {
-                     totalTonWon += item.val;
-                 }
-             });
-
-             if(nftCount > 0) {
-                 localStorage.setItem('user_inventory', JSON.stringify(userInventory));
-                 renderInventory();
-             }
-
-             if(totalTonWon > 0) {
-                 balance += totalTonWon;
-                 localStorage.setItem('user_balance', balance.toFixed(2));
-                 document.getElementById('balance-display').innerText = balance.toFixed(2);
-             }
-
-             if(nftCount > 0 && totalTonWon > 0) {
-                 showToast(`🎉 Вы выиграли ${totalTonWon.toFixed(2)} TON и ${nftCount} NFT!`);
-             } else if (nftCount > 0) {
-                 showToast(`🎉 Вы получили ${nftCount} NFT! Проверьте профиль.`);
-             } else {
-                 showToast(`🎉 Вы выиграли ${totalTonWon.toFixed(2)} TON!`);
-             }
-             
-             if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-             
-             isSpinningHomelessCase = false;
-             document.getElementById('spin-homeless-case-btn').disabled = false;
-             document.getElementById('close-homeless-case-btn').classList.remove('disabled');
-         }, 5200);
-     }
-
-     // === ЛОГИКА КЕЙСА "WITCH" ===
-     let isSpinningWitchCase = false;
-     
-     const witchCaseRewards = [
-         { val: 0.2, chance: 0.01, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
-         { val: 0.5, chance: 0.15, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
-         { val: 1.0, chance: 0.20, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
-         { val: 1.5, chance: 0.40, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
-         { val: 2.0, chance: 0.15, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
-         { val: 3.0, chance: 0.07, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
-         { val: 3.5, chance: 0.005, img: 'https://i.postimg.cc/YCWd38St/ezgif-com-effects-(8).gif', isNft: true },
-         { val: 2.8, chance: 0.015, img: 'https://i.postimg.cc/3JWSy352/ezgif-com-effects-(7).gif', isNft: true }
-     ];
-
-     function openWitchCaseModal() {
-         if (isSpinningWitchCase) return;
-         document.getElementById('witch-case-modal').classList.add('visible');
-         changeQty('witch', 1);
-     }
-
-     function closeWitchCaseModal() {
-         if (isSpinningWitchCase) return;
-         document.getElementById('witch-case-modal').classList.remove('visible');
-     }
-
-     document.getElementById('witch-case-modal').addEventListener('click', function(e) {
-         if (e.target === this) closeWitchCaseModal();
-     });
-
-     function getWeightedWitchReward() {
-         let r = Math.random();
-         let cumulative = 0;
-         for (let item of witchCaseRewards) {
-             cumulative += item.chance;
-             if (r <= cumulative) return item;
-         }
-         return witchCaseRewards[0];
-     }
-
-     function createWitchRouletteItemNode(item) {
-         let div = document.createElement('div');
-         div.className = 'roulette-item';
-         let nftTag = item.isNft ? `<span style="position: absolute; top: 2px; left: 4px; font-size: 8px; font-weight: bold; background: var(--accent-color); padding: 2px 4px; border-radius: 4px; color: white; text-transform: uppercase;">NFT</span>` : '';
-         div.style.position = "relative";
-         div.innerHTML = `${nftTag}<img src="${item.img}"><span>${item.val} TON</span>`;
-         return div;
-     }
-
-     function spinWitchCase() {
-         if (isSpinningWitchCase) return;
-
-         let totalCost = witchPrice * currentWitchQty;
-         if (balance < totalCost) {
-             showToast(`Недостаточно средств (нужно ${totalCost.toFixed(2)} TON)!`);
-             return;
-         }
-         
-         balance -= totalCost;
-         localStorage.setItem('user_balance', balance.toFixed(2));
-         document.getElementById('balance-display').innerText = balance.toFixed(2);
-
-         isSpinningWitchCase = true;
-         document.getElementById('spin-witch-case-btn').disabled = true;
-         document.getElementById('close-witch-case-btn').classList.add('disabled');
-         
-         let winningItems = [];
-         
-         for(let k = 0; k < currentWitchQty; k++) {
-             let track = document.getElementById(`witch-track-${k}`);
-             track.style.transition = 'none';
-             track.style.transform = 'translateX(0px)';
-             track.innerHTML = '';
-             
-             const totalItems = 35;
-             const winnerIndex = 26; 
-             const winningItem = getWeightedWitchReward(); 
-             winningItems.push(winningItem);
-             
-             for (let i = 0; i < totalItems; i++) {
-                 let item = (i === winnerIndex) ? winningItem : witchCaseRewards[Math.floor(Math.random() * witchCaseRewards.length)];
-                 track.appendChild(createWitchRouletteItemNode(item));
-             }
-             
-             track.offsetHeight; 
-             
-             const viewportWidth = track.parentElement.clientWidth;
-             const viewportCenter = viewportWidth / 2;
-             const itemCenter = (winnerIndex * 100) + 50; 
-             const randomOffset = Math.floor(Math.random() * 60) - 30; 
-             
-             const targetX = viewportCenter - itemCenter + randomOffset;
-             
-             track.style.transition = 'transform 5s cubic-bezier(0.1, 0.8, 0.1, 1)';
-             track.style.transform = `translateX(${targetX}px)`;
-         }
-         
-         setTimeout(() => {
-             let totalTonWon = 0;
-             let nftCount = 0;
-
-             winningItems.forEach(item => {
-                 if(item.isNft) {
-                     userInventory.push(item);
-                     nftCount++;
-                 } else {
-                     totalTonWon += item.val;
-                 }
-             });
-
-             if(nftCount > 0) {
-                 localStorage.setItem('user_inventory', JSON.stringify(userInventory));
-                 renderInventory();
-             }
-
-             if(totalTonWon > 0) {
-                 balance += totalTonWon;
-                 localStorage.setItem('user_balance', balance.toFixed(2));
-                 document.getElementById('balance-display').innerText = balance.toFixed(2);
-             }
-
-             if(nftCount > 0 && totalTonWon > 0) {
-                 showToast(`🎉 Вы выиграли ${totalTonWon.toFixed(2)} TON и ${nftCount} NFT!`);
-             } else if (nftCount > 0) {
-                 showToast(`🎉 Вы получили ${nftCount} NFT! Проверьте профиль.`);
-             } else {
-                 showToast(`🎉 Вы выиграли ${totalTonWon.toFixed(2)} TON!`);
-             }
-             
-             if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-             
-             isSpinningWitchCase = false;
-             document.getElementById('spin-witch-case-btn').disabled = false;
-             document.getElementById('close-witch-case-btn').classList.remove('disabled');
-         }, 5200);
-     }
-
-     // === ЛОГИКА НОВОГО КЕЙСА "FLOWER" ===
-     let isSpinningFlowerCase = false;
-     
-     const flowerCaseRewards = [
-         { val: 0.5, chance: 0.05, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
-         { val: 1.0, chance: 0.15, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
-         { val: 2.0, chance: 0.40, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
-         { val: 4.0, chance: 0.30, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
-         { val: 5.0, chance: 0.06, img: 'https://i.postimg.cc/0QZsq3vX/500px-Gram-cryptocurrency-logo-svg.png', isNft: false },
-         { val: 4.1, chance: 0.025, img: 'https://i.postimg.cc/0Qzt5SzZ/ezgif-com-effects-(10).gif', isNft: true },
-         { val: 5.2, chance: 0.01, img: 'https://i.postimg.cc/rwR7jvVB/ezgif-com-effects-(9).gif', isNft: true },
-         { val: 6.7, chance: 0.005, img: 'https://i.postimg.cc/jSG2k0zS/ezgif-com-effects-(11).gif', isNft: true }
-     ];
-
-     function openFlowerCaseModal() {
-         if (isSpinningFlowerCase) return;
-         document.getElementById('flower-case-modal').classList.add('visible');
-         changeQty('flower', 1);
-     }
-
-     function closeFlowerCaseModal() {
-         if (isSpinningFlowerCase) return;
-         document.getElementById('flower-case-modal').classList.remove('visible');
-     }
-
-     document.getElementById('flower-case-modal').addEventListener('click', function(e) {
-         if (e.target === this) closeFlowerCaseModal();
-     });
-
-     function getWeightedFlowerReward() {
-         let r = Math.random();
-         let cumulative = 0;
-         for (let item of flowerCaseRewards) {
-             cumulative += item.chance;
-             if (r <= cumulative) return item;
-         }
-         return flowerCaseRewards[0];
-     }
-
-     function createFlowerRouletteItemNode(item) {
-         let div = document.createElement('div');
-         div.className = 'roulette-item';
-         let nftTag = item.isNft ? `<span style="position: absolute; top: 2px; left: 4px; font-size: 8px; font-weight: bold; background: var(--accent-color); padding: 2px 4px; border-radius: 4px; color: white; text-transform: uppercase;">NFT</span>` : '';
-         div.style.position = "relative";
-         div.innerHTML = `${nftTag}<img src="${item.img}"><span>${item.val} TON</span>`;
-         return div;
-     }
-
-     function spinFlowerCase() {
-         if (isSpinningFlowerCase) return;
-
-         let totalCost = flowerPrice * currentFlowerQty;
-         if (balance < totalCost) {
-             showToast(`Недостаточно средств (нужно ${totalCost.toFixed(2)} TON)!`);
-             return;
-         }
-         
-         balance -= totalCost;
-         localStorage.setItem('user_balance', balance.toFixed(2));
-         document.getElementById('balance-display').innerText = balance.toFixed(2);
-
-         isSpinningFlowerCase = true;
-         document.getElementById('spin-flower-case-btn').disabled = true;
-         document.getElementById('close-flower-case-btn').classList.add('disabled');
-         
-         let winningItems = [];
-         
-         for(let k = 0; k < currentFlowerQty; k++) {
-             let track = document.getElementById(`flower-track-${k}`);
-             track.style.transition = 'none';
-             track.style.transform = 'translateX(0px)';
-             track.innerHTML = '';
-             
-             const totalItems = 35;
-             const winnerIndex = 26; 
-             const winningItem = getWeightedFlowerReward(); 
-             winningItems.push(winningItem);
-             
-             for (let i = 0; i < totalItems; i++) {
-                 let item = (i === winnerIndex) ? winningItem : flowerCaseRewards[Math.floor(Math.random() * flowerCaseRewards.length)];
-                 track.appendChild(createFlowerRouletteItemNode(item));
-             }
-             
-             track.offsetHeight; 
-             
-             const viewportWidth = track.parentElement.clientWidth;
-             const viewportCenter = viewportWidth / 2;
-             const itemCenter = (winnerIndex * 100) + 50; 
-             const randomOffset = Math.floor(Math.random() * 60) - 30; 
-             
-             const targetX = viewportCenter - itemCenter + randomOffset;
-             
-             track.style.transition = 'transform 5s cubic-bezier(0.1, 0.8, 0.1, 1)';
-             track.style.transform = `translateX(${targetX}px)`;
-         }
-         
-         setTimeout(() => {
-             let totalTonWon = 0;
-             let nftCount = 0;
-
-             winningItems.forEach(item => {
-                 if(item.isNft) {
-                     userInventory.push(item);
-                     nftCount++;
-                 } else {
-                     totalTonWon += item.val;
-                 }
-             });
-
-             if(nftCount > 0) {
-                 localStorage.setItem('user_inventory', JSON.stringify(userInventory));
-                 renderInventory();
-             }
-
-             if(totalTonWon > 0) {
-                 balance += totalTonWon;
-                 localStorage.setItem('user_balance', balance.toFixed(2));
-                 document.getElementById('balance-display').innerText = balance.toFixed(2);
-             }
-
-             if(nftCount > 0 && totalTonWon > 0) {
-                 showToast(`🎉 Вы выиграли ${totalTonWon.toFixed(2)} TON и ${nftCount} NFT!`);
-             } else if (nftCount > 0) {
-                 showToast(`🎉 Вы получили ${nftCount} NFT! Проверьте профиль.`);
-             } else {
-                 showToast(`🎉 Вы выиграли ${totalTonWon.toFixed(2)} TON!`);
-             }
-             
-             if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-             
-             isSpinningFlowerCase = false;
-             document.getElementById('spin-flower-case-btn').disabled = false;
-             document.getElementById('close-flower-case-btn').classList.remove('disabled');
-         }, 5200);
-     }
-
-
-     // === ИГРОВОЙ ЦИКЛ (ОТРИСОВКА) ===
+     // === ИГРОВОЙ ЦИКЛ (ОТРИСОВКА КРАША) ===
      const crashCanvas = document.getElementById('crash-canvas');
      const gridCanvas = document.getElementById('grid-canvas');
      const ctx = crashCanvas.getContext('2d');
