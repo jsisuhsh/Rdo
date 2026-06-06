@@ -2,6 +2,7 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
+const https = require('https'); // Встроенный модуль для запросов к API TON
 
 const app = express();
 app.use(cors());
@@ -20,8 +21,68 @@ let phaseStartTime = Date.now();
 let targetMultiplier = 1.00;
 
 // Справочник подключенных пользователей (username -> socket.id)
-// Необходим для того, чтобы сервер знал, кому именно начислять TON и NFT
 const connectedUsers = {};
+
+// ===========================================
+// ЛОГИКА РЕАЛЬНОГО ПОПОЛНЕНИЯ БАЛАНСА TON
+// ===========================================
+const TARGET_WALLET = "UQCZjh69M_qPGdQphQyTfZXDpqyNoCfRjALRYe5hyiQBFgLn"; // Ваш кошелек
+const processedTransactions = new Set(); // Хранилище обработанных хэшей транзакций
+
+function checkTONPayments() {
+    // Делаем запрос к блокчейну TON (бесплатный Toncenter API) на проверку последних 10 транзакций
+    const url = `https://toncenter.com/api/v2/getTransactions?address=${TARGET_WALLET}&limit=10`;
+    
+    https.get(url, (res) => {
+        let data = '';
+        res.on('data', (chunk) => { data += chunk; });
+        res.on('end', () => {
+            try {
+                const json = JSON.parse(data);
+                if (json.ok && json.result) {
+                    json.result.forEach(tx => {
+                        const hash = tx.transaction_id.hash;
+                        
+                        // Если мы уже обработали эту транзакцию, пропускаем её
+                        if (processedTransactions.has(hash)) return;
+                        
+                        const inMsg = tx.in_msg;
+                        // Проверяем, что это входящий перевод и в нём есть значение > 0
+                        if (inMsg && inMsg.value > 0) {
+                            const amountTon = inMsg.value / 1000000000; // Переводим нанотоны в TON
+                            const comment = inMsg.message || ""; // Комментарий, который мы передали (username)
+                            
+                            if (comment) {
+                                const usernameKey = comment.toLowerCase().trim();
+                                const targetSocketId = connectedUsers[usernameKey];
+                                
+                                // Если игрок с таким ником сейчас онлайн в игре
+                                if (targetSocketId) {
+                                    processedTransactions.add(hash); // Запоминаем транзакцию, чтобы не начислить дважды
+                                    
+                                    // Отправляем команду конкретному игроку об успешном пополнении
+                                    io.to(targetSocketId).emit('payment_success', {
+                                        amount: amountTon,
+                                        hash: hash
+                                    });
+                                    console.log(`[TON] Успешный платеж: ${amountTon} TON от ${usernameKey}`);
+                                }
+                            }
+                        }
+                    });
+                }
+            } catch (e) {
+                console.error("Ошибка парсинга TON API:", e);
+            }
+        });
+    }).on('error', (e) => {
+        console.error("Ошибка сети TON API:", e);
+    });
+}
+
+// Запускаем проверку блокчейна каждые 10 секунд
+setInterval(checkTONPayments, 10000);
+// ===========================================
 
 // Математическая функция генерации точки взрыва (Crash)
 function generateCrashMultiplier() {
@@ -93,10 +154,10 @@ io.on('connection', (socket) => {
         targetMultiplier: targetMultiplier
     });
 
-    // Регистрация пользователя по username (чтобы админ мог его найти системно)
+    // Регистрация пользователя по username
     socket.on('register', (username) => {
         if (username) {
-            connectedUsers[username.toLowerCase()] = socket.id;
+            connectedUsers[username.toLowerCase().trim()] = socket.id;
         }
     });
 
@@ -116,7 +177,7 @@ io.on('connection', (socket) => {
     
     // Запрос от админа на получение текущей статистики игрока
     socket.on('request_user_stats', (targetUser) => {
-        const targetSocketId = connectedUsers[targetUser.toLowerCase()];
+        const targetSocketId = connectedUsers[targetUser.toLowerCase().trim()];
         if (targetSocketId) {
             // Запрашиваем статистику у самого игрока
             io.to(targetSocketId).emit('get_stats_for_admin', socket.id);
@@ -132,11 +193,10 @@ io.on('connection', (socket) => {
 
     // Отправка команды на пополнение баланса или выдачу NFT
     socket.on('admin_action', (data) => {
-        const targetUser = data.targetUser.toLowerCase();
+        const targetUser = data.targetUser.toLowerCase().trim();
         const targetSocketId = connectedUsers[targetUser];
 
         if (targetSocketId) {
-            // Отправляем команду системно напрямую целевому игроку
             io.to(targetSocketId).emit('admin_receive', data);
             socket.emit('admin_success', { msg: `Действие успешно применено к игроку ${data.targetUser}!` });
         } else {
