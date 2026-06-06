@@ -21,16 +21,17 @@ let phaseStartTime = Date.now();
 let targetMultiplier = 1.00;
 
 // Справочник подключенных пользователей (username -> socket.id)
+// Необходим для того, чтобы сервер знал, кому именно начислять TON
 const connectedUsers = {};
 
 // ===========================================
-// ЛОГИКА РЕАЛЬНОГО ПОПОЛНЕНИЯ БАЛАНСА TON
+// СИСТЕМА РЕАЛЬНОГО ПОПОЛНЕНИЯ ЧЕРЕЗ TON
 // ===========================================
 const TARGET_WALLET = "UQCZjh69M_qPGdQphQyTfZXDpqyNoCfRjALRYe5hyiQBFgLn"; // Ваш кошелек
-const processedTransactions = new Set(); // Хранилище обработанных хэшей транзакций
+const processedTransactions = new Set(); // Хранилище обработанных хэшей транзакций, чтобы не начислить дважды
 
 function checkTONPayments() {
-    // Делаем запрос к блокчейну TON (бесплатный Toncenter API) на проверку последних 10 транзакций
+    // Запрос к бесплатному API Toncenter для получения последних 10 транзакций
     const url = `https://toncenter.com/api/v2/getTransactions?address=${TARGET_WALLET}&limit=10`;
     
     https.get(url, (res) => {
@@ -43,24 +44,24 @@ function checkTONPayments() {
                     json.result.forEach(tx => {
                         const hash = tx.transaction_id.hash;
                         
-                        // Если мы уже обработали эту транзакцию, пропускаем её
+                        // Если транзакция уже была обработана, пропускаем
                         if (processedTransactions.has(hash)) return;
                         
                         const inMsg = tx.in_msg;
-                        // Проверяем, что это входящий перевод и в нём есть значение > 0
+                        // Проверяем входящий перевод
                         if (inMsg && inMsg.value > 0) {
-                            const amountTon = inMsg.value / 1000000000; // Переводим нанотоны в TON
-                            const comment = inMsg.message || ""; // Комментарий, который мы передали (username)
+                            const amountTon = inMsg.value / 1000000000; // Нанотоны в TON
+                            const comment = inMsg.message || ""; // Читаем комментарий (@username)
                             
                             if (comment) {
                                 const usernameKey = comment.toLowerCase().trim();
                                 const targetSocketId = connectedUsers[usernameKey];
                                 
-                                // Если игрок с таким ником сейчас онлайн в игре
+                                // Если игрок с таким ником сейчас онлайн, начисляем баланс
                                 if (targetSocketId) {
-                                    processedTransactions.add(hash); // Запоминаем транзакцию, чтобы не начислить дважды
+                                    processedTransactions.add(hash);
                                     
-                                    // Отправляем команду конкретному игроку об успешном пополнении
+                                    // Отправляем игроку команду об успешном пополнении
                                     io.to(targetSocketId).emit('payment_success', {
                                         amount: amountTon,
                                         hash: hash
@@ -80,7 +81,7 @@ function checkTONPayments() {
     });
 }
 
-// Запускаем проверку блокчейна каждые 10 секунд
+// Запускаем проверку кошелька каждые 10 секунд
 setInterval(checkTONPayments, 10000);
 // ===========================================
 
@@ -154,7 +155,7 @@ io.on('connection', (socket) => {
         targetMultiplier: targetMultiplier
     });
 
-    // Регистрация пользователя по username
+    // Регистрация пользователя по username (чтобы админ или система оплаты могли его найти)
     socket.on('register', (username) => {
         if (username) {
             connectedUsers[username.toLowerCase().trim()] = socket.id;
@@ -197,6 +198,7 @@ io.on('connection', (socket) => {
         const targetSocketId = connectedUsers[targetUser];
 
         if (targetSocketId) {
+            // Отправляем команду системно напрямую целевому игроку
             io.to(targetSocketId).emit('admin_receive', data);
             socket.emit('admin_success', { msg: `Действие успешно применено к игроку ${data.targetUser}!` });
         } else {
@@ -224,7 +226,10 @@ io.on('connection', (socket) => {
 const PORT = process.env.PORT || 3000;
 const path = require('path');
 
+// Укажите, что статические файлы лежат в папке, где находится server.js
 app.use(express.static(path.join(__dirname)));
+
+// Маршрут для отдачи index.html
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
